@@ -533,37 +533,29 @@ namespace RockWeb.Blocks.Utility
                         editHtml = $"<a data-href='{url}' title='Edit' class='btn btn-xs btn-square btn-default js-edit-file action'><i class='fa fa-pencil'></i></a>";
                     }
 
-                    string nameHtmlFormat = @"
-<li class='js-rocklist-item rocklist-item' data-id='{0}' title='{2}'>
+                    // put the file timestamp as part of the URL to that changed files are loaded from the server instead of the browser cache
+                    var fileDateTime = File.GetLastWriteTimeUtc( filePath );
+                    imageUrl += "&timeStamp=" + fileDateTime.Ticks.ToString();
+
+                    string nameHtml = $@"
+<li class='js-rocklist-item rocklist-item' data-id='{HttpUtility.HtmlEncode( relativeFilePath )}' title='{fileName}'>
     <div class='rollover-container'>
         <div class='rollover-item actions'>
             <a title='Delete' class='btn btn-xs btn-square btn-danger js-delete-file action'>
                 <i class='fa fa-times'></i>
             </a>
-            <a href='{3}' target='_blank' title='Download' class='btn btn-xs btn-square btn-default js-download-file action'>
+            <a href='{HttpUtility.HtmlEncode( this.ResolveUrl( imagePath ) )}' target='_blank' title='Download' class='btn btn-xs btn-square btn-default js-download-file action'>
                 <i class='fa fa-download'></i>
             </a>
-            {4}
+            {editHtml}
         </div>
 
-        <img src='{1}' class='file-browser-image' />
+        <img src='{imageUrl}' class='file-browser-image' />
         <br />
-        <span class='file-name'>{2}</span>
+        <span class='file-name'>{fileName}</span>
     </div>
 </li>
 ";
-
-                    // put the file timestamp as part of the URL to that changed files are loaded from the server instead of the browser cache
-                    var fileDateTime = File.GetLastWriteTimeUtc( filePath );
-                    imageUrl += "&timeStamp=" + fileDateTime.Ticks.ToString();
-
-                    string nameHtml = string.Format(
-                        nameHtmlFormat,
-                        HttpUtility.HtmlEncode( relativeFilePath ),
-                        imageUrl,
-                        fileName,
-                        HttpUtility.HtmlEncode( this.ResolveUrl( imagePath ) ),
-                        editHtml );
 
                     sb.AppendLine( nameHtml );
                 }
