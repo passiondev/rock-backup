@@ -2,16 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Mobile;
 using Rock.Search;
-using Rock.UniversalSearch;
-using Rock.UniversalSearch.IndexModels;
-using Rock.Web.Cache;
 
 namespace Rock.Blocks.Types.Mobile.Core
 {
@@ -206,6 +201,12 @@ namespace Rock.Blocks.Types.Mobile.Core
 
         #region Methods
 
+        /// <summary>
+        /// Gets the search result item view model for the original item.
+        /// </summary>
+        /// <param name="item">The item to be represented by the view model.</param>
+        /// <param name="content">The content to be displayed for this item.</param>
+        /// <returns>A new <see cref="SearchResultItemViewModel"/> instance that represents the item.</returns>
         private SearchResultItemViewModel GetSearchResultItemViewModel( object item, string content )
         {
             var viewModel = new SearchResultItemViewModel
@@ -229,41 +230,24 @@ namespace Rock.Blocks.Types.Mobile.Core
             return viewModel;
         }
 
-        #endregion
-
-        #region Block Actions
-
-        [BlockAction( "Search" )]
-        public BlockActionResult GetSearchResults( string searchTerm, int offset )
+        /// <summary>
+        /// Gets the search result item view models from the result set.
+        /// </summary>
+        /// <param name="results">The results to be converted into view models.</param>
+        /// <returns>A list of <see cref="SearchResultItemViewModel"/> objects that represent the results.</returns>
+        private List<SearchResultItemViewModel> GetSearchResultItems( List<object> results )
         {
-            var searchComponent = SearchComponent;
             var itemTemplate = ResultItemTemplate;
-
-            if ( searchComponent == null || !searchComponent.IsActive )
-            {
-                return ActionInternalServerError( "Search component is not configured or not active." );
-            }
-
-            var results = searchComponent.SearchQuery( searchTerm )
-                .Skip( offset )
-                .Take( MaxResults + 1 )
-                .ToList();
-
-            var hasMore = false;
-
-            if ( results.Count > MaxResults )
-            {
-                hasMore = true;
-                results = results.Take( MaxResults ).ToList();
-            }
-
             var mergeFields = RequestContext.GetCommonMergeFields();
 
-            var contentResults = results
+            // Convert the results into item view models that will be understood
+            // by the client.
+            var resultItems = results
                 .Select( r =>
                 {
+                    // Get the item type so the lava template can do conditional
+                    // rendering based on the type.
                     var type = r.GetType();
-
                     if ( type.IsDynamicProxyType() )
                     {
                         type = type.BaseType;
@@ -278,22 +262,85 @@ namespace Rock.Blocks.Types.Mobile.Core
                 } )
                 .ToList();
 
+            return resultItems;
+        }
+
+        #endregion
+
+        #region Block Actions
+
+        /// <summary>
+        /// Gets the search results that match the term.
+        /// </summary>
+        /// <param name="searchTerm">The search term to use for matching.</param>
+        /// <param name="offset">The number of results to skip.</param>
+        /// <returns>A view model that represents the results of the search.</returns>
+        [BlockAction( "Search" )]
+        public BlockActionResult GetSearchResults( string searchTerm, int offset = 0 )
+        {
+            var searchComponent = SearchComponent;
+            var hasMore = false;
+
+            if ( searchComponent == null || !searchComponent.IsActive )
+            {
+                return ActionInternalServerError( "Search component is not configured or not active." );
+            }
+
+            // Perform the search, take one more than configured so we can
+            // determine if there are more items.
+            var results = searchComponent.SearchQuery( searchTerm )
+                .Skip( offset )
+                .Take( MaxResults + 1 )
+                .ToList();
+
+            // Check if we have more results than we will send, if so then set
+            // the flag to tell the client there are more results available.
+            if ( results.Count > MaxResults )
+            {
+                hasMore = true;
+                results = results.Take( MaxResults ).ToList();
+            }
+
+            // Convert the results into view models.
+            var resultItems = GetSearchResultItems( results );
+
             return ActionOk( new
             {
                 HasMore = hasMore,
-                Results = contentResults
+                Results = resultItems
             } );
         }
 
         #endregion
 
+        #region View Models
+
+        /// <summary>
+        /// A view model that represents a single search result item to be
+        /// displayed by the client.
+        /// </summary>
         private class SearchResultItemViewModel
         {
+            /// <summary>
+            /// Gets or sets the unique identifier of the search result item.
+            /// </summary>
+            /// <value>The unique identifier of the search result item.</value>
             public Guid? Guid { get; set; }
 
+            /// <summary>
+            /// Gets or sets the detail query string parameter key to be used
+            /// when performing the detail navigation action.
+            /// </summary>
+            /// <value>The detail key query string parameter key.</value>
             public string DetailKey { get; set; }
 
+            /// <summary>
+            /// Gets or sets the content to be displayed for this item.
+            /// </summary>
+            /// <value>The content to be displayed for this item.</value>
             public string Content { get; set; }
         }
+
+        #endregion
     }
 }
