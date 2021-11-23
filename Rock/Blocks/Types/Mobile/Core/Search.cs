@@ -50,17 +50,19 @@ namespace Rock.Blocks.Types.Mobile.Core
         Key = AttributeKey.SearchPlaceholderText,
         Order = 3 )]
 
+    [BlockTemplateField( "Result Item Template",
+        Description = "Lava template for rendering each result item. The Lava merge field will be 'Item'.",
+        TemplateBlockValueGuid = SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_SEARCH,
+        IsRequired = true,
+        DefaultValue = "50FABA2A-B23C-46CD-A634-2F54BC1AE8C3",
+        Key = AttributeKey.ResultItemTemplate,
+        Order = 4 )]
+
     [CodeEditorField( "Results Separator Content",
         Description = "Content to display between the search input and the results. This content will show with the display of the results.",
         IsRequired = false,
-        DefaultValue = "<StackLayout StyleClass=\"search-result-header\"><Rock:Divider /></StackLayout>",
+        DefaultValue = DefaultAttributeValue.ResultsSeparatorContent,
         Key = AttributeKey.ResultsSeparatorContent,
-        Order = 4 )]
-
-    [CodeEditorField( "Result Item Template",
-        Description = "",
-        IsRequired = true,
-        Key = AttributeKey.ResultItemTemplate,
         Order = 5 )]
 
     [MobileNavigationActionField( "Detail Navigation Action",
@@ -84,7 +86,17 @@ namespace Rock.Blocks.Types.Mobile.Core
         #region Block Attributes
 
         /// <summary>
-        /// The block setting attribute keys for the MobileContent block.
+        /// The default attribute values.
+        /// </summary>
+        private static class DefaultAttributeValue
+        {
+            public const string ResultsSeparatorContent = @"<StackLayout StyleClass=""search-result-header"">
+    <Rock:Divider />
+</StackLayout>";
+        }
+
+        /// <summary>
+        /// The block setting attribute keys.
         /// </summary>
         private static class AttributeKey
         {
@@ -149,8 +161,12 @@ namespace Rock.Blocks.Types.Mobile.Core
         /// Gets the result item template.
         /// </summary>
         /// <value>The result item template.</value>
-        protected string ResultItemTemplate => GetAttributeValue( AttributeKey.ResultItemTemplate );
+        protected string ResultItemTemplate => Rock.Field.Types.BlockTemplateFieldType.GetTemplateContent( GetAttributeValue( AttributeKey.ResultItemTemplate ) );
 
+        /// <summary>
+        /// Gets the detail navigation action.
+        /// </summary>
+        /// <value>The detail navigation action.</value>
         internal MobileNavigationAction DetailNavigationAction => GetAttributeValue( AttributeKey.DetailNavigationAction ).FromJsonOrNull<MobileNavigationAction>() ?? new MobileNavigationAction();
 
         /// <summary>

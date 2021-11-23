@@ -110,6 +110,11 @@ namespace Rock.SystemGuid
         /// </summary>
         public const string BLOCK_TEMPLATE_MOBILE_PRAYER_SESSION = "6F1F6BAB-B403-48D1-BF6A-52B16361279C";
 
+        /// <summary>
+        /// The block template for <see cref="Rock.Blocks.Types.Mobile.Core.Search"/> block.
+        /// </summary>
+        public const string BLOCK_TEMPLATE_MOBILE_SEARCH = "CFEB7FA6-0F19-496B-8DCC-4D200AEEE866";
+
         #endregion Block Template
 
         #region Button Styles
