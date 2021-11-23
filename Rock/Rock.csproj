@@ -594,6 +594,7 @@
     <Compile Include="Blocks\Types\Mobile\Connection\ConnectionRequestList.cs" />
     <Compile Include="Blocks\Types\Mobile\Connection\ConnectionTypeList.cs" />
     <Compile Include="Blocks\Types\Mobile\Core\Notes.cs" />
+    <Compile Include="Blocks\Types\Mobile\Core\Search.cs" />
     <Compile Include="Blocks\Types\Mobile\Groups\GroupFinder.cs" />
     <Compile Include="Blocks\Types\Mobile\Groups\GroupFinder.WebForms.cs" />
     <Compile Include="Blocks\Types\Mobile\Prayer\PrayerCardView.cs" />
