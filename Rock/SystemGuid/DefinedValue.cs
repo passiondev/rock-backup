@@ -66,6 +66,11 @@ namespace Rock.SystemGuid
         public const string BLOCK_TEMPLATE_MOBILE_CONNECTION_CONNECTION_REQUEST_DETAIL = "44538702-5157-489A-B256-217F5D1F53F4";
 
         /// <summary>
+        /// The block template for <see cref="Rock.Blocks.Types.Mobile.Core.Search"/> block.
+        /// </summary>
+        public const string BLOCK_TEMPLATE_MOBILE_CORE_SEARCH = "CFEB7FA6-0F19-496B-8DCC-4D200AEEE866";
+
+        /// <summary>
         /// The block template mobile daily challenge entry
         /// </summary>
         public const string BLOCK_TEMPLATE_MOBILE_DAILY_CHALLENGE_ENTRY = "30ECA4B6-0869-4656-A4CD-B8729CB29E76";
@@ -109,11 +114,6 @@ namespace Rock.SystemGuid
         /// The block template for the mobile prayer session block.
         /// </summary>
         public const string BLOCK_TEMPLATE_MOBILE_PRAYER_SESSION = "6F1F6BAB-B403-48D1-BF6A-52B16361279C";
-
-        /// <summary>
-        /// The block template for <see cref="Rock.Blocks.Types.Mobile.Core.Search"/> block.
-        /// </summary>
-        public const string BLOCK_TEMPLATE_MOBILE_SEARCH = "CFEB7FA6-0F19-496B-8DCC-4D200AEEE866";
 
         #endregion Block Template
 

@@ -52,7 +52,7 @@ namespace Rock.Blocks.Types.Mobile.Core
 
     [BlockTemplateField( "Result Item Template",
         Description = "Lava template for rendering each result item. The Lava merge field will be 'Item'.",
-        TemplateBlockValueGuid = SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_SEARCH,
+        TemplateBlockValueGuid = SystemGuid.DefinedValue.BLOCK_TEMPLATE_MOBILE_CORE_SEARCH,
         IsRequired = true,
         DefaultValue = "50FABA2A-B23C-46CD-A634-2F54BC1AE8C3",
         Key = AttributeKey.ResultItemTemplate,
