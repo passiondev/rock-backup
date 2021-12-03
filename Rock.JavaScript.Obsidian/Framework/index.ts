@@ -42,7 +42,7 @@ export async function initializeBlock(config: BlockConfig): Promise<App> {
     let errorMessage = "";
 
     try {
-        const blockComponentModule = await import(blockPath);
+        const blockComponentModule = await System.import(blockPath);
         blockComponent = blockComponentModule ?
             (blockComponentModule.default || blockComponentModule) :
             null;

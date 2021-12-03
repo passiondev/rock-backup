@@ -31,6 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include=".eslintrc.js" />
+    <Content Include="build\build.js" />
     <Content Include="Core\.eslintrc.js" />
     <Content Include="Framework\.eslintrc.js" />
     <Content Include="Framework\Tests\tsconfig.json" />
@@ -44,6 +45,7 @@
     <Content Include="Core\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="build\" />
     <Folder Include="Framework\" />
     <Folder Include="Core\" />
     <Folder Include="Framework\Blocks\" />

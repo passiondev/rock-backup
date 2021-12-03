@@ -12,7 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true,
     "target": "ES2016",
-    "module": "System",
+    "module": "ESNext",
     "moduleResolution": "Node",
     "strict": true,
     "lib": [
