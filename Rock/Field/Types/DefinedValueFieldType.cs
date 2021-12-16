@@ -24,6 +24,7 @@ using System.Web.UI.WebControls;
 using Rock.Data;
 using Rock.Model;
 using Rock.Reporting;
+using Rock.ViewModel.NonEntities;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
@@ -36,6 +37,94 @@ namespace Rock.Field.Types
     [Serializable]
     public class DefinedValueFieldType : FieldType, IEntityFieldType, IEntityQualifierFieldType, ICachedEntitiesFieldType
     {
+        public bool IsDesignAuthorized( Dictionary<string, string> configurationValues, Person currentPerson )
+        {
+            // Deny access to marital status.
+            if ( configurationValues.GetValueOrDefault( DEFINED_TYPE_KEY, "" ).AsInteger() == 7 )
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public Dictionary<string, string> GetClientDesignConfigurationValues( Dictionary<string, string> configurationValues )
+        {
+            var designConfigurationValues = new Dictionary<string, string>();
+
+            var displayDescription = configurationValues.GetValueOrDefault( DISPLAY_DESCRIPTION, "False" ).AsBoolean();
+
+            var definedTypes = DefinedTypeCache.All()
+                .OrderBy( t => t.Name )
+                .Select( t => new ListItemViewModel
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Name
+                } )
+                .ToList();
+
+            designConfigurationValues["definedTypes"] = definedTypes.ToCamelCaseJson( false, true );
+
+            var definedValueId = configurationValues.GetValueOrDefault( "definedtype", "" ).AsIntegerOrNull();
+
+            if ( definedValueId.HasValue && definedTypes.Any( t => t.Value == definedValueId.Value.ToString() ) )
+            {
+                var definedValues = DefinedTypeCache.Get( definedValueId.Value )
+                    .DefinedValues
+                    .OrderBy( v => v.Order )
+                    .Select( v => new ListItemViewModel
+                    {
+                        Value = v.Guid.ToString(),
+                        Text = displayDescription ? v.Description : v.Value
+                    } )
+                    .ToList();
+
+                designConfigurationValues["definedValues"] = definedValues.ToCamelCaseJson( false, true );
+            }
+
+            return designConfigurationValues;
+        }
+
+        public Dictionary<string, string> GetClientDesignValues( Dictionary<string, string> configurationValues )
+        {
+            var designValues = configurationValues.ToDictionary( i => i.Key, i => i.Value );
+
+            var selectableIds = designValues.GetValueOrDefault( SELECTABLE_VALUES_KEY, string.Empty )
+                .SplitDelimitedValues()
+                .AsIntegerList();
+
+            var selectableValues = selectableIds
+                .Select( v => DefinedValueCache.Get( v ) )
+                .Where( v => v != null )
+                .Select( v => v.Guid.ToString() )
+                .ToList();
+
+            designValues["selectableValues"] = selectableValues.JoinStrings( "," );
+            designValues.Remove( SELECTABLE_VALUES_KEY );
+
+            return designValues;
+        }
+
+        public Dictionary<string, string> GetConfigurationValuesFromClientDesignValues( Dictionary<string, string> designValues )
+        {
+            var configurationValues = designValues.ToDictionary( i => i.Key, i => i.Value );
+
+            var selectableValues = designValues.GetValueOrDefault( "selectableValues", string.Empty )
+                .SplitDelimitedValues()
+                .AsGuidList();
+
+            var selectableIds = selectableValues
+                .Select( v => DefinedValueCache.Get( v ) )
+                .Where( v => v != null )
+                .Select( v => v.Id.ToString() )
+                .ToList();
+
+            configurationValues[SELECTABLE_VALUES_KEY] = selectableIds.JoinStrings( "," );
+            configurationValues.Remove( "selectableValues" );
+
+            return configurationValues;
+        }
+
         #region Configuration
 
         private const string DEFINED_TYPE_KEY = "definedtype";

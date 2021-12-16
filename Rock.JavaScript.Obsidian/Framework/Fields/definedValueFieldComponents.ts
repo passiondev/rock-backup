@@ -77,11 +77,13 @@ export const EditComponent = defineComponent({
             }
         });
 
+        const displayDescription = computed((): boolean => asBoolean(props.configurationValues[ConfigurationValueKey.DisplayDescription]));
+
         /** The options to choose from in the drop down list */
         const options = computed((): DropDownListOption[] => {
             const providedOptions: DropDownListOption[] = valueOptions.value.map(v => {
                 return {
-                    text: v.text,
+                    text: displayDescription.value ? v.description : v.text,
                     value: v.value
                 };
             });
@@ -93,7 +95,7 @@ export const EditComponent = defineComponent({
         const optionsMultiple = computed((): ListItem[] => {
             return valueOptions.value.map(v => {
                 return {
-                    text: v.text,
+                    text: displayDescription.value ? v.description : v.text,
                     value: v.value
                 } as ListItem;
             });

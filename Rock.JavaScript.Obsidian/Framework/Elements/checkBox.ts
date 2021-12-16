@@ -17,9 +17,15 @@
 import { defineComponent, PropType } from "vue";
 import { newGuid } from "../Util/guid";
 import { ruleStringToArray } from "../Rules/index";
+import RockFormField from "./rockFormField";
 
 export default defineComponent({
     name: "CheckBox",
+
+    components: {
+        RockFormField
+    },
+
     props: {
         modelValue: {
             type: Boolean as PropType<boolean>,
@@ -70,13 +76,20 @@ export default defineComponent({
         <span class="label-text ">{{label}}</span>
     </label>
 </div>
-<div v-else class="form-group rock-check-box" :class="isRequired ? 'required' : ''">
-    <label class="control-label" :for="uniqueId">{{label}}</label>
+<RockFormField
+    v-else
+    :modelValue="modelValue"
+    :label="label"
+    formGroupClasses="rock-check-box"
+    name="checkbox">
+    <template #default="{uniqueId, field, errors, disabled}">
     <div class="control-wrapper">
         <div class="rock-checkbox-icon" @click="toggle">
             <i v-if="modelValue" class="fa fa-check-square-o fa-lg"></i>
             <i v-else class="fa fa-square-o fa-lg"></i>
         </div>
     </div>
-</div>`
+    </template>
+</RockFormField>
+`
 });

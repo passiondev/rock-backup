@@ -16,13 +16,21 @@
 //
 
 import PaneledBlockTemplate from "../../Templates/paneledBlockTemplate";
-import { Component, defineComponent, PropType, reactive } from "vue";
+import { Component, computed, defineComponent, nextTick, PropType, reactive, ref, watch } from "vue";
 import PanelWidget from "../../Elements/panelWidget";
 import AttributeValuesContainer from "../../Controls/attributeValuesContainer";
 import { Guid } from "../../Util/guid";
 import TextBox from "../../Elements/textBox";
 import { FieldType as FieldTypeGuids } from "../../SystemGuids";
 import { ClientEditableAttributeValue, ListItem } from "../../ViewModels";
+import { DefinedValueFieldType } from "../../Fields/definedValueField";
+import { useInvokeBlockAction } from "../../Util/block";
+import DropDownList, { DropDownListOption } from "../../Elements/dropDownList";
+import CheckBoxList from "../../Elements/checkBoxList";
+import CheckBox from "../../Elements/checkBox";
+import RockField from "../../Controls/rockField";
+import NumberBox from "../../Elements/numberBox";
+import { asTrueFalseOrNull } from "../../Services/boolean";
 
 /**
  * Convert a simpler set of parameters into AttributeValueData
@@ -325,10 +333,261 @@ const galleryComponents: Record<string, Component> = {
 
 const galleryTemplate: string = Object.keys(galleryComponents).sort().map(g => `<${g} />`).join("");
 
+const definedValueField = new DefinedValueFieldType();
+
+type AttributeDesignerViewModel = {
+    fieldTypeGuid?: Guid | null;
+
+    designConfigurationValues?: Record<string, string> | null;
+
+    designValues?: Record<string, string> | null;
+
+    defaultValue?: string | null;
+
+    editableValue?: ClientEditableAttributeValue | null;
+};
+
+type DesignConfigurationValues = {
+    definedTypes?: ListItem[] | null;
+
+    definedValues?: ListItem[] | null;
+};
+
+const attributeDesigner = defineComponent({
+    name: "Example.AttributeDesigner",
+
+    components: {
+        DropDownList,
+        RockField
+    },
+
+    setup() {
+        const invokeBlockAction = useInvokeBlockAction();
+        const fieldTypeValue = ref("");
+        const defaultValue = ref<ClientEditableAttributeValue | null>(null);
+        const hasDefaultControl = computed((): boolean => showDesignerControl.value && defaultValue.value ? true : false);
+        const designConfigurationValues = ref<Record<string, string>>({});
+        const designValues = ref<Record<string, string>>({});
+        const isReady = ref(false);
+
+        const fieldTypeOptions = [
+            {
+                text: "Defined Value",
+                value: FieldTypeGuids.DefinedValue
+            }
+        ] as DropDownListOption[];
+
+        const designerControl = computed((): Component | null => {
+            if (fieldTypeValue.value === FieldTypeGuids.DefinedValue) {
+                return definedValueDesigner;
+            }
+            return null;
+        });
+
+        const showDesignerControl = computed((): boolean => {
+            return designerControl && isReady.value;
+        });
+
+
+
+        const updateDesignValues = (): void => {
+            invokeBlockAction<AttributeDesignerViewModel>("GetClientDesignValues", {
+                designer: {
+                    fieldTypeGuid: fieldTypeValue.value,
+                    designValues: designValues.value,
+                    defaultValue: ""
+                } as AttributeDesignerViewModel
+            }).then(result => {
+                if (result.isSuccess && result.data && result.data.designConfigurationValues && result.data.designValues && result.data.editableValue) {
+                    isReady.value = true;
+                    designConfigurationValues.value = result.data.designConfigurationValues;
+                    designValues.value = result.data.designValues;
+                    defaultValue.value = result.data.editableValue;
+                }
+            });
+        };
+
+        watch(fieldTypeValue, () => {
+            updateDesignValues();
+        });
+
+        const onPostBack = (): void => {
+            console.log("postback", designValues.value);
+            updateDesignValues();
+        };
+
+        const onUpdateConfiguration = (key: string, value: string): void => {
+            console.log("updateControl", designValues.value);
+            if (defaultValue.value?.configurationValues) {
+                defaultValue.value.configurationValues[key] = value;
+            }
+        };
+
+        return {
+            designerControl,
+            designValues,
+            designConfigurationValues,
+            defaultValue,
+            hasDefaultControl,
+            fieldTypeOptions,
+            fieldTypeValue,
+            onPostBack,
+            onUpdateConfiguration,
+            showDesignerControl
+        };
+    },
+
+    template: `
+<div>
+    <DropDownList label="Field Type" v-model="fieldTypeValue" :options="fieldTypeOptions" rules="required" />
+    <component v-if="showDesignerControl" :is="designerControl" v-model="designValues" :designConfigurationValues="designConfigurationValues" @postback="onPostBack" @updateConfiguration="onUpdateConfiguration" />
+    <RockField v-if="hasDefaultControl" :attributeValue="defaultValue" isEditMode />
+</div>
+`
+});
+
+const definedValueDesigner = defineComponent({
+    name: "Example.DefinedValueDesigner",
+
+    components: {
+        DropDownList,
+        CheckBoxList,
+        CheckBox,
+        NumberBox
+    },
+
+    props: {
+        modelValue: {
+            type: Object as PropType<Record<string, string>>,
+            required: true
+        },
+        designConfigurationValues: {
+            type: Object as PropType<Record<string, string>>,
+            required: true
+        }
+    },
+
+    setup(props, { emit }) {
+        const definedTypeValue = ref("");
+        const allowMultipleValues = ref(false);
+        const displayDescriptions = ref(false);
+        const enhanceForLongLists = ref(false);
+        const includeInactive = ref(false);
+        const repeatColumns = ref<number | null>(null);
+        const selectableValues = ref<string[]>([]);
+        const designConfigurationValues = ref<DesignConfigurationValues>({});
+
+        const definedTypeOptions = computed((): DropDownListOption[] => {
+            if (!designConfigurationValues.value.definedTypes) {
+                return [];
+            }
+
+            return designConfigurationValues.value.definedTypes.map((item): DropDownListOption => {
+                return {
+                    text: item.text,
+                    value: item.value
+                };
+            });
+        });
+
+        const definedValueOptions = computed((): ListItem[] => designConfigurationValues.value?.definedValues ?? []);
+
+
+        const hasValues = computed((): boolean => {
+            return (designConfigurationValues.value?.definedValues?.length ?? 0) > 0;
+        });
+
+        watch(() => [props.modelValue, props.designConfigurationValues], () => {
+            const definedTypes = props.designConfigurationValues.definedTypes ? JSON.parse(props.designConfigurationValues.definedTypes) as ListItem[] : [];
+            const definedValues = props.designConfigurationValues.definedValues ? JSON.parse(props.designConfigurationValues.definedValues) as ListItem[] : [];
+
+            designConfigurationValues.value = {
+                definedTypes,
+                definedValues
+            };
+
+            definedTypeValue.value = props.modelValue.definedtype;
+            selectableValues.value = (props.modelValue.selectableValues?.split(",") ?? []).filter(s => s !== "");
+        }, {
+            immediate: true
+        });
+
+        const updateDesignValues = (): boolean => {
+            const newValue = {
+                definedtype: definedTypeValue.value,
+                selectableValues: selectableValues.value.join(","),
+                allowmultiple: asTrueFalseOrNull(allowMultipleValues.value),
+                displaydescription: asTrueFalseOrNull(displayDescriptions.value),
+                enhancedselection: asTrueFalseOrNull(enhanceForLongLists.value),
+                includeInactive: asTrueFalseOrNull(includeInactive.value),
+                RepeatColumns: repeatColumns.value?.toString() ?? ""
+            };
+
+            const anyValueChanged = newValue.definedtype !== props.modelValue.definedtype
+                || newValue.selectableValues !== props.modelValue.selectableValues
+                || newValue.allowmultiple !== props.modelValue.allowmultiple
+                || newValue.displaydescription !== props.modelValue.displaydescription
+                || newValue.enhancedselection !== props.modelValue.enhancedselection
+                || newValue.includeInactive !== props.modelValue.includeInactive
+                || newValue.RepeatColumns !== props.modelValue.RepeatColumns;
+
+            if (anyValueChanged) {
+                emit("update:modelValue", newValue);
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+
+        watch([definedTypeValue, selectableValues, displayDescriptions, includeInactive], () => {
+            if (updateDesignValues()) {
+                emit("postback");
+            }
+        });
+
+        const maybeUpdateConfiguration = (key: string, value: string): void => {
+            if (updateDesignValues()) {
+                emit("updateConfiguration", key, value);
+            }
+        };
+
+        watch(allowMultipleValues, () => maybeUpdateConfiguration("allowmultiple", asTrueFalseOrNull(allowMultipleValues.value) ?? "False"));
+        watch(enhanceForLongLists, () => maybeUpdateConfiguration("enhancedselection", asTrueFalseOrNull(enhanceForLongLists.value) ?? "False"));
+        watch(repeatColumns, () => maybeUpdateConfiguration("RepeatColumns", repeatColumns.value?.toString() ?? ""));
+
+        return {
+            allowMultipleValues,
+            definedTypeValue,
+            definedTypeOptions,
+            definedValueOptions,
+            displayDescriptions,
+            enhanceForLongLists,
+            hasValues,
+            includeInactive,
+            repeatColumns,
+            selectableValues
+        };
+    },
+
+    template: `
+<div>
+    <DropDownList v-model="definedTypeValue" label="Defined Type" :options="definedTypeOptions" :showBlankItem="false" />
+    <CheckBox v-model="allowMultipleValues" label="Allow Multiple Values" help="When set, allows multiple defined type values to be selected." :inline="false" />
+    <CheckBox v-model="displayDescriptions" label="Display Descriptions" help="When set, the defined value descriptions will be displayed instead of the values." :inline="false" />
+    <CheckBox v-model="enhanceForLongLists" label="Enhance For Long Lists" :inline="false" />
+    <CheckBox v-model="includeInactive" label="Include Inactive" :inline="false" />
+    <NumberBox v-model="repeatColumns" label="Repeat Columns" />
+    <CheckBoxList v-if="hasValues" v-model="selectableValues" label="Selectable Values" :options="definedValueOptions" :horizontal="true" />
+</div>
+`
+});
+
 export default defineComponent({
     name: "Example.FieldTypeGallery",
     components: {
         PaneledBlockTemplate,
+        AttributeDesigner: attributeDesigner,
         ...galleryComponents
     },
     template: `
@@ -338,6 +597,7 @@ export default defineComponent({
         Obsidian Field Type Gallery
     </template>
     <template v-slot:default>
+        <AttributeDesigner />
         ${galleryTemplate}
     </template>
 </PaneledBlockTemplate>`
