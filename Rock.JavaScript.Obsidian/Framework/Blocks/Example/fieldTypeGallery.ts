@@ -30,6 +30,7 @@ import CheckBoxList from "../../Elements/checkBoxList";
 import CheckBox from "../../Elements/checkBox";
 import RockField from "../../Controls/rockField";
 import NumberBox from "../../Elements/numberBox";
+import Alert from "../../Elements/alert";
 import { asTrueFalseOrNull } from "../../Services/boolean";
 
 /**
@@ -357,6 +358,7 @@ const attributeDesigner = defineComponent({
     name: "Example.AttributeDesigner",
 
     components: {
+        Alert,
         DropDownList,
         RockField
     },
@@ -369,6 +371,7 @@ const attributeDesigner = defineComponent({
         const designConfigurationValues = ref<Record<string, string>>({});
         const designValues = ref<Record<string, string>>({});
         const isReady = ref(false);
+        const fieldErrorMessage = ref("");
 
         const fieldTypeOptions = [
             {
@@ -399,10 +402,14 @@ const attributeDesigner = defineComponent({
                 } as AttributeDesignerViewModel
             }).then(result => {
                 if (result.isSuccess && result.data && result.data.designConfigurationValues && result.data.designValues && result.data.editableValue) {
+                    fieldErrorMessage.value = "";
                     isReady.value = true;
                     designConfigurationValues.value = result.data.designConfigurationValues;
                     designValues.value = result.data.designValues;
                     defaultValue.value = result.data.editableValue;
+                }
+                else {
+                    fieldErrorMessage.value = result.errorMessage ?? "Encountered unknown error communicating with server.";
                 }
             });
         };
@@ -429,6 +436,7 @@ const attributeDesigner = defineComponent({
             designConfigurationValues,
             defaultValue,
             hasDefaultControl,
+            fieldErrorMessage,
             fieldTypeOptions,
             fieldTypeValue,
             onPostBack,
@@ -440,6 +448,9 @@ const attributeDesigner = defineComponent({
     template: `
 <div>
     <DropDownList label="Field Type" v-model="fieldTypeValue" :options="fieldTypeOptions" rules="required" />
+    <Alert v-if="fieldErrorMessage" alertType="warning">
+        {{ fieldErrorMessage }}
+    </Alert>
     <component v-if="showDesignerControl" :is="designerControl" v-model="designValues" :designConfigurationValues="designConfigurationValues" @postback="onPostBack" @updateConfiguration="onUpdateConfiguration" />
     <RockField v-if="hasDefaultControl" :attributeValue="defaultValue" isEditMode />
 </div>
@@ -598,6 +609,7 @@ export default defineComponent({
     </template>
     <template v-slot:default>
         <AttributeDesigner />
+        <div style="margin-top:60px;"></div>
         ${galleryTemplate}
     </template>
 </PaneledBlockTemplate>`
