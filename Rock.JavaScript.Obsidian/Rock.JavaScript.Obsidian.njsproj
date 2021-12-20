@@ -105,6 +105,7 @@
     <TypeScriptCompile Include="Framework\Blocks\Security\login.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Utility\starkDetail.ts" />
     <TypeScriptCompile Include="Framework\Controls\addressControl.ts" />
+    <TypeScriptCompile Include="Framework\Controls\attributeEditor.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeValuesContainer.ts" />
     <TypeScriptCompile Include="Framework\Controls\blockActionSourcedGrid.ts" />
     <TypeScriptCompile Include="Framework\Controls\ComponentFromUrl.ts" />

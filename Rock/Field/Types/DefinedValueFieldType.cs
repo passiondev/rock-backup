@@ -37,94 +37,6 @@ namespace Rock.Field.Types
     [Serializable]
     public class DefinedValueFieldType : FieldType, IEntityFieldType, IEntityQualifierFieldType, ICachedEntitiesFieldType
     {
-        public bool IsDesignAuthorized( Dictionary<string, string> configurationValues, Person currentPerson )
-        {
-            // Deny access to marital status.
-            if ( configurationValues.GetValueOrDefault( DEFINED_TYPE_KEY, "" ).AsInteger() == 7 )
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public Dictionary<string, string> GetClientDesignConfigurationValues( Dictionary<string, string> configurationValues )
-        {
-            var designConfigurationValues = new Dictionary<string, string>();
-
-            var displayDescription = configurationValues.GetValueOrDefault( DISPLAY_DESCRIPTION, "False" ).AsBoolean();
-
-            var definedTypes = DefinedTypeCache.All()
-                .OrderBy( t => t.Name )
-                .Select( t => new ListItemViewModel
-                {
-                    Value = t.Id.ToString(),
-                    Text = t.Name
-                } )
-                .ToList();
-
-            designConfigurationValues["definedTypes"] = definedTypes.ToCamelCaseJson( false, true );
-
-            var definedValueId = configurationValues.GetValueOrDefault( "definedtype", "" ).AsIntegerOrNull();
-
-            if ( definedValueId.HasValue && definedTypes.Any( t => t.Value == definedValueId.Value.ToString() ) )
-            {
-                var definedValues = DefinedTypeCache.Get( definedValueId.Value )
-                    .DefinedValues
-                    .OrderBy( v => v.Order )
-                    .Select( v => new ListItemViewModel
-                    {
-                        Value = v.Guid.ToString(),
-                        Text = displayDescription ? v.Description : v.Value
-                    } )
-                    .ToList();
-
-                designConfigurationValues["definedValues"] = definedValues.ToCamelCaseJson( false, true );
-            }
-
-            return designConfigurationValues;
-        }
-
-        public Dictionary<string, string> GetClientDesignValues( Dictionary<string, string> configurationValues )
-        {
-            var designValues = configurationValues.ToDictionary( i => i.Key, i => i.Value );
-
-            var selectableIds = designValues.GetValueOrDefault( SELECTABLE_VALUES_KEY, string.Empty )
-                .SplitDelimitedValues()
-                .AsIntegerList();
-
-            var selectableValues = selectableIds
-                .Select( v => DefinedValueCache.Get( v ) )
-                .Where( v => v != null )
-                .Select( v => v.Guid.ToString() )
-                .ToList();
-
-            designValues["selectableValues"] = selectableValues.JoinStrings( "," );
-            designValues.Remove( SELECTABLE_VALUES_KEY );
-
-            return designValues;
-        }
-
-        public Dictionary<string, string> GetConfigurationValuesFromClientDesignValues( Dictionary<string, string> designValues )
-        {
-            var configurationValues = designValues.ToDictionary( i => i.Key, i => i.Value );
-
-            var selectableValues = designValues.GetValueOrDefault( "selectableValues", string.Empty )
-                .SplitDelimitedValues()
-                .AsGuidList();
-
-            var selectableIds = selectableValues
-                .Select( v => DefinedValueCache.Get( v ) )
-                .Where( v => v != null )
-                .Select( v => v.Id.ToString() )
-                .ToList();
-
-            configurationValues[SELECTABLE_VALUES_KEY] = selectableIds.JoinStrings( "," );
-            configurationValues.Remove( "selectableValues" );
-
-            return configurationValues;
-        }
-
         #region Configuration
 
         private const string DEFINED_TYPE_KEY = "definedtype";
@@ -136,6 +48,11 @@ namespace Rock.Field.Types
         private const string REPEAT_COLUMNS_KEY = "RepeatColumns";
         private const string SELECTABLE_VALUES_KEY = "SelectableDefinedValuesId";
         private const string CLIENT_VALUES = "values";
+
+        private const string DEFINED_TYPES_PROPERTY_KEY = "definedTypes";
+        private const string DEFINED_VALUES_PROPERTY_KEY = "definedValues";
+
+        private const string SELECTABLE_VALUES_PUBLIC_KEY = "selectableValues";
 
         /// <summary>
         /// Returns a list of the configuration keys.
@@ -153,6 +70,95 @@ namespace Rock.Field.Types
             configKeys.Add( REPEAT_COLUMNS_KEY );
             configKeys.Add( SELECTABLE_VALUES_KEY );
             return configKeys;
+        }
+
+        /// <inheritdoc/>
+        public override Dictionary<string, string> GetClientEditConfigurationProperties( Dictionary<string, string> configurationValues )
+        {
+            var configurationProperties = new Dictionary<string, string>();
+
+            // Determine if we need to display the description instead of the
+            // value name.
+            var displayDescription = configurationValues.GetValueOrDefault( DISPLAY_DESCRIPTION, "False" ).AsBoolean();
+
+            // Determine if we need to include inactive defined values.
+            var includeInactive = configurationValues.GetValueOrDefault( INCLUDE_INACTIVE_KEY, "False" ).AsBoolean();
+
+            // Get the defined types that are available to be selected.
+            var definedTypes = DefinedTypeCache.All()
+                .OrderBy( t => t.Name )
+                .Select( t => new ListItemViewModel
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Name
+                } )
+                .ToList();
+
+            configurationProperties[DEFINED_TYPES_PROPERTY_KEY] = definedTypes.ToCamelCaseJson( false, true );
+
+            // Get the currently selected defined type identifier.
+            var definedTypeId = configurationValues.GetValueOrDefault( DEFINED_TYPE_KEY, "" ).AsIntegerOrNull();
+
+            if ( definedTypeId.HasValue && definedTypes.Any( t => t.Value == definedTypeId.Value.ToString() ) )
+            {
+                // Get the defined values that are available to be selected.
+                var definedValues = DefinedTypeCache.Get( definedTypeId.Value )
+                    .DefinedValues
+                    .Where( v => v.IsActive || includeInactive )
+                    .OrderBy( v => v.Order )
+                    .Select( v => new ListItemViewModel
+                    {
+                        Value = v.Guid.ToString(),
+                        Text = displayDescription ? v.Description : v.Value
+                    } )
+                    .ToList();
+
+                configurationProperties[DEFINED_VALUES_PROPERTY_KEY] = definedValues.ToCamelCaseJson( false, true );
+            }
+
+            return configurationProperties;
+        }
+
+        /// <inheritdoc/>
+        public override Dictionary<string, string> GetPublicConfigurationOptions( Dictionary<string, string> privateConfigurationValues )
+        {
+            var configurationOptions = privateConfigurationValues.ToDictionary( i => i.Key, i => i.Value );
+
+            // Convert the selectable values from integer identifiers to unique
+            // identifiers that are safe for public use.
+            var selectableValues = configurationOptions.GetValueOrDefault( SELECTABLE_VALUES_KEY, string.Empty )
+                .SplitDelimitedValues()
+                .AsIntegerList()
+                .Select( v => DefinedValueCache.Get( v ) )
+                .Where( v => v != null )
+                .Select( v => v.Guid.ToString() )
+                .ToList();
+
+            configurationOptions[SELECTABLE_VALUES_PUBLIC_KEY] = selectableValues.JoinStrings( "," );
+            configurationOptions.Remove( SELECTABLE_VALUES_KEY );
+
+            return configurationOptions;
+        }
+
+        /// <inheritdoc/>
+        public override Dictionary<string, string> GetPrivateConfigurationOptions( Dictionary<string, string> publicConfigurationValues )
+        {
+            var configurationOptions = publicConfigurationValues.ToDictionary( i => i.Key, i => i.Value );
+
+            // Convert the selectable values from unique identifiers into
+            // integer identifiers that can be stored in the database.
+            var selectableValues = publicConfigurationValues.GetValueOrDefault( "selectableValues", string.Empty )
+                .SplitDelimitedValues()
+                .AsGuidList()
+                .Select( v => DefinedValueCache.Get( v ) )
+                .Where( v => v != null )
+                .Select( v => v.Id.ToString() )
+                .ToList();
+
+            configurationOptions[SELECTABLE_VALUES_KEY] = selectableValues.JoinStrings( "," );
+            configurationOptions.Remove( "selectableValues" );
+
+            return configurationOptions;
         }
 
         /// <inheritdoc/>
