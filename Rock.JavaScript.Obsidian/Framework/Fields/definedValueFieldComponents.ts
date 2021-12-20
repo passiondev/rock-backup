@@ -26,14 +26,6 @@ import { ListItem } from "../ViewModels";
 import { toNumber } from "../Services/number";
 import { asTrueFalseOrNull } from "../Services/boolean";
 
-/**
- * The field configuration values that */
-type AttributeConfigurationValues = {
-    definedTypes?: ListItem[] | null;
-
-    definedValues?: ListItem[] | null;
-};
-
 function parseModelValue(modelValue: string | undefined): string {
     try {
         const clientValue = JSON.parse(modelValue ?? "") as ClientValue;

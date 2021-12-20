@@ -23,7 +23,7 @@ namespace Rock.ViewModel.Controls
     /// <summary>
     /// Contains information required to update a field type's configuration.
     /// </summary>
-    public class AttributeConfigurationViewModel
+    public class FieldTypeConfigurationViewModel
     {
         /// <summary>
         /// Gets or sets the field type unique identifier.

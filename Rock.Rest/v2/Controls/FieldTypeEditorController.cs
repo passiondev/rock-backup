@@ -59,11 +59,11 @@ namespace Rock.Rest.v2.Controls
         /// in order for it to continue editing the attribute.
         /// </summary>
         /// <param name="updateViewModel">The view model that contains the update request.</param>
-        /// <returns>An instance of <see cref="AttributeConfigurationPropertiesViewModel"/> that represents the state of the attribute configuration.</returns>
+        /// <returns>An instance of <see cref="FieldTypeConfigurationPropertiesViewModel"/> that represents the state of the attribute configuration.</returns>
         [HttpPost]
         [Route( "fieldTypeConfiguration" )]
         [Authenticate]
-        public IHttpActionResult UpdateAttributeConfiguration( [FromBody] AttributeConfigurationViewModel updateViewModel )
+        public IHttpActionResult UpdateAttributeConfiguration( [FromBody] FieldTypeConfigurationViewModel updateViewModel )
         {
             if ( updateViewModel.FieldTypeGuid != Rock.SystemGuid.FieldType.DEFINED_VALUE.AsGuid() )
             {
@@ -109,7 +109,7 @@ namespace Rock.Rest.v2.Controls
                 ConfigurationValues = fieldType.GetClientConfigurationValues( configurationValues )
             };
 
-            return Ok( new AttributeConfigurationPropertiesViewModel
+            return Ok( new FieldTypeConfigurationPropertiesViewModel
             {
                 ConfigurationProperties = configurationProperties,
                 ConfigurationOptions = publicConfigurationOptions,
