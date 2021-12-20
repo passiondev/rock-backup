@@ -15,8 +15,8 @@
 // </copyright>
 //
 
-import { Component, defineComponent, PropType, reactive } from "vue";
-import AttributeEditor from "../../Controls/attributeEditor";
+import { Component, defineComponent, PropType, reactive, ref, watch } from "vue";
+import AttributeEditor from "../../Controls/fieldTypeEditor";
 import AttributeValuesContainer from "../../Controls/attributeValuesContainer";
 import PanelWidget from "../../Elements/panelWidget";
 import TextBox from "../../Elements/textBox";
@@ -24,6 +24,7 @@ import { FieldType as FieldTypeGuids } from "../../SystemGuids";
 import PaneledBlockTemplate from "../../Templates/paneledBlockTemplate";
 import { Guid } from "../../Util/guid";
 import { ClientEditableAttributeValue, ListItem } from "../../ViewModels";
+import { FieldTypeConfigurationViewModel } from "../../ViewModels/Controls/fieldTypeEditor";
 
 /**
  * Convert a simpler set of parameters into AttributeValueData
@@ -328,11 +329,29 @@ const galleryTemplate: string = Object.keys(galleryComponents).sort().map(g => `
 
 export default defineComponent({
     name: "Example.FieldTypeGallery",
+
     components: {
         PaneledBlockTemplate,
         AttributeEditor,
         ...galleryComponents
     },
+
+    setup() {
+        const fieldValue = ref<FieldTypeConfigurationViewModel>({
+            fieldTypeGuid: FieldTypeGuids.DefinedValue,
+            configurationOptions: {},
+            defaultValue: ""
+        });
+
+        watch(fieldValue, () => {
+            console.log("field value changed", fieldValue.value);
+        });
+
+        return {
+            fieldValue
+        };
+    },
+
     template: `
 <PaneledBlockTemplate>
     <template v-slot:title>
@@ -340,7 +359,7 @@ export default defineComponent({
         Obsidian Field Type Gallery
     </template>
     <template v-slot:default>
-        <AttributeEditor />
+        <AttributeEditor v-model="fieldValue" />
         <div style="margin-top:60px;"></div>
         ${galleryTemplate}
     </template>

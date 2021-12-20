@@ -16,7 +16,7 @@
 //
 
 import { defineComponent, inject } from "vue";
-import CheckBox from "../../../Elements/checkBox";
+import InlineCheckBox from "../../../Elements/inlineCheckBox";
 import { DropDownListOption } from "../../../Elements/dropDownList";
 import EmailBox from "../../../Elements/emailBox";
 import RadioButtonList from "../../../Elements/radioButtonList";
@@ -35,7 +35,7 @@ export default defineComponent({
     name: "Event.RegistrationEntry.Registrar",
     components: {
         TextBox,
-        CheckBox,
+        InlineCheckBox,
         EmailBox,
         StaticFormControl,
         RadioButtonList
@@ -198,7 +198,7 @@ export default defineComponent({
             <div class="col-md-6">
                 <TextBox label="First Name" rules="required" v-model="registrar.nickName" tabIndex="1" />
                 <EmailBox label="Send Confirmation Emails To" rules="required" v-model="registrar.email" tabIndex="3" />
-                <CheckBox v-if="doShowUpdateEmailOption" label="Should Your Account Be Updated To Use This Email Address?" v-model="registrar.updateEmail" />
+                <InlineCheckBox v-if="doShowUpdateEmailOption" label="Should Your Account Be Updated To Use This Email Address?" v-model="registrar.updateEmail" />
             </div>
             <div class="col-md-6">
                 <TextBox label="Last Name" rules="required" v-model="registrar.lastName" tabIndex="2" />

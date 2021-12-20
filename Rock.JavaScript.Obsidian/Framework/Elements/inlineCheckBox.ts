@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -15,13 +15,11 @@
 // </copyright>
 //
 import { defineComponent, PropType, ref, watch } from "vue";
-import RockFormField from "./rockFormField";
 
 export default defineComponent({
-    name: "CheckBox",
+    name: "InlineCheckBox",
 
     components: {
-        RockFormField
     },
 
     props: {
@@ -33,11 +31,6 @@ export default defineComponent({
         label: {
             type: String as PropType<string>,
             required: true
-        },
-
-        rules: {
-            type: String as PropType<string>,
-            default: ""
         }
     },
 
@@ -58,24 +51,17 @@ export default defineComponent({
 
         return {
             internalValue,
+            label: props.label,
             toggle
         };
     },
 
     template: `
-<RockFormField
-    :modelValue="modelValue"
-    :label="label"
-    formGroupClasses="rock-check-box"
-    name="checkbox">
-    <template #default="{uniqueId, field, errors, disabled}">
-    <div class="control-wrapper">
-        <span class="rock-checkbox-icon" @click="toggle">
-            <i v-if="modelValue" class="fa fa-check-square-o fa-lg"></i>
-            <i v-else class="fa fa-square-o fa-lg"></i>
-        </span>
-    </div>
-    </template>
-</RockFormField>
+<div class="checkbox">
+    <label title="">
+        <input type="checkbox" v-model="internalValue" />
+        <span class="label-text ">{{label}}</span>
+    </label>
+</div>
 `
 });
