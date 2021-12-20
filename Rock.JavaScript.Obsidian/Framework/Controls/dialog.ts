@@ -17,12 +17,6 @@
 import { defineComponent, PropType } from "vue";
 import RockButton from "../Elements/rockButton";
 
-export enum ValidationField {
-    CardNumber,
-    Expiry,
-    SecurityCode
-}
-
 export default defineComponent({
     name: "Dialog",
     components: {

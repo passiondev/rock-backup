@@ -216,7 +216,7 @@
     <Compile Include="Controllers\CodeGenerated\WebFarmNodesController.CodeGenerated.cs" />
     <Compile Include="Controllers\ContentChannelItemsController.Partial.cs" />
     <Compile Include="Controllers\ContentChannelItemSlugsController.Partial.cs" />
-    <Compile Include="v2\Controls\AttributeEditorController.cs" />
+    <Compile Include="v2\Controls\FieldTypeEditorController.cs" />
     <Compile Include="v2\Controls\ControlsControllerBase.cs" />
     <Compile Include="Controllers\DocumentsController.partial.cs" />
     <Compile Include="Controllers\FinancialBatchesController.Partial.cs" />

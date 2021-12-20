@@ -66,6 +66,7 @@
     <Folder Include="Framework\SystemGuids\CodeGenerated\" />
     <Folder Include="Framework\Templates\" />
     <Folder Include="Build\" />
+    <Folder Include="Framework\ViewModels\Controls\" />
     <Folder Include="Tests\" />
     <Folder Include="Tests\Elements\" />
     <Folder Include="Tests\Services\" />
@@ -105,7 +106,7 @@
     <TypeScriptCompile Include="Framework\Blocks\Security\login.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Utility\starkDetail.ts" />
     <TypeScriptCompile Include="Framework\Controls\addressControl.ts" />
-    <TypeScriptCompile Include="Framework\Controls\attributeEditor.ts" />
+    <TypeScriptCompile Include="Framework\Controls\fieldTypeEditor.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeValuesContainer.ts" />
     <TypeScriptCompile Include="Framework\Controls\blockActionSourcedGrid.ts" />
     <TypeScriptCompile Include="Framework\Controls\ComponentFromUrl.ts" />
@@ -276,6 +277,7 @@
     <TypeScriptCompile Include="Framework\SystemGuids\CodeGenerated\workflowType.d.ts" />
     <TypeScriptCompile Include="Framework\SystemGuids\index.d.ts" />
     <TypeScriptCompile Include="Framework\Templates\paneledBlockTemplate.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Controls\fieldTypeEditor.d.ts" />
     <TypeScriptCompile Include="Tests\Elements\rockFormFieldHelper.ts" />
     <TypeScriptCompile Include="Tests\Elements\textBox.spec.ts" />
     <TypeScriptCompile Include="Tests\Services\dateAspFormatTests.spec.ts" />

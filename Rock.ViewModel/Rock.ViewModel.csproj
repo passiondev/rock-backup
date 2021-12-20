@@ -50,8 +50,8 @@
     <Compile Include="CodeGenerated\BenevolenceWorkflowViewModel.cs" />
     <Compile Include="CodeGenerated\ConnectionStatusAutomationViewModel.cs" />
     <Compile Include="Connection\ConnectionRequest\ConnectionRequestCountsViewModel.cs" />
-    <Compile Include="Controls\AttributeConfigurationUpdateViewModel.cs" />
     <Compile Include="Controls\AttributeConfigurationViewModel.cs" />
+    <Compile Include="Controls\AttributeConfigurationPropertiesViewModel.cs" />
     <Compile Include="NonEntities\ClientAttributeValueCategoryViewModel.cs" />
     <Compile Include="NonEntities\ClientEditableAttributeValueViewModel.cs" />
     <Compile Include="NonEntities\ClientAttributeValueViewModel.cs" />

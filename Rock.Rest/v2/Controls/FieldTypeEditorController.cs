@@ -30,8 +30,8 @@ namespace Rock.Rest.v2.Controls
     /// Provides API endpoints for the AttributeEditor control.
     /// </summary>
     /// <seealso cref="Rock.Rest.v2.Controls.ControlsControllerBase" />
-    [RoutePrefix( "api/v2/Controls/AttributeEditor" )]
-    public class AttributeEditorController : ControlsControllerBase
+    [RoutePrefix( "api/v2/Controls/FieldTypeEditor" )]
+    public class FieldTypeEditorController : ControlsControllerBase
     {
         /// <summary>
         /// Gets the available field types for the current person.
@@ -59,11 +59,11 @@ namespace Rock.Rest.v2.Controls
         /// in order for it to continue editing the attribute.
         /// </summary>
         /// <param name="updateViewModel">The view model that contains the update request.</param>
-        /// <returns>An instance of <see cref="AttributeConfigurationViewModel"/> that represents the state of the attribute configuration.</returns>
+        /// <returns>An instance of <see cref="AttributeConfigurationPropertiesViewModel"/> that represents the state of the attribute configuration.</returns>
         [HttpPost]
-        [Route( "attributeConfiguration" )]
+        [Route( "fieldTypeConfiguration" )]
         [Authenticate]
-        public IHttpActionResult UpdateAttributeConfiguration( [FromBody] AttributeConfigurationUpdateViewModel updateViewModel )
+        public IHttpActionResult UpdateAttributeConfiguration( [FromBody] AttributeConfigurationViewModel updateViewModel )
         {
             if ( updateViewModel.FieldTypeGuid != Rock.SystemGuid.FieldType.DEFINED_VALUE.AsGuid() )
             {
@@ -80,11 +80,10 @@ namespace Rock.Rest.v2.Controls
             // Convert the public configuration options into our private
             // configuration options (values).
             var configurationValues = fieldType.GetPrivateConfigurationOptions( updateViewModel.ConfigurationOptions );
-            var legacyConfigurationValues = configurationValues.ToDictionary( i => i.Key, i => new Field.ConfigurationValue( i.Value ) );
 
             // Convert the default value from the public value into our
             // private internal value.
-            var privateDefaultValue = fieldType.GetValueFromClient( updateViewModel.DefaultValue, legacyConfigurationValues );
+            var privateDefaultValue = fieldType.GetValueFromClient( updateViewModel.DefaultValue, configurationValues );
 
             // Get the new configuration properties from the currently selected
             // options.
@@ -92,9 +91,6 @@ namespace Rock.Rest.v2.Controls
 
             // Get the public configuration options from the internal options (values).
             var publicConfigurationOptions = fieldType.GetPublicConfigurationOptions( configurationValues );
-
-            // Get the public client default value from value we have.
-            var publicDefaultValue = fieldType.GetClientEditValue( privateDefaultValue, legacyConfigurationValues );
 
             // Get the editable attribute value so they can render a default value
             // control.
@@ -105,15 +101,15 @@ namespace Rock.Rest.v2.Controls
                 Name = "Default Value",
                 Categories = new List<ClientAttributeValueCategoryViewModel>(),
                 Order = 0,
-                TextValue = fieldType.GetTextValue( privateDefaultValue, legacyConfigurationValues ),
-                Value = fieldType.GetClientEditValue( privateDefaultValue, legacyConfigurationValues ),
+                TextValue = fieldType.GetTextValue( privateDefaultValue, configurationValues ),
+                Value = fieldType.GetClientEditValue( privateDefaultValue, configurationValues ),
                 Key = "DefaultValue",
                 IsRequired = false,
                 Description = string.Empty,
-                ConfigurationValues = fieldType.GetClientConfigurationValues( legacyConfigurationValues )
+                ConfigurationValues = fieldType.GetClientConfigurationValues( configurationValues )
             };
 
-            return Ok( new AttributeConfigurationViewModel
+            return Ok( new AttributeConfigurationPropertiesViewModel
             {
                 ConfigurationProperties = configurationProperties,
                 ConfigurationOptions = publicConfigurationOptions,

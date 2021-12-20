@@ -15,61 +15,20 @@
 // </copyright>
 //
 
-import { Component, computed, defineComponent, ref, watch } from "vue";
-import { Guid } from "../Util/guid";
-import { ClientEditableAttributeValue, ListItem } from "../ViewModels";
+import { Component, computed, defineComponent, PropType, ref, watch } from "vue";
+import RockField from "../Controls/rockField";
 import Alert from "../Elements/alert";
 import DropDownList, { DropDownListOption } from "../Elements/dropDownList";
-import RockField from "../Controls/rockField";
-import { get, post } from "../Util/http";
-import { FieldType as FieldTypeGuids } from "../SystemGuids";
 import { DefinedValueFieldType } from "../Fields/definedValueField";
-
-/**
- * Describes a field type configuration state. This provides the information
- * required to edit a field type on a remote system.
- */
-type AttributeConfigurationViewModel = {
-    /**
-     * Gets or sets the configuration properties that contain information
-     * describing a field type edit operation.
-     */
-    configurationProperties: Record<string, string>;
-
-    /**
-     * Gets or sets the configuration options that describe the current
-     * selections when editing a field type.
-     */
-    configurationOptions: Record<string, string>;
-
-    /**
-     * Gets or sets the default attribute value view model that corresponds
-     * to the current configurationOptions.
-     */
-    defaultValue: ClientEditableAttributeValue;
-};
-
-/**
- * Contains information required to update a field type's configuration.
- */
-type AttributeConfigurationUpdateViewModel = {
-    /** Gets or sets the field type unique identifier. */
-    fieldTypeGuid: Guid;
-
-    /**
-     * Gets or sets the configuration options that describe the current
-     * selections when editing a field type.
-     */
-    configurationOptions: Record<string, string>;
-
-    /** Gets or sets the default value currently set. */
-    defaultValue: string;
-};
+import { FieldType as FieldTypeGuids } from "../SystemGuids";
+import { get, post } from "../Util/http";
+import { ClientEditableAttributeValue, ListItem } from "../ViewModels";
+import { FieldTypeConfigurationPropertiesViewModel, FieldTypeConfigurationViewModel } from "../ViewModels/Controls/fieldTypeEditor";
 
 const definedValueField = new DefinedValueFieldType();
 
 export default defineComponent({
-    name: "AttributeEditor",
+    name: "FieldTypeEditor",
 
     components: {
         Alert,
@@ -77,21 +36,30 @@ export default defineComponent({
         RockField
     },
 
-    setup() {
+    props: {
+        modelValue: {
+            type: Object as PropType<FieldTypeConfigurationViewModel | null>,
+            default: null
+        }
+    },
+
+    setup(props, { emit }) {
         /** The selected field type in the drop down list. */
-        const fieldTypeValue = ref("");
+        const fieldTypeValue = ref(props.modelValue?.fieldTypeGuid ?? "");
 
-        /** The details about the default value used for the attribute. */
+        const internalDefaultValue = ref(props.modelValue?.defaultValue ?? "");
+
+        /** The details about the default value used for the field. */
         const defaultValue = ref<ClientEditableAttributeValue | null>(null);
-
-        /** True if the default value component should be shown. */
-        const hasDefaultValue = computed((): boolean => showConfigurationComponent.value && defaultValue.value ? true : false);
 
         /** The current configuration properties that describe the field type options. */
         const configurationProperties = ref<Record<string, string>>({});
 
         /** The current options selected in the configuration properties. */
-        const configurationOptions = ref<Record<string, string>>({});
+        const configurationOptions = ref<Record<string, string>>(props.modelValue?.configurationOptions ?? {});
+
+        /** True if the default value component should be shown. */
+        const hasDefaultValue = computed((): boolean => showConfigurationComponent.value && defaultValue.value !== null);
 
         /** True if the field types options are ready for display. */
         const isFieldTypesReady = ref(false);
@@ -121,22 +89,63 @@ export default defineComponent({
             return configurationComponent && isReady.value;
         });
 
-        /** Updates the attribute configuration from new data on the server. */
-        const updateAttributeConfiguration = (): void => {
-            const update: AttributeConfigurationUpdateViewModel = {
+        /**
+         * True if an update request has been caused by an internal value change.
+         * In this case, the update is not emitted to the parent.
+         */
+        let isInternalUpdate = false;
+
+        /**
+         * Called when the modelValue needs to be updated from any change
+         * that was made.
+         */
+        const updateModelValue = (): void => {
+            if (isInternalUpdate) {
+                return;
+            }
+
+            const newValue: FieldTypeConfigurationViewModel = {
                 fieldTypeGuid: fieldTypeValue.value,
                 configurationOptions: configurationOptions.value,
-                defaultValue: ""
+                defaultValue: defaultValue.value?.value ?? ""
             };
 
-            post<AttributeConfigurationViewModel>("/api/v2/Controls/AttributeEditor/attributeConfiguration", null, update)
+            emit("update:modelValue", newValue);
+        };
+
+        /** Updates the field configuration from new data on the server. */
+        const updateFieldConfiguration = (): void => {
+            if (fieldTypeValue.value === "") {
+                isInternalUpdate = true;
+                configurationProperties.value = {};
+                configurationOptions.value = {};
+                defaultValue.value = null;
+                isInternalUpdate = false;
+
+                updateModelValue();
+
+                return;
+            }
+
+            const update: FieldTypeConfigurationViewModel = {
+                fieldTypeGuid: fieldTypeValue.value,
+                configurationOptions: configurationOptions.value,
+                defaultValue: (defaultValue.value !== null ? defaultValue.value?.value : internalDefaultValue.value) ?? ""
+            };
+
+            post<FieldTypeConfigurationPropertiesViewModel>("/api/v2/Controls/FieldTypeEditor/fieldTypeConfiguration", null, update)
                 .then(result => {
                     if (result.isSuccess && result.data && result.data.configurationProperties && result.data.configurationOptions && result.data.defaultValue) {
                         fieldErrorMessage.value = "";
                         isConfigurationReady.value = true;
+
+                        isInternalUpdate = true;
                         configurationProperties.value = result.data.configurationProperties;
                         configurationOptions.value = result.data.configurationOptions;
                         defaultValue.value = result.data.defaultValue;
+                        isInternalUpdate = false;
+
+                        updateModelValue();
                     }
                     else {
                         fieldErrorMessage.value = result.errorMessage ?? "Encountered unknown error communicating with server.";
@@ -145,35 +154,34 @@ export default defineComponent({
         };
 
         // Called when the field type drop down value is changed.
-        watch(fieldTypeValue, () => {
-            updateAttributeConfiguration();
-        });
+        watch(fieldTypeValue, () => updateFieldConfiguration());
+
+        const onDefaultValueUpdate = (): void => updateModelValue();
 
         /**
          * Called when the field type configuration control requests that the
          * configuration properties be updated from the server.
          */
         const onUpdateConfiguration = (): void => {
-            console.log("updateConfiguration");
-            updateAttributeConfiguration();
+            updateFieldConfiguration();
         };
 
         /**
          * Called when the field type configuration control has updated one of
-         * the configuration values.
+         * the configuration values that does not require a full reload.
          * 
          * @param key The key of the configuration value that was changed.
          * @param value The new value of the configuration value.
          */
         const onUpdateConfigurationValue = (key: string, value: string): void => {
-            console.log("updateConfigurationValue", configurationOptions.value);
             if (defaultValue.value?.configurationValues) {
                 defaultValue.value.configurationValues[key] = value;
+                updateModelValue();
             }
         };
 
         // Get all the available field types that the user is allowed to edit.
-        get<ListItem[]>("/api/v2/Controls/AttributeEditor/availableFieldTypes")
+        get<ListItem[]>("/api/v2/Controls/FieldTypeEditor/availableFieldTypes")
             .then(result => {
                 if (result.isSuccess && result.data) {
                     fieldTypeOptions.value = result.data.map((item): DropDownListOption => {
@@ -184,6 +192,12 @@ export default defineComponent({
                     });
 
                     isFieldTypesReady.value = true;
+
+                    // If the field type is already selected then begin to load
+                    // all the field configuration.
+                    if (fieldTypeValue.value !== "") {
+                        updateFieldConfiguration();
+                    }
                 }
             });
 
@@ -197,6 +211,7 @@ export default defineComponent({
             fieldTypeOptions,
             fieldTypeValue,
             isFieldTypesReady,
+            onDefaultValueUpdate,
             onUpdateConfiguration,
             onUpdateConfigurationValue,
             showConfigurationComponent
@@ -210,7 +225,7 @@ export default defineComponent({
         {{ fieldErrorMessage }}
     </Alert>
     <component v-if="showConfigurationComponent" :is="configurationComponent" v-model="configurationOptions" :configurationProperties="configurationProperties" @updateConfiguration="onUpdateConfiguration" @updateConfigurationValue="onUpdateConfigurationValue" />
-    <RockField v-if="hasDefaultValue" :attributeValue="defaultValue" isEditMode />
+    <RockField v-if="hasDefaultValue" :attributeValue="defaultValue" @update:attributeValue="onDefaultValueUpdate" isEditMode />
 </div>
 `
 });
