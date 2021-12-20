@@ -293,10 +293,10 @@ export const ConfigurationComponent = defineComponent({
     template: `
 <div>
     <DropDownList v-model="definedTypeValue" label="Defined Type" :options="definedTypeOptions" :showBlankItem="false" />
-    <CheckBox v-model="allowMultipleValues" label="Allow Multiple Values" help="When set, allows multiple defined type values to be selected." />
-    <CheckBox v-model="displayDescriptions" label="Display Descriptions" help="When set, the defined value descriptions will be displayed instead of the values." />
-    <CheckBox v-model="enhanceForLongLists" label="Enhance For Long Lists" />
-    <CheckBox v-model="includeInactive" label="Include Inactive" />
+    <CheckBox v-model="allowMultipleValues" label="Allow Multiple Values" text="Yes" help="When set, allows multiple defined type values to be selected." />
+    <CheckBox v-model="displayDescriptions" label="Display Descriptions" text="Yes" help="When set, the defined value descriptions will be displayed instead of the values." />
+    <CheckBox v-model="enhanceForLongLists" label="Enhance For Long Lists" text="Yes" />
+    <CheckBox v-model="includeInactive" label="Include Inactive" text="Yes" />
     <NumberBox v-model="repeatColumns" label="Repeat Columns" />
     <CheckBoxList v-if="hasValues" v-model="selectableValues" label="Selectable Values" :options="definedValueOptions" :horizontal="true" />
 </div>

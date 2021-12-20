@@ -38,6 +38,11 @@ export default defineComponent({
         rules: {
             type: String as PropType<string>,
             default: ""
+        },
+
+        text: {
+            type: String as PropType<string>,
+            default: ""
         }
     },
 
@@ -73,6 +78,7 @@ export default defineComponent({
         <span class="rock-checkbox-icon" @click="toggle">
             <i v-if="modelValue" class="fa fa-check-square-o fa-lg"></i>
             <i v-else class="fa fa-square-o fa-lg"></i>
+            <span v-if="text">&nbsp;{{ text }}</span>
         </span>
     </div>
     </template>
