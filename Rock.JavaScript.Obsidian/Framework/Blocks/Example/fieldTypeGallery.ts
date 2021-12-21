@@ -16,7 +16,8 @@
 //
 
 import { Component, defineComponent, PropType, reactive, ref, watch } from "vue";
-import AttributeEditor from "../../Controls/fieldTypeEditor";
+import AttributeEditor from "../../Controls/attributeEditor";
+import FieldTypeEditor from "../../Controls/fieldTypeEditor";
 import AttributeValuesContainer from "../../Controls/attributeValuesContainer";
 import PanelWidget from "../../Elements/panelWidget";
 import TextBox from "../../Elements/textBox";
@@ -333,6 +334,7 @@ export default defineComponent({
     components: {
         PaneledBlockTemplate,
         AttributeEditor,
+        FieldTypeEditor,
         ...galleryComponents
     },
 
@@ -359,7 +361,8 @@ export default defineComponent({
         Obsidian Field Type Gallery
     </template>
     <template v-slot:default>
-        <AttributeEditor v-model="fieldValue" />
+        <AttributeEditor />
+        <FieldTypeEditor v-model="fieldValue" />
         <div style="margin-top:60px;"></div>
         ${galleryTemplate}
     </template>

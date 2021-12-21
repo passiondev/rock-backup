@@ -106,6 +106,7 @@
     <TypeScriptCompile Include="Framework\Blocks\Security\login.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Utility\starkDetail.ts" />
     <TypeScriptCompile Include="Framework\Controls\addressControl.ts" />
+    <TypeScriptCompile Include="Framework\Controls\attributeEditor.ts" />
     <TypeScriptCompile Include="Framework\Controls\fieldTypeEditor.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeValuesContainer.ts" />
     <TypeScriptCompile Include="Framework\Controls\blockActionSourcedGrid.ts" />
@@ -123,6 +124,7 @@
     <TypeScriptCompile Include="Framework\Controls\nmiGatewayControlTypes.d.ts" />
     <TypeScriptCompile Include="Framework\Controls\pageDebugTimings.ts" />
     <TypeScriptCompile Include="Framework\Controls\primaryBlock.ts" />
+    <TypeScriptCompile Include="Framework\Elements\inlineCheckBox.ts" />
     <TypeScriptCompile Include="Framework\Fields\keyValueListField.ts" />
     <TypeScriptCompile Include="Framework\Fields\keyValueListFieldComponents.ts" />
     <TypeScriptCompile Include="Framework\Fields\utils.ts" />
