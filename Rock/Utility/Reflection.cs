@@ -270,6 +270,29 @@ namespace Rock
         }
 
         /// <summary>
+        /// Gets the specified entity.
+        /// </summary>
+        /// <param name="entityTypeGuid">The entity type unique identifier.</param>
+        /// <param name="entityGuid">The entity unique identifier.</param>
+        /// <param name="dbContext">The database context.</param>
+        /// <returns>The integer identifier of the entity.</returns>
+        public static int? GetEntityIdForEntityType( Guid entityTypeGuid, Guid entityGuid, Data.DbContext dbContext = null )
+        {
+            var type = EntityTypeCache.Get( entityTypeGuid )?.GetEntityType();
+
+            if ( type == null )
+            {
+                return null;
+            }
+
+            var serviceInstance = GetServiceForEntityType( type, dbContext ?? new RockContext() );
+            var getIdMethod = serviceInstance?.GetType().GetMethod( "GetId", new Type[] { typeof( Guid ) } );
+            var entityId = getIdMethod?.Invoke( serviceInstance, new object[] { entityGuid } ) as int?;
+
+            return entityId;
+        }
+
+        /// <summary>
         /// Gets the appropriate Rock.Data.IService based on the entity type
         /// </summary>
         /// <param name="entityType">Type of the Entity.</param>

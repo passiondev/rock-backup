@@ -85,7 +85,7 @@ export default defineComponent({
             <CategoryPicker label="Categories"
                 entityTypeGuid="5997C8D3-8840-4591-99A5-552919F90CBD"
                 entityTypeQualifierColumn="EntityTypeId"
-                entityTypeQualifierValue="15" />
+                entityTypeQualifierValue="{EL:A2277FBA-D09F-4D07-B0AB-1C650C25A7A7:72657ED8-D16E-492E-AC12-144C5E7567E7}" />
 
             <TextBox label="Key" v-model="attributeKey" rules="required" />
 

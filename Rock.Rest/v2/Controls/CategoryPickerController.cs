@@ -16,6 +16,7 @@
 //
 
 using System;
+using System.Text.RegularExpressions;
 using System.Web.Http;
 
 using Rock.ClientService.Core.Category;
@@ -32,6 +33,8 @@ namespace Rock.Rest.v2.Controls
     [RoutePrefix( "api/v2/Controls/CategoryPicker" )]
     public class CategoryPickerController : ControlsControllerBase
     {
+        private static readonly Regex QualifierValueLookupRegex = new Regex( "^{EL:((?:[a-f\\d]{8})-(?:[a-f\\d]{4})-(?:[a-f\\d]{4})-(?:[a-f\\d]{4})-(?:[a-f\\d]{12})):((?:[a-f\\d]{8})-(?:[a-f\\d]{4})-(?:[a-f\\d]{4})-(?:[a-f\\d]{4})-(?:[a-f\\d]{12}))}$", RegexOptions.IgnoreCase );
+
         /// <summary>
         /// Gets the child items that match the options sent in the request body.
         /// This endpoint returns items formatted for use in a tree view control.
@@ -53,7 +56,7 @@ namespace Rock.Rest.v2.Controls
                     GetCategorizedItems = options.GetCategorizedItems,
                     EntityTypeGuid = options.EntityTypeGuid,
                     EntityTypeQualifierColumn = options.EntityTypeQualifierColumn,
-                    EntityTypeQualifierValue = options.EntityTypeQualifierValue,
+                    EntityTypeQualifierValue = GetQualifierValueLookupResult( options.EntityTypeQualifierValue, rockContext ),
                     IncludeUnnamedEntityItems = options.IncludeUnnamedEntityItems,
                     IncludeCategoriesWithoutChildren = options.IncludeCategoriesWithoutChildren,
                     DefaultIconCssClass = options.DefaultIconCssClass,
@@ -62,6 +65,40 @@ namespace Rock.Rest.v2.Controls
                 } );
 
                 return Ok( items );
+            }
+        }
+
+        /// <summary>
+        /// Checks if the qualifier value is a lookup and if so translate it to the
+        /// identifier from the unique identifier. Otherwise returns the original
+        /// value.
+        /// </summary>
+        /// <param name="value">The value to be translated.</param>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns>The qualifier value to use.</returns>
+        private string GetQualifierValueLookupResult( string value, RockContext rockContext )
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            var m = QualifierValueLookupRegex.Match( value );
+
+            if ( m.Success )
+            {
+                int? id = null;
+
+                if ( Guid.TryParse( m.Groups[1].Value, out var g1 ) && Guid.TryParse( m.Groups[2].Value, out var g2 ) )
+                {
+                    id = Rock.Reflection.GetEntityIdForEntityType( g1, g2, rockContext );
+                }
+
+                return id?.ToString() ?? "0";
+            }
+            else
+            {
+                return value;
             }
         }
 
