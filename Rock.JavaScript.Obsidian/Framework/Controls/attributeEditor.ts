@@ -19,12 +19,14 @@ import { Component, computed, defineComponent, PropType, ref, watch } from "vue"
 import TextBox from "../Elements/textBox";
 import CheckBox from "../Elements/checkBox";
 import FieldTypeEditor from "./fieldTypeEditor";
+import CategoryPicker from "./categoryPicker";
 
 export default defineComponent({
     name: "AttributeEditor",
 
     components: {
         TextBox,
+        CategoryPicker,
         CheckBox,
         FieldTypeEditor
     },
@@ -80,7 +82,10 @@ export default defineComponent({
 
     <div class="row">
         <div class="col-md-6">
-            <TextBox label="Categories" />
+            <CategoryPicker label="Categories"
+                entityTypeGuid="5997C8D3-8840-4591-99A5-552919F90CBD"
+                entityTypeQualifierColumn="EntityTypeId"
+                entityTypeQualifierValue="15" />
 
             <TextBox label="Key" v-model="attributeKey" rules="required" />
 

@@ -33,6 +33,7 @@
     <Content Include=".eslintrc.js" />
     <Content Include="Core\.eslintrc.js" />
     <Content Include="Framework\.eslintrc.js" />
+    <Content Include="Framework\Util\treeItemProviders.ts" />
     <Content Include="Tests\tsconfig.json" />
     <Content Include="Framework\tsconfig.json" />
     <Content Include="Framework\Util\aspDateFormat.ts" />
@@ -107,6 +108,7 @@
     <TypeScriptCompile Include="Framework\Blocks\Utility\starkDetail.ts" />
     <TypeScriptCompile Include="Framework\Controls\addressControl.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeEditor.ts" />
+    <TypeScriptCompile Include="Framework\Controls\categoryPicker.ts" />
     <TypeScriptCompile Include="Framework\Controls\fieldTypeEditor.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeValuesContainer.ts" />
     <TypeScriptCompile Include="Framework\Controls\blockActionSourcedGrid.ts" />
@@ -124,6 +126,8 @@
     <TypeScriptCompile Include="Framework\Controls\nmiGatewayControlTypes.d.ts" />
     <TypeScriptCompile Include="Framework\Controls\pageDebugTimings.ts" />
     <TypeScriptCompile Include="Framework\Controls\primaryBlock.ts" />
+    <TypeScriptCompile Include="Framework\Controls\treeItemPicker.ts" />
+    <TypeScriptCompile Include="Framework\Elements\treeList.ts" />
     <TypeScriptCompile Include="Framework\Elements\inlineCheckBox.ts" />
     <TypeScriptCompile Include="Framework\Fields\keyValueListField.ts" />
     <TypeScriptCompile Include="Framework\Fields\keyValueListFieldComponents.ts" />
@@ -280,6 +284,8 @@
     <TypeScriptCompile Include="Framework\SystemGuids\index.d.ts" />
     <TypeScriptCompile Include="Framework\Templates\paneledBlockTemplate.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\fieldTypeEditor.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\Controls\treeList.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\treeItem.d.ts" />
     <TypeScriptCompile Include="Tests\Elements\rockFormFieldHelper.ts" />
     <TypeScriptCompile Include="Tests\Elements\textBox.spec.ts" />
     <TypeScriptCompile Include="Tests\Services\dateAspFormatTests.spec.ts" />
