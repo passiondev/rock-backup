@@ -100,6 +100,8 @@ export const enum EntityType {
     Group = "9BBFDA11-0D22-40D5-902F-60ADFBC88987",
     /** The guid for the Rock.Model.GroupMember entity. */
     GroupMember = "49668B95-FEDC-43DD-8085-D2B0D6343C48",
+    /** The guid for the Rock.Model.History entity. */
+    History = "546D5F43-1184-47C9-8265-2D7BF4E1BCA5",
     /** The HTTP module component */
     HttpModuleComponent = "EDE69F48-5E05-4260-B360-DA37DFD1AB83",
     /** The guid for  */
@@ -144,6 +146,8 @@ export const enum EntityType {
     MobileCmsHeroBlockType = "49BE78CD-2D19-44C4-A6BF-4F3B5D3F97C8",
     /** The GUID for the entity Rock.Blocks.Types.Mobile.Cms.StructuredContentView */
     MobileCmsStructuredcontentviewBlockType = "219660C4-8F32-46DA-B8E3-A7A6FA0D6B76",
+    /** The GUID for the entity . */
+    MobileCoreSearchBlockType = "F81015CD-EBA9-4358-B930-4F1AB29AF879",
     /** The GUID for the entity Rock.Blocks.Types.Mobile.Events.CalendarEventList */
     MobileEventsCalendareventlistBlockType = "6FB9F1F4-5F24-4A22-A6EB-A7FA499179A9",
     /** The GUID for the entity Rock.Blocks.Types.Mobile.Events.CalendarView */
@@ -200,6 +204,8 @@ export const enum EntityType {
     PersonAlias = "90F5E87B-F0D5-4617-8AE9-EB57E673F36F",
     /** The guid for the Rock.Workflow.Action.PersonGetCampusTeamMember entity */
     PersonGetCampusTeamMember = "6A4F7FEC-3D49-4A31-882C-2D10DB84231E",
+    /** The GUID for the Rock.Follow.Event.PersonNoteAdded entity */
+    PersonNoteAdded = "C4AB0F1B-E036-4D14-BFB7-30BAF12D648A",
     /** The GUID for the Rock.Follow.Event.PersonPrayerRequest entity */
     PersonPrayerRequest = "DAE05FAE-A26F-465A-836C-BAA0EFA1267B",
     /** The guid for the Rock.Model.PersonSignal entity */

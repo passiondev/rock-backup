@@ -416,7 +416,7 @@ namespace Rock.SystemGuid
         public const string FINANCIAL_SOURCE_TYPE_MOBILE_APPLICATION = "8ADCEC72-63FC-4F08-A4CC-72BCE470172C";
 
         /// <summary>
-        /// The financial source of On-site Collection
+        /// The financial source of On-Site
         /// </summary>
         public const string FINANCIAL_SOURCE_TYPE_ONSITE_COLLECTION = "BE7ECF50-52BC-4774-808D-574BA842DB98";
 
@@ -1265,6 +1265,7 @@ namespace Rock.SystemGuid
         #endregion Schedule Types
 
         #region Map Markers
+
         /// <summary>
         /// The map marker pin
         /// </summary>
@@ -1281,9 +1282,11 @@ namespace Rock.SystemGuid
         /// The map marker circle
         /// </summary>
         public const string MAP_MARKER_CIRCLE = "66C27E88-6BC5-4B57-A981-0AD58481C66A";
-        #endregion
+
+        #endregion Map Markers
 
         #region Languages
+
         /// <summary>
         /// Translation Languages - English
         /// </summary>
@@ -1293,6 +1296,7 @@ namespace Rock.SystemGuid
         /// Translation Languages - Spanish
         /// </summary>
         public const string LANGUAGE_SPANISH = "C93CB430-8554-E599-4F49-D7F3CED2B2C7";
-        #endregion
+
+        #endregion Languages
     }
 }

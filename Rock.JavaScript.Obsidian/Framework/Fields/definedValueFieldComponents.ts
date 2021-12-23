@@ -14,14 +14,16 @@
 // limitations under the License.
 // </copyright>
 //
-import { computed, defineComponent, inject, ref, watch } from "vue";
-import { getFieldEditorProps } from "./utils";
+import { computed, defineComponent, inject, PropType, ref, watch } from "vue";
+import CheckBox from "../Elements/checkBox";
 import CheckBoxList from "../Elements/checkBoxList";
 import DropDownList, { DropDownListOption } from "../Elements/dropDownList";
-import { asBoolean } from "../Services/boolean";
-import { ClientValue, ConfigurationValueKey, ValueItem } from "./definedValueField";
+import NumberBox from "../Elements/numberBox";
+import { asBoolean, asTrueFalseOrNull } from "../Services/boolean";
+import { toNumber, toNumberOrNull } from "../Services/number";
 import { ListItem } from "../ViewModels";
-import { toNumber } from "../Services/number";
+import { ClientValue, ConfigurationValueKey, ValueItem } from "./definedValueField";
+import { getFieldEditorProps } from "./utils";
 
 function parseModelValue(modelValue: string | undefined): string {
     try {
@@ -77,11 +79,13 @@ export const EditComponent = defineComponent({
             }
         });
 
+        const displayDescription = computed((): boolean => asBoolean(props.configurationValues[ConfigurationValueKey.DisplayDescription]));
+
         /** The options to choose from in the drop down list */
         const options = computed((): DropDownListOption[] => {
             const providedOptions: DropDownListOption[] = valueOptions.value.map(v => {
                 return {
-                    text: v.text,
+                    text: displayDescription.value ? v.description : v.text,
                     value: v.value
                 };
             });
@@ -93,7 +97,7 @@ export const EditComponent = defineComponent({
         const optionsMultiple = computed((): ListItem[] => {
             return valueOptions.value.map(v => {
                 return {
-                    text: v.text,
+                    text: displayDescription.value ? v.description : v.text,
                     value: v.value
                 } as ListItem;
             });
@@ -151,5 +155,141 @@ export const EditComponent = defineComponent({
     template: `
 <DropDownList v-if="!isMultiple" v-model="internalValue" v-bind="configAttributes" :options="options" :showBlankItem="!isRequired" />
 <CheckBoxList v-else v-model="internalValues" :options="optionsMultiple" horizontal :repeatColumns="repeatColumns" />
+`
+});
+
+const enum ConfigurationPropertyKey {
+    DefinedTypes = "definedTypes",
+    DefinedValues = "definedValues"
+}
+
+export const ConfigurationComponent = defineComponent({
+    name: "DefinedValueField.Configuration",
+
+    components: {
+        DropDownList,
+        CheckBoxList,
+        CheckBox,
+        NumberBox
+    },
+
+    props: {
+        modelValue: {
+            type: Object as PropType<Record<string, string>>,
+            required: true
+        },
+        configurationProperties: {
+            type: Object as PropType<Record<string, string>>,
+            required: true
+        }
+    },
+
+    setup(props, { emit }) {
+        const definedTypeValue = ref(props.modelValue.definedtype ?? "");
+        const allowMultipleValues = ref(asBoolean(props.modelValue[ConfigurationValueKey.AllowMultiple]));
+        const displayDescriptions = ref(asBoolean(props.modelValue[ConfigurationValueKey.DisplayDescription]));
+        const enhanceForLongLists = ref(asBoolean(props.modelValue[ConfigurationValueKey.EnhancedSelection]));
+        const includeInactive = ref(asBoolean(props.modelValue[ConfigurationValueKey.IncludeInactive]));
+        const repeatColumns = ref<number | null>(toNumberOrNull(props.modelValue[ConfigurationValueKey.RepeatColumns]));
+        const selectableValues = ref<string[]>((props.modelValue["selectableValues"] ?? "").split(",").filter(s => s !== ""));
+        const definedTypeItems = ref<ListItem[]>([]);
+        const definedValueItems = ref<ListItem[]>([]);
+
+        const definedTypeOptions = computed((): DropDownListOption[] => {
+            return definedTypeItems.value.map((item): DropDownListOption => {
+                return {
+                    text: item.text,
+                    value: item.value
+                };
+            });
+        });
+
+        const definedValueOptions = computed((): ListItem[] => definedValueItems.value);
+
+        const hasValues = computed((): boolean => {
+            return definedValueItems.value.length > 0;
+        });
+
+        watch(() => [props.modelValue, props.configurationProperties], () => {
+            const definedTypes = props.configurationProperties[ConfigurationPropertyKey.DefinedTypes];
+            const definedValues = props.configurationProperties[ConfigurationPropertyKey.DefinedValues];
+
+            definedTypeItems.value = definedTypes ? JSON.parse(props.configurationProperties.definedTypes) as ListItem[] : [];
+            definedValueItems.value = definedValues ? JSON.parse(props.configurationProperties.definedValues) as ListItem[] : [];
+
+            definedTypeValue.value = props.modelValue.definedtype;
+            selectableValues.value = (props.modelValue.selectableValues?.split(",") ?? []).filter(s => s !== "");
+        }, {
+            immediate: true
+        });
+
+        const maybeUpdateModelValue = (): boolean => {
+            const newValue = {
+                definedtype: definedTypeValue.value,
+                selectableValues: selectableValues.value.join(","),
+                allowmultiple: asTrueFalseOrNull(allowMultipleValues.value) ?? "False",
+                displaydescription: asTrueFalseOrNull(displayDescriptions.value) ?? "False",
+                enhancedselection: asTrueFalseOrNull(enhanceForLongLists.value) ?? "False",
+                includeInactive: asTrueFalseOrNull(includeInactive.value) ?? "False",
+                RepeatColumns: repeatColumns.value?.toString() ?? ""
+            };
+
+            const anyValueChanged = newValue.definedtype !== props.modelValue.definedtype
+                || newValue.selectableValues !== (props.modelValue.selectableValues ?? "")
+                || newValue.allowmultiple !== (props.modelValue.allowmultiple ?? "False")
+                || newValue.displaydescription !== (props.modelValue.displaydescription ?? "False")
+                || newValue.enhancedselection !== (props.modelValue.enhancedselection ?? "False")
+                || newValue.includeInactive !== (props.modelValue.includeInactive ?? "False")
+                || newValue.RepeatColumns !== (props.modelValue.RepeatColumns ?? "");
+
+            if (anyValueChanged) {
+                emit("update:modelValue", newValue);
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+
+        watch([definedTypeValue, selectableValues, displayDescriptions, includeInactive], () => {
+            if (maybeUpdateModelValue()) {
+                emit("updateConfiguration");
+            }
+        });
+
+        const maybeUpdateConfiguration = (key: string, value: string): void => {
+            if (maybeUpdateModelValue()) {
+                emit("updateConfigurationValue", key, value);
+            }
+        };
+
+        watch(allowMultipleValues, () => maybeUpdateConfiguration("allowmultiple", asTrueFalseOrNull(allowMultipleValues.value) ?? "False"));
+        watch(enhanceForLongLists, () => maybeUpdateConfiguration("enhancedselection", asTrueFalseOrNull(enhanceForLongLists.value) ?? "False"));
+        watch(repeatColumns, () => maybeUpdateConfiguration("RepeatColumns", repeatColumns.value?.toString() ?? ""));
+
+        return {
+            allowMultipleValues,
+            definedTypeValue,
+            definedTypeOptions,
+            definedValueOptions,
+            displayDescriptions,
+            enhanceForLongLists,
+            hasValues,
+            includeInactive,
+            repeatColumns,
+            selectableValues
+        };
+    },
+
+    template: `
+<div>
+    <DropDownList v-model="definedTypeValue" label="Defined Type" :options="definedTypeOptions" :showBlankItem="false" />
+    <CheckBox v-model="allowMultipleValues" label="Allow Multiple Values" text="Yes" help="When set, allows multiple defined type values to be selected." />
+    <CheckBox v-model="displayDescriptions" label="Display Descriptions" text="Yes" help="When set, the defined value descriptions will be displayed instead of the values." />
+    <CheckBox v-model="enhanceForLongLists" label="Enhance For Long Lists" text="Yes" />
+    <CheckBox v-model="includeInactive" label="Include Inactive" text="Yes" />
+    <NumberBox v-model="repeatColumns" label="Repeat Columns" />
+    <CheckBoxList v-if="hasValues" v-model="selectableValues" label="Selectable Values" :options="definedValueOptions" :horizontal="true" />
+</div>
 `
 });

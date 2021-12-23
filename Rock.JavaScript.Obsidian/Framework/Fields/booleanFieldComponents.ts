@@ -115,7 +115,7 @@ export const EditComponent = defineComponent({
     },
     template: `
 <Toggle v-if="isToggle" v-model="internalBooleanValue" v-bind="toggleOptions" />
-<CheckBox v-else-if="isCheckBox" v-model="internalBooleanValue" :inline="false" />
+<CheckBox v-else-if="isCheckBox" v-model="internalBooleanValue" />
 <DropDownList v-else v-model="internalValue" :options="dropDownListOptions" />
 `
 });

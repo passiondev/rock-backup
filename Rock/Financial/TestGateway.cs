@@ -120,6 +120,27 @@ namespace Rock.Financial
             };
         }
 
+        /// <inheritdoc/>
+        public bool TryGetPaymentTokenFromParameters( FinancialGateway financialGateway, IDictionary<string, string> parameters, out string paymentToken )
+        {
+            paymentToken = null;
+
+            return false;
+        }
+
+        /// <inheritdoc/>
+        public bool IsPaymentTokenCharged( FinancialGateway financialGateway, string paymentToken )
+        {
+            return false;
+        }
+
+        /// <inheritdoc/>
+        public FinancialTransaction FetchPaymentTokenTransaction( Data.RockContext rockContext, FinancialGateway financialGateway, int? fundId, string paymentToken )
+        {
+            // This method is not required in our implementation.
+            throw new NotImplementedException();
+        }
+
         #endregion Obsidian
 
         #region Automated Gateway Component
@@ -426,7 +447,7 @@ namespace Rock.Financial
             for ( int paymentNumber = 0; paymentNumber < randomNumberOfPayments; paymentNumber++ )
             {
                 // get a random scheduled Transaction (if any)
-                var scheduledTransaction = scheduledTransactionList.OrderBy( a => a.Guid ).FirstOrDefault();
+                var scheduledTransaction = scheduledTransactionList.OrderBy( a => Guid.NewGuid() ).FirstOrDefault();
                 if ( scheduledTransaction == null )
                 {
                     return new List<Payment>();

@@ -47,6 +47,11 @@ const editComponent = defineAsyncComponent(async () => {
     return (await import("./definedValueFieldComponents")).EditComponent;
 });
 
+// The configuration component can be quite large, so load it only as needed.
+const configurationComponent = defineAsyncComponent(async () => {
+    return (await import("./definedValueFieldComponents")).ConfigurationComponent;
+});
+
 /**
  * The field type handler for the Defined Value field.
  */
@@ -75,5 +80,9 @@ export class DefinedValueFieldType extends FieldTypeBase {
 
     public override getEditComponent(_value: ClientAttributeValue): Component {
         return editComponent;
+    }
+
+    public getConfigurationComponent(): Component {
+        return configurationComponent;
     }
 }

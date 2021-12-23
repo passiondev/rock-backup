@@ -150,6 +150,10 @@ export default defineComponent({
     mounted() {
         this.isMounted = true;
         this.createOrDestroyChosen();
+
+        if (this.internalValue !== this.modelValue) {
+            this.$emit("update:modelValue", this.internalValue);
+        }
     },
     template: `
 <RockFormField

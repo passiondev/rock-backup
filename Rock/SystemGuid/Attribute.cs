@@ -96,6 +96,11 @@ namespace Rock.SystemGuid
         public const string PERSON_ALLERGY = "DBD192C9-0AA1-46EC-92AB-A3DA8E056D31";
 
         /// <summary>
+        /// The Person legal note attribute
+        /// </summary>
+        public const string PERSON_LEGAL_NOTE = "F832AB6F-B684-4EEA-8DB4-C54B895C79ED";
+
+        /// <summary>
         /// The person attribute for the person's giving envelope number
         /// </summary>
         public const string PERSON_GIVING_ENVELOPE_NUMBER = "76C33FBC-8799-4DF1-B2FE-A6C41AC3DD49";
@@ -813,7 +818,7 @@ namespace Rock.SystemGuid
         public const string PERSON_GIVING_PREFERRED_SOURCE = "0567B279-1F4D-4573-9AA7-927A7278443E";
 
         /// <summary>
-        /// Frequency Label - Single Select (1^Weekly, 2^Bi-Weekly, 3^Monthly, 4^Quarterly, 5^Erratic, 6^Undetermined)
+        /// Frequency Label. See <seealso cref="FinancialGivingAnalyticsFrequencyLabel"/>.
         /// </summary>
         public const string PERSON_GIVING_FREQUENCY_LABEL = "1A58F7AA-238B-46E5-B1DC-0A5BC1F213A5";
 
@@ -829,6 +834,7 @@ namespace Rock.SystemGuid
 
         /// <summary>
         /// Gift Amount: IQR - Currency
+        /// IQR = Interquartile Range calculated from the past 12 months of giving
         /// </summary>
         public const string PERSON_GIVING_AMOUNT_IQR = "CE129112-4BA9-4FC1-A67C-2A5C69140DA7";
 

@@ -1,4 +1,7 @@
-﻿// Licensed under the Rock Community License (the "License");
+﻿// <copyright>
+// Copyright by the Spark Development Network
+//
+// Licensed under the Rock Community License (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -11,7 +14,6 @@
 // limitations under the License.
 // </copyright>
 //
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
@@ -36,9 +38,8 @@ namespace Rock.Model
         /// <value>
         /// The benevolence type identifier.
         /// </value>
-        [Required]
-        [DataMember( IsRequired = true )]
-        public int BenevolenceTypeId { get; set; }
+        [DataMember]
+        public int? BenevolenceTypeId { get; set; }
 
         /// <summary>
         /// Gets or sets the workflow type identifier.
@@ -103,7 +104,7 @@ namespace Rock.Model
         /// </summary>
         public BenevolenceWorkflowConfiguration()
         {
-            this.HasRequired( p => p.BenevolenceType ).WithMany( p => p.BenevolenceWorkflows ).HasForeignKey( p => p.BenevolenceTypeId ).WillCascadeOnDelete( false );
+            this.HasOptional( p => p.BenevolenceType ).WithMany( p => p.BenevolenceWorkflows ).HasForeignKey( p => p.BenevolenceTypeId ).WillCascadeOnDelete( true );
             this.HasRequired( p => p.WorkflowType ).WithMany().HasForeignKey( p => p.WorkflowTypeId ).WillCascadeOnDelete( true );
         }
     }

@@ -35,3 +35,39 @@ export function smoothScrollToTop(): void {
 export default {
     smoothScrollToTop
 };
+
+
+/*
+ * Code to handle working with modals.
+ */
+let currentModalCount = 0;
+
+/**
+ * Track a modal being opened or closed. This is used to adjust the page in response
+ * to any modals being visible.
+ * 
+ * @param state true if the modal is now open, false if it is now closed.
+ */
+export function trackModalState(state: boolean): void {
+    const body = document.body;
+    const cssClasses = ["modal-open"];
+
+    if (state) {
+        currentModalCount++;
+    }
+    else {
+        currentModalCount = currentModalCount > 0 ? currentModalCount - 1 : 0;
+    }
+
+    if (currentModalCount > 0) {
+        for (const cssClass of cssClasses) {
+            body.classList.add(cssClass);
+        }
+    }
+    else {
+        for (const cssClass of cssClasses) {
+            body.classList.remove(cssClass);
+        }
+    }
+}
+

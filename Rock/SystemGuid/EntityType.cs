@@ -210,6 +210,11 @@ namespace Rock.SystemGuid
         public const string GROUP_MEMBER = "49668B95-FEDC-43DD-8085-D2B0D6343C48";
 
         /// <summary>
+        /// The guid for the <see cref="Rock.Model.History">Rock.Model.History</see> entity.
+        /// </summary>
+        public const string HISTORY = "546D5F43-1184-47C9-8265-2D7BF4E1BCA5";
+
+        /// <summary>
         /// The HTTP module component
         /// </summary>
         public const string HTTP_MODULE_COMPONENT = "EDE69F48-5E05-4260-B360-DA37DFD1AB83";
@@ -465,6 +470,11 @@ namespace Rock.SystemGuid
         /// The guid for the Rock.Workflow.Action.PersonGetCampusTeamMember entity
         /// </summary>
         public const string PERSON_GET_CAMPUS_TEAM_MEMBER = "6A4F7FEC-3D49-4A31-882C-2D10DB84231E";
+
+        /// <summary>
+        /// The GUID for the Rock.Follow.Event.PersonNoteAdded entity
+        /// </summary>
+        public const string PERSON_NOTE_ADDED = "C4AB0F1B-E036-4D14-BFB7-30BAF12D648A";
 
         /// <summary>
         /// The GUID for the Rock.Follow.Event.PersonPrayerRequest entity

@@ -167,6 +167,21 @@ namespace Rock
         }
 
         /// <summary>
+        /// Gets the <see cref="DescriptionAttribute" /> value of first matching string const property with the specified value.
+        /// For example:
+        /// <code>
+        /// GetDescriptionOfStringConstant( typeof(RelatedEntityPurposeKey), RelatedEntityPurposeKey.FinancialAccountGivingAlert)</code> would return "Giving Alerts"
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <param name="constantValue">The constant value.</param>
+        /// <returns>System.String.</returns>
+        public static string GetDescriptionOfStringConstant( Type type, string constantValue )
+        {
+            var fieldInfo = type.GetFields().Where( a => a.IsLiteral && ( string ) a.GetValue( null ) == constantValue ).FirstOrDefault();
+            return fieldInfo?.GetCustomAttribute<DescriptionAttribute>()?.Description;
+        }
+
+        /// <summary>
         /// Gets the appropriate DbContext based on the entity type
         /// </summary>
         /// <param name="entityType">Type of the Entity.</param>
@@ -252,6 +267,29 @@ namespace Rock
             var getMethod = serviceInstance?.GetType().GetMethod( "Get", new Type[] { typeof( Guid ) } );
             var entity = getMethod?.Invoke( serviceInstance, new object[] { entityGuid } ) as IEntity;
             return entity;
+        }
+
+        /// <summary>
+        /// Gets the specified entity.
+        /// </summary>
+        /// <param name="entityTypeGuid">The entity type unique identifier.</param>
+        /// <param name="entityGuid">The entity unique identifier.</param>
+        /// <param name="dbContext">The database context.</param>
+        /// <returns>The integer identifier of the entity.</returns>
+        public static int? GetEntityIdForEntityType( Guid entityTypeGuid, Guid entityGuid, Data.DbContext dbContext = null )
+        {
+            var type = EntityTypeCache.Get( entityTypeGuid )?.GetEntityType();
+
+            if ( type == null )
+            {
+                return null;
+            }
+
+            var serviceInstance = GetServiceForEntityType( type, dbContext ?? new RockContext() );
+            var getIdMethod = serviceInstance?.GetType().GetMethod( "GetId", new Type[] { typeof( Guid ) } );
+            var entityId = getIdMethod?.Invoke( serviceInstance, new object[] { entityGuid } ) as int?;
+
+            return entityId;
         }
 
         /// <summary>
