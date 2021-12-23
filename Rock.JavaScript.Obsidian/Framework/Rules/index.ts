@@ -14,12 +14,14 @@
 // limitations under the License.
 // </copyright>
 //
+import { value } from "../../TestLib/index";
 import DateKey from "../Services/dateKey";
 import { isEmail } from "../Services/email";
 import { isNullOrWhiteSpace } from "../Services/string";
 import { defineRule } from "vee-validate";
 import { toNumberOrNull } from "../Services/number";
 
+console.log(value);
 export type ValidationRuleFunction = (value: unknown) => boolean | string | Promise<boolean | string>;
 
 /**
@@ -62,7 +64,7 @@ export function ruleStringToArray (rulesString: string): string[] {
 }
 
 export function ruleArrayToString (rulesArray: string[]): string {
-    return rulesArray.join("|");
+    return rulesArray.join("|x");
 }
 
 defineRule("required", ((value: unknown, [ optionsJson ]: unknown[]) => {

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "../dist",
+    "outFile": "../dist/TestLib2.js",
     "rootDir": "..",
     "composite": true,
     "declaration": true,
@@ -23,12 +23,10 @@
       "ES2020.Symbol.WellKnown" /* Fixes compile issue in Vue declaration files, not actually in use. */
     ],
     "paths": {
-      "TestLib": [ "../TestLib/index.js" ],
-      "TestLib/index": ["../TestLib/index.js"]
     }
   },
-  "references": [
-    { "path": "../TestLib" }
+  "include": [
+    "**/*.ts"
   ],
   "exclude": [
     "./Tests/**/*"

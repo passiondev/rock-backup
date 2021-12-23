@@ -1,0 +1,7 @@
+{
+  "references": [
+    { "path": "./Framework" },
+    { "path": "./TestLib" }
+  ],
+  "files": []
+}
