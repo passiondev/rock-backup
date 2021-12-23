@@ -47,7 +47,7 @@ namespace Rock.Rest.v2.Controls
                 new ListItemViewModel
                 {
                     Text = "Defined Value",
-                    Value = Rock.SystemGuid.FieldType.DEFINED_VALUE
+                    Value = Rock.SystemGuid.FieldType.DEFINED_VALUE.AsGuid().ToString()
                 }
             } );
         }

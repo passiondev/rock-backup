@@ -19,6 +19,7 @@ import { Component, computed, defineComponent, PropType, ref, watch } from "vue"
 import RockField from "../Controls/rockField";
 import Alert from "../Elements/alert";
 import DropDownList, { DropDownListOption } from "../Elements/dropDownList";
+import { getFieldType } from "../Fields/index";
 import { DefinedValueFieldType } from "../Fields/definedValueField";
 import { FieldType as FieldTypeGuids } from "../SystemGuids";
 import { get, post } from "../Util/http";
@@ -78,7 +79,8 @@ export default defineComponent({
 
         /** The UI component that will handle the configuration of the field type. */
         const configurationComponent = computed((): Component | null => {
-            if (fieldTypeValue.value === FieldTypeGuids.DefinedValue) {
+            const fieldType = getFieldType(fieldTypeValue.value);
+            if (fieldType) {
                 return definedValueField.getConfigurationComponent();
             }
             return null;
@@ -120,6 +122,7 @@ export default defineComponent({
                 configurationProperties.value = {};
                 configurationOptions.value = {};
                 defaultValue.value = null;
+                internalDefaultValue.value = "";
                 isInternalUpdate = false;
 
                 updateModelValue();
@@ -135,6 +138,7 @@ export default defineComponent({
 
             post<FieldTypeConfigurationPropertiesViewModel>("/api/v2/Controls/FieldTypeEditor/fieldTypeConfiguration", null, update)
                 .then(result => {
+                    console.debug("got configuration", result.data);
                     if (result.isSuccess && result.data && result.data.configurationProperties && result.data.configurationOptions && result.data.defaultValue) {
                         fieldErrorMessage.value = "";
                         isConfigurationReady.value = true;
@@ -156,13 +160,17 @@ export default defineComponent({
         // Called when the field type drop down value is changed.
         watch(fieldTypeValue, () => updateFieldConfiguration());
 
-        const onDefaultValueUpdate = (): void => updateModelValue();
+        const onDefaultValueUpdate = (): void => {
+            console.debug("default value updated");
+            updateModelValue();
+        };
 
         /**
          * Called when the field type configuration control requests that the
          * configuration properties be updated from the server.
          */
         const onUpdateConfiguration = (): void => {
+            console.debug("onUpdateConfiguration");
             updateFieldConfiguration();
         };
 
@@ -175,6 +183,7 @@ export default defineComponent({
          */
         const onUpdateConfigurationValue = (key: string, value: string): void => {
             if (defaultValue.value?.configurationValues) {
+                console.debug("update configuration value", key, value);
                 defaultValue.value.configurationValues[key] = value;
                 updateModelValue();
             }

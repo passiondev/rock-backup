@@ -15,16 +15,15 @@
 // </copyright>
 //
 import { computed, defineComponent, inject, PropType, ref, watch } from "vue";
-import { getFieldEditorProps } from "./utils";
+import CheckBox from "../Elements/checkBox";
 import CheckBoxList from "../Elements/checkBoxList";
 import DropDownList, { DropDownListOption } from "../Elements/dropDownList";
-import CheckBox from "../Elements/checkBox";
 import NumberBox from "../Elements/numberBox";
-import { asBoolean } from "../Services/boolean";
-import { ClientValue, ConfigurationValueKey, ValueItem } from "./definedValueField";
+import { asBoolean, asTrueFalseOrNull } from "../Services/boolean";
+import { toNumber, toNumberOrNull } from "../Services/number";
 import { ListItem } from "../ViewModels";
-import { toNumber } from "../Services/number";
-import { asTrueFalseOrNull } from "../Services/boolean";
+import { ClientValue, ConfigurationValueKey, ValueItem } from "./definedValueField";
+import { getFieldEditorProps } from "./utils";
 
 function parseModelValue(modelValue: string | undefined): string {
     try {
@@ -186,13 +185,13 @@ export const ConfigurationComponent = defineComponent({
     },
 
     setup(props, { emit }) {
-        const definedTypeValue = ref("");
-        const allowMultipleValues = ref(false);
-        const displayDescriptions = ref(false);
-        const enhanceForLongLists = ref(false);
-        const includeInactive = ref(false);
-        const repeatColumns = ref<number | null>(null);
-        const selectableValues = ref<string[]>([]);
+        const definedTypeValue = ref(props.modelValue.definedtype ?? "");
+        const allowMultipleValues = ref(asBoolean(props.modelValue[ConfigurationValueKey.AllowMultiple]));
+        const displayDescriptions = ref(asBoolean(props.modelValue[ConfigurationValueKey.DisplayDescription]));
+        const enhanceForLongLists = ref(asBoolean(props.modelValue[ConfigurationValueKey.EnhancedSelection]));
+        const includeInactive = ref(asBoolean(props.modelValue[ConfigurationValueKey.IncludeInactive]));
+        const repeatColumns = ref<number | null>(toNumberOrNull(props.modelValue[ConfigurationValueKey.RepeatColumns]));
+        const selectableValues = ref<string[]>((props.modelValue["selectableValues"] ?? "").split(",").filter(s => s !== ""));
         const definedTypeItems = ref<ListItem[]>([]);
         const definedValueItems = ref<ListItem[]>([]);
 
@@ -228,20 +227,20 @@ export const ConfigurationComponent = defineComponent({
             const newValue = {
                 definedtype: definedTypeValue.value,
                 selectableValues: selectableValues.value.join(","),
-                allowmultiple: asTrueFalseOrNull(allowMultipleValues.value),
-                displaydescription: asTrueFalseOrNull(displayDescriptions.value),
-                enhancedselection: asTrueFalseOrNull(enhanceForLongLists.value),
-                includeInactive: asTrueFalseOrNull(includeInactive.value),
+                allowmultiple: asTrueFalseOrNull(allowMultipleValues.value) ?? "False",
+                displaydescription: asTrueFalseOrNull(displayDescriptions.value) ?? "False",
+                enhancedselection: asTrueFalseOrNull(enhanceForLongLists.value) ?? "False",
+                includeInactive: asTrueFalseOrNull(includeInactive.value) ?? "False",
                 RepeatColumns: repeatColumns.value?.toString() ?? ""
             };
 
             const anyValueChanged = newValue.definedtype !== props.modelValue.definedtype
-                || newValue.selectableValues !== props.modelValue.selectableValues
-                || newValue.allowmultiple !== props.modelValue.allowmultiple
-                || newValue.displaydescription !== props.modelValue.displaydescription
-                || newValue.enhancedselection !== props.modelValue.enhancedselection
-                || newValue.includeInactive !== props.modelValue.includeInactive
-                || newValue.RepeatColumns !== props.modelValue.RepeatColumns;
+                || newValue.selectableValues !== (props.modelValue.selectableValues ?? "")
+                || newValue.allowmultiple !== (props.modelValue.allowmultiple ?? "False")
+                || newValue.displaydescription !== (props.modelValue.displaydescription ?? "False")
+                || newValue.enhancedselection !== (props.modelValue.enhancedselection ?? "False")
+                || newValue.includeInactive !== (props.modelValue.includeInactive ?? "False")
+                || newValue.RepeatColumns !== (props.modelValue.RepeatColumns ?? "");
 
             if (anyValueChanged) {
                 emit("update:modelValue", newValue);

@@ -89,7 +89,7 @@ namespace Rock.Field.Types
                 .OrderBy( t => t.Name )
                 .Select( t => new ListItemViewModel
                 {
-                    Value = t.Id.ToString(),
+                    Value = t.Guid.ToString(),
                     Text = t.Name
                 } )
                 .ToList();
@@ -98,11 +98,17 @@ namespace Rock.Field.Types
 
             // Get the currently selected defined type identifier.
             var definedTypeId = configurationValues.GetValueOrDefault( DEFINED_TYPE_KEY, "" ).AsIntegerOrNull();
+            var definedTypeCache = definedTypeId.HasValue ? DefinedTypeCache.Get( definedTypeId.Value ) : null;
 
-            if ( definedTypeId.HasValue && definedTypes.Any( t => t.Value == definedTypeId.Value.ToString() ) )
+            if ( !definedTypeId.HasValue )
+            {
+                definedTypeCache = DefinedTypeCache.All().OrderBy( t => t.Name ).FirstOrDefault();
+            }
+
+            if ( definedTypeCache != null && definedTypes.Any( t => t.Value == definedTypeCache.Guid.ToString() ) )
             {
                 // Get the defined values that are available to be selected.
-                var definedValues = DefinedTypeCache.Get( definedTypeId.Value )
+                var definedValues = definedTypeCache
                     .DefinedValues
                     .Where( v => v.IsActive || includeInactive )
                     .OrderBy( v => v.Order )
@@ -137,6 +143,28 @@ namespace Rock.Field.Types
             configurationOptions[SELECTABLE_VALUES_PUBLIC_KEY] = selectableValues.JoinStrings( "," );
             configurationOptions.Remove( SELECTABLE_VALUES_KEY );
 
+            // Convert the defined type from an integer value to a guid.
+            var definedTypeId = configurationOptions.GetValueOrDefault( DEFINED_TYPE_KEY, string.Empty ).AsIntegerOrNull();
+            configurationOptions.Remove( DEFINED_TYPE_KEY );
+
+            if ( definedTypeId.HasValue )
+            {
+                var definedTypeCache = DefinedTypeCache.Get( definedTypeId.Value );
+
+                if ( definedTypeCache != null )
+                {
+                    configurationOptions[DEFINED_TYPE_KEY] = definedTypeCache.Guid.ToString();
+                }
+            }
+            else
+            {
+                configurationOptions[DEFINED_TYPE_KEY] = DefinedTypeCache.All()
+                    .OrderBy( t => t.Name )
+                    .Select( t => t.Guid.ToString() )
+                    .FirstOrDefault() ?? string.Empty;
+                    
+            }
+
             return configurationOptions;
         }
 
@@ -157,6 +185,20 @@ namespace Rock.Field.Types
 
             configurationOptions[SELECTABLE_VALUES_KEY] = selectableValues.JoinStrings( "," );
             configurationOptions.Remove( "selectableValues" );
+
+            // Convert the defined type value from a guid to an integer.
+            var definedTypeGuid = configurationOptions.GetValueOrDefault( DEFINED_TYPE_KEY, string.Empty ).AsGuidOrNull();
+            configurationOptions.Remove( DEFINED_TYPE_KEY );
+
+            if ( definedTypeGuid.HasValue )
+            {
+                var definedTypeCache = DefinedTypeCache.Get( definedTypeGuid.Value );
+
+                if ( definedTypeCache != null )
+                {
+                    configurationOptions[DEFINED_TYPE_KEY] = definedTypeCache.Id.ToString();
+                }
+            }
 
             return configurationOptions;
         }

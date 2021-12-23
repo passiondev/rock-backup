@@ -15,7 +15,7 @@
 // </copyright>
 //
 
-import { computed, defineComponent, PropType } from "vue";
+import { computed, defineComponent, PropType, ref, watch } from "vue";
 import { Guid } from "../Util/guid";
 import { CategoryTreeItemProvider } from "../Util/treeItemProviders";
 import { ListItem } from "../ViewModels";
@@ -51,8 +51,8 @@ export default defineComponent({
         }
     },
 
-    setup(props) {
-        const internalValue = computed(() => props.modelValue);
+    setup(props, { emit }) {
+        const internalValue = ref(props.modelValue);
 
         // Configure the item provider with our settings. These are not reactive
         // since we don't do lazy loading so there is no point.
@@ -62,6 +62,12 @@ export default defineComponent({
         itemProvider.entityTypeQualifierColumn = props.entityTypeQualifierColumn;
         itemProvider.entityTypeQualifierValue = props.entityTypeQualifierValue;
 
+        watch(internalValue, () => {
+            emit("update:modelValue", internalValue.value);
+        });
+
+        watch(() => props.modelValue, () => internalValue.value = props.modelValue);
+
         return {
             internalValue,
             itemProvider
@@ -69,7 +75,7 @@ export default defineComponent({
     },
 
     template: `
-<TreeItemPicker v-model="modelValue"
+<TreeItemPicker v-model="internalValue"
     formGroupClasses="category-picker"
     iconCssClass="fa fa-folder-open"
     :provider="itemProvider"
