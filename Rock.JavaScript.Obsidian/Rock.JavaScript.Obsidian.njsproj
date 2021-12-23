@@ -33,6 +33,7 @@
     <Content Include=".eslintrc.js" />
     <Content Include="Core\.eslintrc.js" />
     <Content Include="Framework\.eslintrc.js" />
+    <Content Include="Framework\Controls\modal.ts" />
     <Content Include="Framework\Util\treeItemProviders.ts" />
     <Content Include="Tests\tsconfig.json" />
     <Content Include="Framework\tsconfig.json" />
@@ -112,8 +113,8 @@
     <TypeScriptCompile Include="Framework\Controls\fieldTypeEditor.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeValuesContainer.ts" />
     <TypeScriptCompile Include="Framework\Controls\blockActionSourcedGrid.ts" />
-    <TypeScriptCompile Include="Framework\Controls\ComponentFromUrl.ts" />
-    <TypeScriptCompile Include="Framework\Controls\Dialog.ts" />
+    <TypeScriptCompile Include="Framework\Controls\componentFromUrl.ts" />
+    <TypeScriptCompile Include="Framework\Controls\dialog.ts" />
     <TypeScriptCompile Include="Framework\Controls\gatewayControl.ts" />
     <TypeScriptCompile Include="Framework\Controls\grid.ts" />
     <TypeScriptCompile Include="Framework\Controls\gridColumn.ts" />
