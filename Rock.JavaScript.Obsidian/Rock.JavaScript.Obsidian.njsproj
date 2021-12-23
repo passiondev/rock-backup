@@ -286,6 +286,7 @@
     <TypeScriptCompile Include="Framework\Templates\paneledBlockTemplate.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\fieldTypeEditor.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\treeList.d.ts" />
+    <TypeScriptCompile Include="Framework\ViewModels\publicEditableAttribute.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\treeItem.d.ts" />
     <TypeScriptCompile Include="Tests\Elements\rockFormFieldHelper.ts" />
     <TypeScriptCompile Include="Tests\Elements\textBox.spec.ts" />

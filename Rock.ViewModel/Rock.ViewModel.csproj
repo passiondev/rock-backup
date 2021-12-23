@@ -275,6 +275,7 @@
     <Compile Include="IViewModel.cs" />
     <Compile Include="IViewModelWithAttributes.cs" />
     <Compile Include="NonEntities\AttributeConfigurationValue.cs" />
+    <Compile Include="NonEntities\PublicEditableAttributeViewModel.cs" />
     <Compile Include="NonEntities\ListItemViewModel.cs" />
     <Compile Include="NonEntities\SavedFinancialAccountListItemViewModel.cs" />
     <Compile Include="NonEntities\TreeItemViewModel.cs" />

@@ -15,11 +15,13 @@
 // </copyright>
 //
 
-import { Component, computed, defineComponent, PropType, ref, watch } from "vue";
-import TextBox from "../Elements/textBox";
+import { defineComponent, PropType, ref, watch } from "vue";
 import CheckBox from "../Elements/checkBox";
-import FieldTypeEditor from "./fieldTypeEditor";
+import TextBox from "../Elements/textBox";
+import { FieldTypeConfigurationViewModel } from "../ViewModels/Controls/fieldTypeEditor";
+import { PublicEditableAttributeViewModel } from "../ViewModels/publicEditableAttribute";
 import CategoryPicker from "./categoryPicker";
+import FieldTypeEditor from "./fieldTypeEditor";
 
 export default defineComponent({
     name: "AttributeEditor",
@@ -32,22 +34,66 @@ export default defineComponent({
     },
 
     props: {
+        modelValue: {
+            type: Object as PropType<PublicEditableAttributeViewModel | null>,
+            default: null
+        }
     },
 
     setup(props, { emit }) {
-        const attributeName = ref("");
-        const abbreviatedName = ref("");
-        const attributeKey = ref("");
-        const isActive = ref(false);
-        const isPublic = ref(false);
-        const isRequired = ref(false);
-        const isShowOnBulk = ref(false);
-        const isShowInGrid = ref(false);
+        const attributeName = ref(props.modelValue?.name ?? "");
+        const abbreviatedName = ref(props.modelValue?.abbreviatedName ?? "");
+        const attributeKey = ref(props.modelValue?.key ?? "");
+        const description = ref(props.modelValue?.description ?? "");
+        const isActive = ref(props.modelValue?.isActive ?? true);
+        const isPublic = ref(props.modelValue?.isPublic ?? false);
+        const isRequired = ref(props.modelValue?.isRequired ?? false);
+        const isShowOnBulk = ref(props.modelValue?.showOnBulk ?? false);
+        const isShowInGrid = ref(props.modelValue?.showInGrid ?? false);
+        const categories = ref([...(props.modelValue?.categories ?? [])]);
+        const fieldTypeValue = ref<FieldTypeConfigurationViewModel>({
+            fieldTypeGuid: props.modelValue?.fieldTypeGuid ?? "",
+            configurationOptions: { ...(props.modelValue?.configurationOptions ?? {}) },
+            defaultValue: props.modelValue?.defaultValue ?? ""
+        });
+
+        watch([
+            attributeName,
+            abbreviatedName,
+            attributeKey,
+            isActive,
+            isPublic,
+            isRequired,
+            isShowOnBulk,
+            isShowInGrid,
+            categories,
+            fieldTypeValue], () => {
+                const newModelValue: PublicEditableAttributeViewModel = {
+                    ...(props.modelValue ?? {}),
+                    name: attributeName.value,
+                    abbreviatedName: abbreviatedName.value,
+                    key: attributeKey.value,
+                    description: description.value,
+                    isActive: isActive.value,
+                    isPublic: isPublic.value,
+                    isRequired: isRequired.value,
+                    showOnBulk: isShowOnBulk.value,
+                    showInGrid: isShowInGrid.value,
+                    categories: [...categories.value],
+                    fieldTypeGuid: fieldTypeValue.value.fieldTypeGuid,
+                    configurationOptions: { ...fieldTypeValue.value.configurationOptions },
+                    defaultValue: fieldTypeValue.value.defaultValue
+                };
+
+                emit("update:modelValue", newModelValue);
+            });
 
         return {
             abbreviatedName,
             attributeName,
             attributeKey,
+            categories,
+            fieldTypeValue,
             isActive,
             isPublic,
             isRequired,
@@ -83,9 +129,10 @@ export default defineComponent({
     <div class="row">
         <div class="col-md-6">
             <CategoryPicker label="Categories"
+                v-model="categories"
                 entityTypeGuid="5997C8D3-8840-4591-99A5-552919F90CBD"
                 entityTypeQualifierColumn="EntityTypeId"
-                entityTypeQualifierValue="{EL:A2277FBA-D09F-4D07-B0AB-1C650C25A7A7:72657ED8-D16E-492E-AC12-144C5E7567E7}" />
+                entityTypeQualifierValueX="{EL:A2277FBA-D09F-4D07-B0AB-1C650C25A7A7:72657ED8-D16E-492E-AC12-144C5E7567E7}" />
 
             <TextBox label="Key" v-model="attributeKey" rules="required" />
 
@@ -105,7 +152,7 @@ export default defineComponent({
         </div>
 
         <div class="col-md-6">
-            <FieldTypeEditor />
+            <FieldTypeEditor v-model="fieldTypeValue" />
         </div>
     </div>
 </fieldset>

@@ -17,15 +17,16 @@
 
 import { Component, defineComponent, PropType, reactive, ref, watch } from "vue";
 import AttributeEditor from "../../Controls/attributeEditor";
-import FieldTypeEditor from "../../Controls/fieldTypeEditor";
 import AttributeValuesContainer from "../../Controls/attributeValuesContainer";
 import PanelWidget from "../../Elements/panelWidget";
 import TextBox from "../../Elements/textBox";
 import { FieldType as FieldTypeGuids } from "../../SystemGuids";
 import PaneledBlockTemplate from "../../Templates/paneledBlockTemplate";
+import { useConfigurationValues, useInvokeBlockAction } from "../../Util/block";
 import { Guid } from "../../Util/guid";
 import { ClientEditableAttributeValue, ListItem } from "../../ViewModels";
-import { FieldTypeConfigurationViewModel } from "../../ViewModels/Controls/fieldTypeEditor";
+import RockButton from "../../Elements/rockButton";
+import RockForm from "../../Controls/rockForm";
 
 /**
  * Convert a simpler set of parameters into AttributeValueData
@@ -334,23 +335,28 @@ export default defineComponent({
     components: {
         PaneledBlockTemplate,
         AttributeEditor,
-        FieldTypeEditor,
+        RockButton,
+        RockForm,
         ...galleryComponents
     },
 
     setup() {
-        const fieldValue = ref<FieldTypeConfigurationViewModel>({
-            fieldTypeGuid: FieldTypeGuids.DefinedValue,
-            configurationOptions: {},
-            defaultValue: ""
-        });
+        const configValues = useConfigurationValues<Record<string, unknown>>();
+        const attribute = ref(configValues.attribute);
 
-        watch(fieldValue, () => {
-            console.log("field value changed", fieldValue.value);
-        });
+        const invokeBlockAction = useInvokeBlockAction();
+
+        const doSave = async (): Promise<void> => {
+            const result = await invokeBlockAction("SaveAttribute", {
+                attribute: attribute.value
+            });
+
+            console.log(result.isSuccess, result.errorMessage);
+        };
 
         return {
-            fieldValue
+            attribute,
+            doSave
         };
     },
 
@@ -361,8 +367,11 @@ export default defineComponent({
         Obsidian Field Type Gallery
     </template>
     <template v-slot:default>
-        <AttributeEditor />
-        <FieldTypeEditor v-model="fieldValue" />
+        <RockForm @submit="doSave">
+            <AttributeEditor v-model="attribute" />
+            <RockButton type="submit" btnType="primary">Save</RockButton>
+        </RockForm>
+
         <div style="margin-top:60px;"></div>
         ${galleryTemplate}
     </template>
