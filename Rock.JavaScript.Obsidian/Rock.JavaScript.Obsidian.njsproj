@@ -31,15 +31,17 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include=".eslintrc.js" />
-    <Content Include="build\build.js" />
+    <Content Include="build\buildwp.ts" />
     <Content Include="Core\.eslintrc.js" />
     <Content Include="Framework\.eslintrc.js" />
     <Content Include="Framework\Controls\modal.ts" />
+    <Content Include="TestLib\tsconfig.json" />
     <Content Include="Framework\Util\treeItemProviders.ts" />
     <Content Include="Tests\tsconfig.json" />
     <Content Include="Framework\tsconfig.json" />
     <Content Include="Framework\Util\aspDateFormat.ts" />
     <Content Include="tsconfig.json" />
+    <Content Include="tsconfig.root.json" />
     <Content Include="webpack-eol-plugin.js" />
     <Content Include="webpack.config.js" />
     <None Include="Core\core.ts" />
@@ -63,6 +65,7 @@
     <Folder Include="Framework\Controls\" />
     <Folder Include="Framework\Elements\" />
     <Folder Include="Framework\Fields\" />
+    <Folder Include="TestLib\" />
     <Folder Include="Framework\Rules\" />
     <Folder Include="Framework\Services\" />
     <Folder Include="Framework\Store\" />
@@ -286,6 +289,8 @@
     <TypeScriptCompile Include="Framework\SystemGuids\CodeGenerated\workflowType.d.ts" />
     <TypeScriptCompile Include="Framework\SystemGuids\index.d.ts" />
     <TypeScriptCompile Include="Framework\Templates\paneledBlockTemplate.ts" />
+    <TypeScriptCompile Include="TestLib\index.ts" />
+    <TypeScriptCompile Include="TestLib\something.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\fieldTypeEditor.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\treeList.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\publicEditableAttribute.d.ts" />
