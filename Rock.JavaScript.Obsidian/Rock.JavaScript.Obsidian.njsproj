@@ -132,6 +132,8 @@
     <TypeScriptCompile Include="Framework\Controls\treeItemPicker.ts" />
     <TypeScriptCompile Include="Framework\Directives\dragDrop.ts" />
     <TypeScriptCompile Include="Framework\Elements\inlineCheckBox.ts" />
+    <TypeScriptCompile Include="Framework\Elements\inlineSwitch.ts" />
+    <TypeScriptCompile Include="Framework\Elements\switch.ts" />
     <TypeScriptCompile Include="Framework\Elements\treeList.ts" />
     <TypeScriptCompile Include="Framework\Elements\urlLinkBox.ts" />
     <TypeScriptCompile Include="Framework\Fields\keyValueListField.ts" />

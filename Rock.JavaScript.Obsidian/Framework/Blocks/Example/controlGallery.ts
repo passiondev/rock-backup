@@ -28,6 +28,8 @@ import ListBox from "../../Elements/listBox";
 import BirthdayPicker from "../../Elements/birthdayPicker";
 import NumberUpDown from "../../Elements/numberUpDown";
 import AddressControl, { getDefaultAddressControlModel } from "../../Controls/addressControl";
+import InlineSwitch from "../../Elements/inlineSwitch";
+import Switch from "../../Elements/switch";
 import Toggle from "../../Elements/toggle";
 import ItemsWithPreAndPostHtml, { ItemWithPreAndPostHtml } from "../../Elements/itemsWithPreAndPostHtml";
 import StaticFormControl from "../../Elements/staticFormControl";
@@ -801,6 +803,68 @@ const ratingGallery = defineComponent({
 </GalleryAndResult>`
 });
 
+/** Demonstrates an switch */
+const switchGallery = defineComponent({
+    name: "SwitchGallery",
+    components: {
+        GalleryAndResult,
+        TextBox,
+        Switch
+    },
+    data() {
+        return {
+            text: "",
+            isChecked: false
+        };
+    },
+    template: `
+<GalleryAndResult>
+    <template #header>
+        Switch
+    </template>
+    <template #gallery>
+        <TextBox label="Text" v-model="text" />
+
+        <Switch label="Switch 1" v-model="isChecked" :text="text" />
+        <Switch label="Switch 2" v-model="isChecked" :text="text" />
+    </template>
+    <template #result>
+        {{isChecked}}
+    </template>
+</GalleryAndResult>`
+});
+
+/** Demonstrates an inline switch */
+const inlineSwitchGallery = defineComponent({
+    name: "InlineSwitchGallery",
+    components: {
+        GalleryAndResult,
+        CheckBox,
+        InlineSwitch
+    },
+    data() {
+        return {
+            isBold: false,
+            isChecked: false
+        };
+    },
+    template: `
+<GalleryAndResult>
+    <template #header>
+        InlineSwitch
+    </template>
+    <template #gallery>
+        <CheckBox label="Is Bold" v-model="isBold" />
+
+        <InlineSwitch label="Inline Switch 1" v-model="isChecked" :isBold="isBold" />
+        <InlineSwitch label="Inline Switch 2" v-model="isChecked" :isBold="isBold" />
+    </template>
+    <template #result>
+        {{isChecked}}
+    </template>
+</GalleryAndResult>`
+});
+
 /** Demonstrates a currency box */
 const currencyBoxGallery = defineComponent({
     name: "CurrencyBoxGallery",
@@ -1068,6 +1132,8 @@ const galleryComponents: Record<string, Component> = {
     dialogGallery,
     checkBoxGallery,
     inlineCheckBoxGallery,
+    switchGallery,
+    inlineSwitchGallery,
     checkBoxListGallery,
     listBoxGallery,
     phoneNumberBoxGallery,
