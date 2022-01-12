@@ -28,7 +28,7 @@ using Rock.Web.UI.Controls;
 
 namespace Rock.Field.Types
 {
-    class DocumentTypeFieldType : FieldType
+    public class DocumentTypeFieldType : FieldType
     {
         private const string ALLOW_MULTIPLE_KEY = "allowmultiple";
 

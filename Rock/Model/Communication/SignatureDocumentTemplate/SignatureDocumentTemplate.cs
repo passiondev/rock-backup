@@ -29,7 +29,7 @@ namespace Rock.Model
     /// <summary>
     /// SignatureDocumentTemplate Entity.
     /// </summary>
-    [RockDomain( "Communication" )]
+    [RockDomain( "Core" )]
     [Table( "SignatureDocumentTemplate" )]
     [DataContract]
     public partial class SignatureDocumentTemplate : Model<SignatureDocumentTemplate>, IHasActiveFlag
@@ -132,7 +132,8 @@ namespace Rock.Model
         public string DocumentTerm { get; set; }
 
         /// <summary>
-        /// This is used to define which kind of signature is being collected from the individual. (Ex: typed name, drawn, etc.)
+        /// This is used to define which kind of signature is being collected from the individual.
+        /// Ex: <see cref="SignatureType.Drawn"/> or <see cref="SignatureType.Typed"/>, etc.
         /// </summary>
         /// <value>
         /// The type of the signature.

@@ -243,7 +243,7 @@ namespace RockWeb.Blocks.WorkFlow
 
             if ( HydrateObjects() )
             {
-                BuildWorkflowActionForm( false );
+                BuildWorkflowActionUI( false );
             }
         }
 
@@ -278,7 +278,7 @@ namespace RockWeb.Blocks.WorkFlow
                 {
                     InitializeInteractions();
 
-                    BuildWorkflowActionForm( true );
+                    BuildWorkflowActionUI( true );
                     ProcessActionRequest();
                 }
             }
@@ -595,6 +595,17 @@ namespace RockWeb.Blocks.WorkFlow
                                 ActionTypeId = _actionType.Id;
                                 return true;
                             }
+
+                            if ( action.ActionTypeCache.WorkflowAction is Rock.Workflow.Action.DigitalSignature && action.IsCriteriaValid )
+                            {
+                                _activity = activity;
+                                _activity.LoadAttributes();
+
+                                _action = action;
+                                _actionType = _action.ActionTypeCache;
+                                ActionTypeId = _actionType.Id;
+                                return true;
+                            }
                         }
                     }
                 }
@@ -624,10 +635,11 @@ namespace RockWeb.Blocks.WorkFlow
                     ShowMessage( NotificationBoxType.Warning, string.Empty, workflowType.NoActionMessage.ResolveMergeFields( mergeFields, CurrentPerson ) );
                 }
             }
-           
+
             // If we are returning False (Workflow is not active), make sure the form and notes are not shown
             ShowNotes( false );
-            pnlForm.Visible = false;
+            pnlWorkflowUserForm.Visible = false;
+            pnlWorkflowActionDigitalSignature.Visible = false;
             return false;
         }
 
@@ -719,15 +731,41 @@ namespace RockWeb.Blocks.WorkFlow
             }
         }
 
+        private void BuildWorkflowActionUI( bool setValues )
+        {
+            var form = _actionType.WorkflowForm;
+
+            if ( form != null )
+            {
+                BuildWorkflowActionForm( form, setValues );
+                return;
+            }
+
+            if ( _actionType.WorkflowAction is Rock.Workflow.Action.DigitalSignature )
+            {
+                BuildWorkflowActionDigitalSignature( setValues );
+            }
+        }
+
+
+        private void BuildWorkflowActionDigitalSignature( bool setValues )
+        {
+            // todo
+            pnlWorkflowUserForm.Visible = false;
+            divWorkflowActionUserFormNotes.Visible = false;
+            pnlWorkflowActionDigitalSignature.Visible = true;
+        }
+
         /// <summary>
-        /// Builds the WorkflowActionForm.
+        /// Builds any UI needed by the workflow action.
         /// </summary>
         /// <param name="setValues">if set to <c>true</c> [set values].</param>
-        private void BuildWorkflowActionForm( bool setValues )
+        private void BuildWorkflowActionForm( WorkflowActionFormCache form, bool setValues )
         {
-            Dictionary<string, object> mergeFields = GetWorkflowEntryMergeFields();
+            divWorkflowActionUserFormNotes.Visible = true;
+            pnlWorkflowActionDigitalSignature.Visible = false;
 
-            var form = _actionType.WorkflowForm;
+            Dictionary<string, object> mergeFields = GetWorkflowEntryMergeFields();
 
             if ( setValues )
             {
@@ -750,7 +788,7 @@ namespace RockWeb.Blocks.WorkFlow
                 BuildPersonEntryForm( _action, form, setValues, mergeFields );
             }
 
-            phAttributes.Controls.Clear();
+            phWorkflowFormAttributes.Controls.Clear();
 
             foreach ( var formAttribute in form.FormAttributes.OrderBy( a => a.Order ) )
             {
@@ -786,10 +824,10 @@ namespace RockWeb.Blocks.WorkFlow
 
                 fieldVisibilityWrapper.EditValueUpdated += ( object sender, FieldVisibilityWrapper.FieldEventArgs args ) =>
                 {
-                    FieldVisibilityWrapper.ApplyFieldVisibilityRules( phAttributes );
+                    FieldVisibilityWrapper.ApplyFieldVisibilityRules( phWorkflowFormAttributes );
                 };
 
-                phAttributes.Controls.Add( fieldVisibilityWrapper );
+                phWorkflowFormAttributes.Controls.Add( fieldVisibilityWrapper );
 
                 if ( !string.IsNullOrWhiteSpace( formAttribute.PreHtml ) )
                 {
@@ -805,11 +843,11 @@ namespace RockWeb.Blocks.WorkFlow
                     // get formatted value
                     if ( attribute.FieldType.Class == typeof( Rock.Field.Types.ImageFieldType ).FullName )
                     {
-                        formattedValue = field.FormatValueAsHtml( phAttributes, attribute.EntityTypeId, _activity.Id, value, attribute.QualifierValues, true );
+                        formattedValue = field.FormatValueAsHtml( phWorkflowFormAttributes, attribute.EntityTypeId, _activity.Id, value, attribute.QualifierValues, true );
                     }
                     else
                     {
-                        formattedValue = field.FormatValueAsHtml( phAttributes, attribute.EntityTypeId, _activity.Id, value, attribute.QualifierValues );
+                        formattedValue = field.FormatValueAsHtml( phWorkflowFormAttributes, attribute.EntityTypeId, _activity.Id, value, attribute.QualifierValues );
                     }
 
                     if ( formAttribute.HideLabel )
@@ -869,7 +907,7 @@ namespace RockWeb.Blocks.WorkFlow
                 }
             }
 
-            FieldVisibilityWrapper.ApplyFieldVisibilityRules( phAttributes );
+            FieldVisibilityWrapper.ApplyFieldVisibilityRules( phWorkflowFormAttributes );
 
             if ( form.AllowNotes.HasValue && form.AllowNotes.Value && _workflow != null && _workflow.Id != 0 )
             {
@@ -1141,7 +1179,7 @@ namespace RockWeb.Blocks.WorkFlow
         /// <param name="visible">if set to <c>true</c> [visible].</param>
         private void ShowNotes( bool visible )
         {
-            divNotes.Visible = visible;
+            divWorkflowActionUserFormNotes.Visible = visible;
 
             if ( visible )
             {
@@ -1556,7 +1594,7 @@ namespace RockWeb.Blocks.WorkFlow
             foreach ( WorkflowActionFormAttributeCache formAttribute in editableFormAttributes )
             {
                 var attribute = AttributeCache.Get( formAttribute.AttributeId );
-                var control = phAttributes.FindControl( string.Format( "attribute_field_{0}", formAttribute.AttributeId ) );
+                var control = phWorkflowFormAttributes.FindControl( string.Format( "attribute_field_{0}", formAttribute.AttributeId ) );
 
                 if ( attribute != null && control != null )
                 {
@@ -1738,7 +1776,8 @@ namespace RockWeb.Blocks.WorkFlow
                 }
                 else
                 {
-                    pnlForm.Visible = false;
+                    pnlWorkflowUserForm.Visible = false;
+                    pnlWorkflowActionDigitalSignature.Visible = false;
                 }
             }
         }
@@ -1760,7 +1799,8 @@ namespace RockWeb.Blocks.WorkFlow
 
             if ( hideForm )
             {
-                pnlForm.Visible = false;
+                pnlWorkflowUserForm.Visible = false;
+                pnlWorkflowActionDigitalSignature.Visible = false;
             }
         }
 
