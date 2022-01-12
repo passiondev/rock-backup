@@ -48,7 +48,7 @@ namespace Rock.Attribute
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="Rock.Field.FieldType">Rock.Field.FieldType's</see> allowed for this Workflow Attribute.  <seealso cref="AllowedFieldTypes"/>
+        /// Gets or sets the <see cref="Rock.Field.FieldType">Rock.Field.FieldType's</see> allowed for this Workflow Attribute.
         /// For example: <code>new string[] { "Rock.Field.Types.PersonFieldType","Rock.FieldType.TextFieldType" }</code> 
         /// </summary>
         /// <value>

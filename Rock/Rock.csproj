@@ -3642,7 +3642,7 @@
     <Compile Include="Workflow\Action\WorkflowControl\SetInitiatorFromAttribute.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\SetStatus.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\SetWorkflowName.cs" />
-    <Compile Include="Workflow\Action\WorkflowControl\DigitalSignature.cs" />
+    <Compile Include="Workflow\Action\Utility\ElectronicSignature.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\UserForm.cs" />
     <Compile Include="Workflow\Action\Utility\WebRequest.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\WriteToLog.cs" />

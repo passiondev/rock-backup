@@ -30,22 +30,11 @@ namespace Rock.Workflow.Action
 {
     /// <summary>
     /// </summary>
-    [ActionCategory( "Workflow Control" )]
-    [Description( "Allows for signing a document based on a workflow template" )]
+    [ActionCategory( "Utility" )]
+    [Description( "Allows for e-signing a document based on a workflow template." )]
     [Export( typeof( ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "Digital Signature" )]
-
-
-
-    /*Signature Document Template  - The template to use for the signature document.
-
-Applies to Person - The attribute that represents the person that the document applies to.
-
-Assigned To Person - The attribute that represents the person that will be signing the document. This is only needed if the signature will be completed via an email.
-
-Signed By Person - The attribute that represents the person that signed the document. If a person is logged in that person will override this value.
-
-Signature Document  - The workflow attribute to place the document in.*/
+    [ExportMetadata( "ComponentName", "e-Signature" )]
+    
     [SignatureDocumentTemplateField(
         "Signature Document Template",
         Description = "The template to use for the signature document.",
@@ -85,8 +74,7 @@ Signature Document  - The workflow attribute to place the document in.*/
         FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 5 )]
 
-    //[DocumentTypeField]
-    public class DigitalSignature : ActionComponent
+    public class ElectronicSignature : ActionComponent
     {
 
         /// <summary>
@@ -116,7 +104,7 @@ Signature Document  - The workflow attribute to place the document in.*/
             var actionType = action.ActionTypeCache;
 
 
-            // Always return false. Special logic for Digital Signature will be handled in the WorkflowEntry block
+            // Always return false. Special logic for e-Signature will be handled in the WorkflowEntry block
             return false;
         }
     }
