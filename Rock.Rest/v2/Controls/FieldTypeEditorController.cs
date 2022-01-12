@@ -53,6 +53,11 @@ namespace Rock.Rest.v2.Controls
                 {
                     Text = "Text",
                     Value = Rock.SystemGuid.FieldType.TEXT.AsGuid().ToString()
+                },
+                new ListItemViewModel
+                {
+                    Text = "URL Link",
+                    Value = Rock.SystemGuid.FieldType.URL_LINK.AsGuid().ToString()
                 }
             } );
         }
