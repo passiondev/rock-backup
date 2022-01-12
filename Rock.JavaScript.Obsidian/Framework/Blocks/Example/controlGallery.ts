@@ -941,10 +941,21 @@ const toggleGallery = defineComponent({
     name: "ToggleGallery",
     components: {
         GalleryAndResult,
+        TextBox,
+        DropDownList,
         Toggle
     },
     data() {
         return {
+            trueText: "On",
+            falseText: "Off",
+            btnSize: "",
+            sizeOptions: [
+                { value: "lg", text: "Large" },
+                { value: "md", text: "Medium" },
+                { value: "sm", text: "Small" },
+                { value: "xs", text: "Extra Small" },
+            ],
             value: false
         };
     },
@@ -954,8 +965,12 @@ const toggleGallery = defineComponent({
         Toggle
     </template>
     <template #gallery>
-       <Toggle label="Toggle 1" v-model="value" />
-       <Toggle label="Toggle 2" v-model="value" />
+        <TextBox label="True Text" v-model="trueText" />
+        <TextBox label="False Text" v-model="falseText" />
+        <DropDownList label="Button Size" v-model="btnSize" :options="sizeOptions" />
+
+       <Toggle label="Toggle 1" v-model="value" :trueText="trueText" :falseText="falseText" :btnSize="btnSize" />
+       <Toggle label="Toggle 2" v-model="value" :trueText="trueText" :falseText="falseText" :btnSize="btnSize" />
     </template>
     <template #result>
         {{value}}
