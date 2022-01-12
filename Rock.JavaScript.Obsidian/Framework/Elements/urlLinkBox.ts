@@ -67,17 +67,17 @@ export default defineComponent({
 
     template: `
 <RockFormField
-    v-model="value"
+    :modelValue="value"
     formGroupClasses="url-link-box"
     name="urlbox"
     :rules="computedRules">
-    <template #default="{uniqueId, field, errors, tabIndex, disabled}">
+    <template #default="{uniqueId, field}">
         <div class="control-wrapper">
             <div class="input-group">
                 <span class="input-group-addon">
                     <i class="fa fa-link"></i>
                 </span>
-                <input :id="uniqueId" class="form-control" v-bind="field" :disabled="disabled" :tabindex="tabIndex" type="url" />
+                <input v-model="value" :id="uniqueId" class="form-control" v-bind="field" type="url" />
             </div>
         </div>
     </template>

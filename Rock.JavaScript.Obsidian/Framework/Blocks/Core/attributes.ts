@@ -266,6 +266,10 @@ export default defineComponent({
          * @param row The row that initiated the action.
          */
         const editAttributeValue = async (row: GridRow): Promise<void> => {
+            if (!config.allowSettingOfValues) {
+                return;
+            }
+
             const result = await invokeBlockAction<ClientEditableAttributeValue>("GetEditAttributeValue", {
                 attributeGuid: row.guid
             });
@@ -330,6 +334,13 @@ export default defineComponent({
             }
         };
 
+        /**
+         * Gets the CSS classes to be applied to the delete button.
+         * 
+         * @param row The row containing the delete button.
+         *
+         * @returns An array of class names.
+         */
         const getDeleteButtonClass = (row: GridRow): string[] => {
             const classes: string[] = ["btn", "btn-danger", "btn-sm", "grid-delete-button"];
 
@@ -338,6 +349,22 @@ export default defineComponent({
             }
 
             return classes;
+        };
+
+        /**
+         * Gets the CSS classes to be applied to the data cell of a row.
+         *
+         * @param _row The row containing the data cell.
+         *
+         * @returns An array of class names.
+         */
+        const getDataCellClass = (_row: GridRow): string[] => {
+            if (config.allowSettingOfValues) {
+                return ["grid-select-cell"];
+            }
+            else {
+                return ["grid-cell"];
+            }
         };
 
         // Watch for changes to the user-selection of the entity type and update
@@ -372,12 +399,14 @@ export default defineComponent({
             entityTypeQualifierColumn,
             entityTypeQualifierValue,
             getCondensedValue,
+            getDataCellClass,
             getDeleteButtonClass,
             saveEditAttribute,
             saveEditAttributeValue,
             entityTypeSelectionIsValid,
             onAddAttribute,
             onDeleteAttribute,
+            onIgnore: () => { /* Intentionally blank */ },
             showEditAttributeModal,
             showEditAttributeValueModal,
             showEntityTypeQualifier,
@@ -429,18 +458,18 @@ export default defineComponent({
 
                     <tbody>
                         <tr v-for="attribute in attributes" :key="attribute.id" align="left" @click.stop="editAttributeValue(attribute)">
-                            <td class="grid-select-cell" data-priority="1" style="white-space: nowrap;" align="right">{{ attribute.id }}</td>
-                            <td class="grid-select-cell" data-priority="1" style="white-space: nowrap;">{{ attribute.qualifier }}</td>
-                            <td class="grid-select-cell" data-priority="1">{{ attribute.name }}</td>
-                            <td class="grid-select-cell" data-priority="1">{{ attribute.categories }}</td>
-                            <td class="grid-select-cell" data-priority="1">{{ getCondensedValue(attribute.value) }}</td>
-                            <td class="grid-columncommand" data-priority="1" align="center">
+                            <td :class="getDataCellClass(attribute)" data-priority="1" style="white-space: nowrap;" align="right">{{ attribute.id }}</td>
+                            <td :class="getDataCellClass(attribute)" data-priority="1" style="white-space: nowrap;">{{ attribute.qualifier }}</td>
+                            <td :class="getDataCellClass(attribute)" data-priority="1">{{ attribute.name }}</td>
+                            <td :class="getDataCellClass(attribute)" data-priority="1">{{ attribute.categories }}</td>
+                            <td :class="getDataCellClass(attribute)" data-priority="1">{{ getCondensedValue(attribute.value) }}</td>
+                            <td class="grid-columncommand" data-priority="1" align="center" @click.stop="onIgnore">
                                 <a title="Edit" class="btn btn-default btn-sm" @click.prevent.stop="editAttribute(attribute)"><i class="fa fa-pencil"></i></a>
                             </td>
-                            <td class="grid-columncommand" data-priority="1" align="center">
+                            <td class="grid-columncommand" data-priority="1" align="center" @click.stop="onIgnore">
                                 <a title="Security" class="btn btn-security btn-sm disabled"><i class="fa fa-lock"></i></a>
                             </td>
-                            <td class="grid-columncommand" data-priority="1" align="center">
+                            <td class="grid-columncommand" data-priority="1" align="center" @click.stop="onIgnore">
                                 <a title="Delete" :class="getDeleteButtonClass(attribute)" @click.prevent.stop="onDeleteAttribute(attribute)"><i class="fa fa-times"></i></a>
                             </td>
                         </tr>

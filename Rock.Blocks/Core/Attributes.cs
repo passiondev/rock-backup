@@ -410,6 +410,11 @@ namespace Rock.Blocks.Core
         [BlockAction]
         public BlockActionResult GetEditAttributeValue( Guid attributeGuid )
         {
+            if ( GetAttributeValue( AttributeKey.AllowSettingofValues ).AsBooleanOrNull() != true )
+            {
+                return ActionBadRequest( "Setting values is not enabled." );
+            }
+
             var attribute = Rock.Web.Cache.AttributeCache.Get( attributeGuid );
 
             if ( attribute == null )
@@ -434,6 +439,11 @@ namespace Rock.Blocks.Core
         [BlockAction]
         public BlockActionResult SaveEditAttributeValue( Guid attributeGuid, string value )
         {
+            if ( GetAttributeValue( AttributeKey.AllowSettingofValues ).AsBooleanOrNull() != true )
+            {
+                return ActionBadRequest( "Setting values is not enabled." );
+            }
+
             var attribute = AttributeCache.Get( attributeGuid );
 
             if ( attribute == null )
