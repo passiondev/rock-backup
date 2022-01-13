@@ -33,7 +33,7 @@ namespace Rock.Workflow.Action
     [ActionCategory( "Utility" )]
     [Description( "Allows for e-signing a document based on a workflow template." )]
     [Export( typeof( ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "e-Signature" )]
+    [ExportMetadata( "ComponentName", "eSignature" )]
     
     [SignatureDocumentTemplateField(
         "Signature Document Template",
@@ -69,14 +69,13 @@ namespace Rock.Workflow.Action
     [WorkflowAttribute(
         "Signature Document",
         Description = "The workflow attribute to place the document in.",
-        Key = AttributeKey.SignatureDocument,
+        Key =  AttributeKey.SignatureDocument,
         IsRequired = false,
         FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 5 )]
 
     public class ElectronicSignature : ActionComponent
     {
-
         /// <summary>
         /// Keys to use for Attributes
         /// </summary>

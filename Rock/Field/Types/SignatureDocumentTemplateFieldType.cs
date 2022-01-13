@@ -14,7 +14,6 @@ namespace Rock.Field.Types
     /// </summary>
     public class SignatureDocumentTemplateFieldType : FieldType, IEntityFieldType
     {
-
         #region Formatting
 
         /// <summary>
@@ -68,17 +67,12 @@ namespace Rock.Field.Types
                 a.Name
             } );
 
-            if ( templates.Any() )
+            foreach ( var template in templates )
             {
-                foreach ( var template in templates )
-                {
-                    editControl.Items.Add( new ListItem( template.Name, template.Guid.ToString() ) );
-                }
-
-                return editControl;
+                editControl.Items.Add( new ListItem( template.Name, template.Guid.ToString() ) );
             }
 
-            return null;
+            return editControl;
         }
 
         /// <summary>

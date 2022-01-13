@@ -596,7 +596,7 @@ namespace RockWeb.Blocks.WorkFlow
                                 return true;
                             }
 
-                            if ( action.ActionTypeCache.WorkflowAction is Rock.Workflow.Action.DigitalSignature && action.IsCriteriaValid )
+                            if ( action.ActionTypeCache.WorkflowAction is Rock.Workflow.Action.ElectronicSignature && action.IsCriteriaValid )
                             {
                                 _activity = activity;
                                 _activity.LoadAttributes();
@@ -639,7 +639,7 @@ namespace RockWeb.Blocks.WorkFlow
             // If we are returning False (Workflow is not active), make sure the form and notes are not shown
             ShowNotes( false );
             pnlWorkflowUserForm.Visible = false;
-            pnlWorkflowActionDigitalSignature.Visible = false;
+            pnlWorkflowActionElectronicSignature.Visible = false;
             return false;
         }
 
@@ -741,7 +741,7 @@ namespace RockWeb.Blocks.WorkFlow
                 return;
             }
 
-            if ( _actionType.WorkflowAction is Rock.Workflow.Action.DigitalSignature )
+            if ( _actionType.WorkflowAction is Rock.Workflow.Action.ElectronicSignature )
             {
                 BuildWorkflowActionDigitalSignature( setValues );
             }
@@ -753,7 +753,7 @@ namespace RockWeb.Blocks.WorkFlow
             // todo
             pnlWorkflowUserForm.Visible = false;
             divWorkflowActionUserFormNotes.Visible = false;
-            pnlWorkflowActionDigitalSignature.Visible = true;
+            pnlWorkflowActionElectronicSignature.Visible = true;
         }
 
         /// <summary>
@@ -763,7 +763,7 @@ namespace RockWeb.Blocks.WorkFlow
         private void BuildWorkflowActionForm( WorkflowActionFormCache form, bool setValues )
         {
             divWorkflowActionUserFormNotes.Visible = true;
-            pnlWorkflowActionDigitalSignature.Visible = false;
+            pnlWorkflowActionElectronicSignature.Visible = false;
 
             Dictionary<string, object> mergeFields = GetWorkflowEntryMergeFields();
 
@@ -1777,7 +1777,7 @@ namespace RockWeb.Blocks.WorkFlow
                 else
                 {
                     pnlWorkflowUserForm.Visible = false;
-                    pnlWorkflowActionDigitalSignature.Visible = false;
+                    pnlWorkflowActionElectronicSignature.Visible = false;
                 }
             }
         }
@@ -1800,7 +1800,7 @@ namespace RockWeb.Blocks.WorkFlow
             if ( hideForm )
             {
                 pnlWorkflowUserForm.Visible = false;
-                pnlWorkflowActionDigitalSignature.Visible = false;
+                pnlWorkflowActionElectronicSignature.Visible = false;
             }
         }
 

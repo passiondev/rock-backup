@@ -28,6 +28,11 @@ using Rock.Web.UI.Controls;
 
 namespace Rock.Field.Types
 {
+    /// <summary>
+    /// Class DocumentTypeFieldType.
+    /// Implements the <see cref="Rock.Field.FieldType" />
+    /// </summary>
+    /// <seealso cref="Rock.Field.FieldType" />
     public class DocumentTypeFieldType : FieldType
     {
         private const string ALLOW_MULTIPLE_KEY = "allowmultiple";

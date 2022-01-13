@@ -118,9 +118,9 @@ namespace RockWeb.Blocks.Core
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void cpProvider_SelectedIndexChanged( object sender, EventArgs e )
+        protected void cpExternalProvider_SelectedIndexChanged( object sender, EventArgs e )
         {
-            SetTemplates();
+            SetExternalProviderTemplates();
         }
 
         /// <summary>
@@ -162,9 +162,14 @@ namespace RockWeb.Blocks.Core
             signatureDocumentTemplate.Name = tbTypeName.Text;
             signatureDocumentTemplate.Description = tbTypeDescription.Text;
             signatureDocumentTemplate.BinaryFileTypeId = bftpFileType.SelectedValueAsInt();
-            signatureDocumentTemplate.ProviderEntityTypeId = cpProvider.SelectedEntityTypeId;
-            signatureDocumentTemplate.ProviderTemplateKey = ddlTemplate.SelectedValue;
-            signatureDocumentTemplate.InviteSystemCommunicationId = ddlSystemEmail.SelectedValueAsInt();
+            signatureDocumentTemplate.ProviderEntityTypeId = cpExternalProvider.SelectedEntityTypeId;
+            signatureDocumentTemplate.ProviderTemplateKey = ddlExternalProviderTemplate.SelectedValue;
+            signatureDocumentTemplate.InviteSystemCommunicationId = ddlInviteSystemCommunication.SelectedValueAsId();
+            signatureDocumentTemplate.CompletionSystemCommunicationId = ddlCompletionSystemCommunication.SelectedValueAsId();
+            signatureDocumentTemplate.SignatureType = rblSignatureType.SelectedValueAsEnumOrNull<SignatureType>() ?? SignatureType.Typed;
+            signatureDocumentTemplate.LavaTemplate = ceLavaTemplate.Text;
+            signatureDocumentTemplate.DocumentTerm = tbDocumentTerm.Text;
+            signatureDocumentTemplate.IsActive = cbIsActive.Checked;
 
             if ( !signatureDocumentTemplate.IsValid )
             {
@@ -276,10 +281,19 @@ namespace RockWeb.Blocks.Core
             tbTypeName.Text = signatureDocumentTemplate.Name;
             tbTypeDescription.Text = signatureDocumentTemplate.Description;
             bftpFileType.SetValue( signatureDocumentTemplate.BinaryFileTypeId );
-            cpProvider.SetValue( signatureDocumentTemplate.ProviderEntityType != null ? signatureDocumentTemplate.ProviderEntityType.Guid.ToString().ToUpper() : string.Empty );
-            SetTemplates();
-            ddlTemplate.SetValue( signatureDocumentTemplate.ProviderTemplateKey );
-            ddlSystemEmail.SetValue( signatureDocumentTemplate.InviteSystemCommunicationId );
+
+            // External Provider (SignNow) - This will be obsolete
+            cpExternalProvider.SetValue( signatureDocumentTemplate.ProviderEntityType != null ? signatureDocumentTemplate.ProviderEntityType.Guid.ToString().ToUpper() : string.Empty );
+            SetExternalProviderTemplates();
+            ddlExternalProviderTemplate.SetValue( signatureDocumentTemplate.ProviderTemplateKey );
+            ddlInviteSystemCommunication.SetValue( signatureDocumentTemplate.InviteSystemCommunicationId );
+
+            // Rock eSignature
+            ceLavaTemplate.Text = signatureDocumentTemplate.LavaTemplate;
+            cbIsActive.Checked = signatureDocumentTemplate.IsActive;
+            rblSignatureType.SetValue( signatureDocumentTemplate.SignatureType.ConvertToInt() );
+            tbDocumentTerm.Text = signatureDocumentTemplate.DocumentTerm;
+            ddlCompletionSystemCommunication.SetValue( signatureDocumentTemplate.CompletionSystemCommunicationId );
         }
 
         /// <summary>
@@ -300,7 +314,9 @@ namespace RockWeb.Blocks.Core
         /// </summary>
         private void LoadDropDowns()
         {
-            ddlSystemEmail.Items.Clear();
+            ddlInviteSystemCommunication.Items.Clear();
+            ddlCompletionSystemCommunication.Items.Clear();
+            ddlCompletionSystemCommunication.Items.Add( new ListItem() );
             using ( var rockContext = new RockContext() )
             {
                 foreach ( var systemEmail in new SystemCommunicationService( rockContext )
@@ -312,45 +328,59 @@ namespace RockWeb.Blocks.Core
                         e.Title
                     } ) )
                 {
-                    ddlSystemEmail.Items.Add( new ListItem( systemEmail.Title, systemEmail.Id.ToString() ) );
+                    ddlInviteSystemCommunication.Items.Add( new ListItem( systemEmail.Title, systemEmail.Id.ToString() ) );
+                    ddlCompletionSystemCommunication.Items.Add( new ListItem( systemEmail.Title, systemEmail.Id.ToString() ) );
                 }
             }
+
+            rblSignatureType.BindToEnum<SignatureType>();
         }
 
         /// <summary>
         /// Sets the templates.
         /// </summary>
-        private void SetTemplates()
+        private void SetExternalProviderTemplates()
         {
-            ddlTemplate.Items.Clear();
-            ddlTemplate.Items.Add( new ListItem() );
+            ddlExternalProviderTemplate.Items.Clear();
+            ddlExternalProviderTemplate.Items.Add( new ListItem() );
 
-            int? entityTypeId = cpProvider.SelectedEntityTypeId;
-            if ( entityTypeId.HasValue )
+            ddlExternalProviderTemplate.Visible = false;
+            int? entityTypeId = cpExternalProvider.SelectedEntityTypeId;
+            if ( !entityTypeId.HasValue )
             {
-                var entityType = EntityTypeCache.Get( entityTypeId.Value );
-                if ( entityType != null )
+                return;
+            }
+
+            var entityType = EntityTypeCache.Get( entityTypeId.Value );
+
+            if ( entityType == null )
+            {
+                return;
+            }
+
+            var component = DigitalSignatureContainer.GetComponent( entityType.Name );
+            if ( component == null )
+            {
+                return;
+            }
+
+            var errors = new List<string>();
+            var templates = component.GetTemplates( out errors );
+
+            if ( templates != null )
+            {
+                foreach ( var keyVal in templates.OrderBy( d => d.Value ) )
                 {
-                    var component = DigitalSignatureContainer.GetComponent( entityType.Name );
-                    if ( component != null )
-                    {
-                        var errors = new List<string>();
-                        var templates = component.GetTemplates( out errors );
-                        if ( templates != null )
-                        {
-                            foreach ( var keyVal in templates.OrderBy( d => d.Value ) )
-                            {
-                                ddlTemplate.Items.Add( new ListItem( keyVal.Value, keyVal.Key ) );
-                            }
-                        }
-                        else
-                        {
-                            nbEditModeMessage.Text = string.Format( "<ul><li>{0}</li></ul>", errors.AsDelimited( "</li><li>" ) );
-                            nbEditModeMessage.Visible = true;
-                        }
-                    }
+                    ddlExternalProviderTemplate.Items.Add( new ListItem( keyVal.Value, keyVal.Key ) );
                 }
             }
+            else
+            {
+                nbEditModeMessage.Text = string.Format( "<ul><li>{0}</li></ul>", errors.AsDelimited( "</li><li>" ) );
+                nbEditModeMessage.Visible = true;
+            }
+
+            ddlExternalProviderTemplate.Visible = true;
         }
 
         /// <summary>

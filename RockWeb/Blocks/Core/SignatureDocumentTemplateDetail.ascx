@@ -33,14 +33,28 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            <Rock:ComponentPicker ID="cpProvider" runat="server" ContainerType="Rock.Security.DigitalSignatureContainer, Rock" Label="Digital Signature Provider" OnSelectedIndexChanged="cpProvider_SelectedIndexChanged" AutoPostBack="true" Required="true" />
-                            <Rock:RockDropDownList ID="ddlTemplate" runat="server" Label="Template" Help="A template that has been created with your digital signature provider" Required="true" />
+                            <%-- External Provider (will be obsoleted) --%>
+                            <Rock:ComponentPicker ID="cpExternalProvider" runat="server" ContainerType="Rock.Security.DigitalSignatureContainer, Rock" Label="External Digital Signature Provider" OnSelectedIndexChanged="cpExternalProvider_SelectedIndexChanged" AutoPostBack="true" Required="false"  />
+                            <Rock:RockDropDownList ID="ddlExternalProviderTemplate" runat="server" Label="External Provider Template" Help="A template that has been created with your digital signature provider" Required="true" Visible="false"/>
+
+                            <%-- Rock eSignature --%>
                         </div>
                         <div class="col-md-6">
+                            <Rock:RockCheckBox ID="cbIsActive" runat="server" Label="IsActive" />
                             <Rock:BinaryFileTypePicker ID="bftpFileType" runat="server" Label="File Type" Required="true"
                                 Help="The file type to use when saving signed documents of this type." />
-                            <Rock:RockDropDownList ID="ddlSystemEmail" runat="server" Label="Invite Email" Required="true" Visible="false"
+                            <Rock:RockDropDownList ID="ddlInviteSystemCommunication" runat="server" Label="Invite Email" Required="true" Visible="false"
                                 Help="The System Email that should be sent when requesting a signature for documents of this type." />
+                        </div>
+                    </div>
+
+                    <Rock:CodeEditor ID="ceLavaTemplate" runat="server" Label="Template" EditorMode="Lava" />
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <Rock:RockRadioButtonList Id="rblSignatureType" runat="server" Label="Signature Type" />
+                            <Rock:RockTextBox Id="tbDocumentTerm" runat="server" Label="Document Term" MaxLength="100" />
+                            <Rock:RockDropDownList Id="ddlCompletionSystemCommunication" runat="server" Label="Completion System Communication" />
                         </div>
                     </div>
 

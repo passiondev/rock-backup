@@ -81,8 +81,8 @@
 
                         </asp:Panel>
 
-                        <asp:Panel ID="pnlWorkflowActionDigitalSignature" runat="server" Visible="false">
-                            TODO: pnlWorkflowActionDigitalSignature
+                        <asp:Panel ID="pnlWorkflowActionElectronicSignature" runat="server" Visible="false">
+                            TODO: pnlWorkflowActionElectronicSignature
                         </asp:Panel>
 
 
