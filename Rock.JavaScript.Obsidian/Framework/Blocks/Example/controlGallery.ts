@@ -52,6 +52,7 @@ import SocialSecurityNumberBox from "../../Elements/socialSecurityNumberBox";
 import TimePicker from "../../Elements/timePicker";
 import CheckBoxList from "../../Elements/checkBoxList";
 import Rating from "../../Elements/rating";
+import Fullscreen from "../../Elements/fullscreen";
 import { toNumber } from "../../Services/number";
 import { ListItem } from "../../ViewModels";
 
@@ -343,7 +344,7 @@ const formRulesGallery = defineComponent({
     template: `
 <GalleryAndResult :splitWidth="false">
     <template #header>
-        Rules
+        Form Rules
     </template>
     <template #gallery>
         <TextBox label="Rules" v-model="rules" help="Try 'required', 'gte:1', 'lt:2', and others. Combine rules like this: 'required|lt:7|gt:6'" />
@@ -1121,6 +1122,40 @@ const itemsWithPreAndPostHtmlGallery = defineComponent({
 </GalleryAndResult>`
 });
 
+/** Demonstrates the fullscreen component. */
+const fullscreenGallery = defineComponent({
+    name: "FullscreenGallery",
+    components: {
+        GalleryAndResult,
+        CheckBox,
+        Fullscreen
+    },
+    data() {
+        return {
+            colors: Array.apply(0, Array(256)).map((_: unknown, index: number) => `rgb(${index}, ${index}, ${index})`),
+            pageOnly: true,
+            value: false
+        };
+    },
+    template: `
+<GalleryAndResult>
+    <template #header>
+        Fullscreen
+    </template>
+    <template #gallery>
+        <CheckBox v-model="pageOnly" label="Is Page Only" />
+
+        <Fullscreen v-model="value" :isPageOnly="pageOnly">
+            <CheckBox v-model="value" label="Fullscreen" />
+            <div v-for="c in colors" :style="{ background: c, height: '5px' }"></div>
+        </Fullscreen>
+    </template>
+    <template #result>
+    </template>
+</GalleryAndResult>`
+});
+
+
 
 const galleryComponents: Record<string, Component> = {
     textBoxGallery,
@@ -1154,7 +1189,8 @@ const galleryComponents: Record<string, Component> = {
     addressControlGallery,
     toggleGallery,
     progressTrackerGallery,
-    itemsWithPreAndPostHtmlGallery
+    itemsWithPreAndPostHtmlGallery,
+    fullscreenGallery
 };
 
 const galleryTemplate = Object.keys(galleryComponents).sort().map(g => `<${g} />`).join("");
