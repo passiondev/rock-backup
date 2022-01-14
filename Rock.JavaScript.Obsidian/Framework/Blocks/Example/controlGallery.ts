@@ -53,6 +53,7 @@ import TimePicker from "../../Elements/timePicker";
 import CheckBoxList from "../../Elements/checkBoxList";
 import Rating from "../../Elements/rating";
 import Fullscreen from "../../Elements/fullscreen";
+import Panel from "../../Controls/panel";
 import { toNumber } from "../../Services/number";
 import { ListItem } from "../../ViewModels";
 
@@ -62,7 +63,7 @@ import { ListItem } from "../../ViewModels";
 const GalleryAndResult = defineComponent({
     name: "GalleryAndResult",
     components: {
-        PanelWidget
+        Panel
     },
     props: {
         splitWidth: {
@@ -71,8 +72,8 @@ const GalleryAndResult = defineComponent({
         }
     },
     template: `
-<PanelWidget>
-    <template #header><slot name="header" /></template>
+<Panel :hasCollapse="true">
+    <template #title><slot name="header" /></template>
     <div v-if="splitWidth" class="row">
         <div class="col-md-6">
             <slot name="gallery" />
@@ -89,7 +90,7 @@ const GalleryAndResult = defineComponent({
             <slot name="result" />
         </div>
     </template>
-</PanelWidget>`
+</Panel>`
 });
 
 /** Demonstrates a phone number box */
@@ -1155,6 +1156,62 @@ const fullscreenGallery = defineComponent({
 </GalleryAndResult>`
 });
 
+/** Demonstrates the panel component. */
+const panelGallery = defineComponent({
+    name: "PanelGallery",
+    components: {
+        GalleryAndResult,
+        CheckBox,
+        Panel
+    },
+    data() {
+        return {
+            colors: Array.apply(0, Array(256)).map((_: unknown, index: number) => `rgb(${index}, ${index}, ${index})`),
+            collapsableValue: true,
+            drawerValue: false,
+            hasAside: false,
+            hasDrawer: true,
+            hasFullscreen: false,
+            isFullscreenPageOnly: true,
+            value: true
+        };
+    },
+    template: `
+<GalleryAndResult>
+    <template #header>
+        Panel
+    </template>
+    <template #gallery>
+        <CheckBox v-model="collapsableValue" label="Collapsable" />
+        <CheckBox v-model="value" label="Panel Open" />
+        <CheckBox v-model="hasDrawer" label="Has Drawer" />
+        <CheckBox v-model="hasAside" label="Has Aside" />
+        <CheckBox v-model="hasFullscreen" label="Has Fullscreen" />
+        <CheckBox v-model="isFullscreenPageOnly" label="Page Only Fullscreen" />
+
+        <Panel v-model="value" v-model:isDrawerOpen="drawerValue" :hasCollapse="collapsableValue" :hasFullscreen="hasFullscreen" :isFullscreenPageOnly="isFullscreenPageOnly" title="Panel Title">
+            <template v-if="hasDrawer" #drawer>
+                <div style="text-align: center;">Drawer Content</div>
+            </template>
+
+            <template v-if="hasAside" #titleAside>
+                <span class="label label-warning">Warning</span>
+            </template>
+
+            <template v-if="hasAside" #actionAside>
+                <span class="panel-action">
+                    <i class="fa fa-star-o"></i>
+                </span>
+            </template>
+
+            <div v-for="c in colors" :style="{ background: c, height: '1px' }"></div>
+        </Panel>
+    </template>
+    <template #result>
+    </template>
+</GalleryAndResult>`
+});
+
 
 
 const galleryComponents: Record<string, Component> = {
@@ -1190,7 +1247,8 @@ const galleryComponents: Record<string, Component> = {
     toggleGallery,
     progressTrackerGallery,
     itemsWithPreAndPostHtmlGallery,
-    fullscreenGallery
+    fullscreenGallery,
+    panelGallery
 };
 
 const galleryTemplate = Object.keys(galleryComponents).sort().map(g => `<${g} />`).join("");
@@ -1198,12 +1256,12 @@ const galleryTemplate = Object.keys(galleryComponents).sort().map(g => `<${g} />
 export default defineComponent({
     name: "Example.ControlGallery",
     components: {
-        PaneledBlockTemplate,
+        Panel,
         ...galleryComponents
     },
 
     template: `
-<PaneledBlockTemplate>
+<Panel type="block" hasFullscreen>
     <template v-slot:title>
         <i class="fa fa-flask"></i>
         Obsidian Control Gallery
@@ -1211,5 +1269,5 @@ export default defineComponent({
     <template v-slot:default>
         ${galleryTemplate}
     </template>
-</PaneledBlockTemplate>`
+</Panel>`
 });
