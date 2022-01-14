@@ -291,6 +291,7 @@ namespace Rock.Financial
         /// <returns></returns>
         public static FinancialStatementGeneratorRecipientResult GetStatementGeneratorRecipientResult( FinancialStatementGeneratorRecipientRequest financialStatementGeneratorRecipientRequest, Person currentPerson )
         {
+
             if ( financialStatementGeneratorRecipientRequest == null )
             {
                 throw new FinancialGivingStatementArgumentException( "FinancialStatementGeneratorRecipientRequest must be specified" );

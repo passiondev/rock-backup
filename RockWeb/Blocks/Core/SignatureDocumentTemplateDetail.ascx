@@ -22,41 +22,54 @@
                             <Rock:DataTextBox ID="tbTypeName" runat="server" SourceTypeName="Rock.Model.SignatureDocumentTemplate, Rock" PropertyName="Name" />
                         </div>
                         <div class="col-md-6">
+                            <Rock:RockCheckBox ID="cbIsActive" runat="server" Label="Active" />
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-12">
-                            <Rock:DataTextBox ID="tbTypeDescription" runat="server" SourceTypeName="Rock.Model.SignatureDocumentTemplate, Rock" PropertyName="Description" TextMode="MultiLine" Rows="3" ValidateRequestMode="Disabled" />
+                            <Rock:DataTextBox ID="tbTypeDescription" runat="server" SourceTypeName="Rock.Model.SignatureDocumentTemplate, Rock" PropertyName="Description" TextMode="MultiLine" Rows="2" ValidateRequestMode="Disabled" />
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6">
-                            <%-- External Provider (will be obsoleted) --%>
-                            <Rock:ComponentPicker ID="cpExternalProvider" runat="server" ContainerType="Rock.Security.DigitalSignatureContainer, Rock" Label="External Digital Signature Provider" OnSelectedIndexChanged="cpExternalProvider_SelectedIndexChanged" AutoPostBack="true" Required="false"  />
-                            <Rock:RockDropDownList ID="ddlExternalProviderTemplate" runat="server" Label="External Provider Template" Help="A template that has been created with your digital signature provider" Required="true" Visible="false"/>
-
-                            <%-- Rock eSignature --%>
+                            <Rock:RockTextBox ID="tbDocumentTerm" runat="server" Label="Document Term" MaxLength="100" Help="How the document should be referred to (e.g Waiver, Contract, Statement, etc.)" />
+                            <Rock:RockRadioButtonList ID="rblSignatureType" runat="server" Label="Signature Input Type" Help="The input type for the signature. Drawn will display an area where the individual can use the mouse or a finger to draw a representation of their signature. Typed will allow them to type their name as their digital signature. Both are legally acceptable in the US and Canada. The drawn value is considered Personally identifiable information (PII) and is more sensive to keep. It is encrypted in the database." RepeatDirection="Horizontal" />
                         </div>
                         <div class="col-md-6">
-                            <Rock:RockCheckBox ID="cbIsActive" runat="server" Label="IsActive" />
-                            <Rock:BinaryFileTypePicker ID="bftpFileType" runat="server" Label="File Type" Required="true"
-                                Help="The file type to use when saving signed documents of this type." />
-                            <Rock:RockDropDownList ID="ddlInviteSystemCommunication" runat="server" Label="Invite Email" Required="true" Visible="false"
-                                Help="The System Email that should be sent when requesting a signature for documents of this type." />
+                            <Rock:BinaryFileTypePicker ID="bftpFileType" runat="server" Label="File Type" Required="true" Help="Determines which file type is used when storing the signed document" />
+                            <Rock:RockDropDownList ID="ddlCompletionSystemCommunication" runat="server" Label="Completion Email Template" Help="The email template to use when sending the signed document upon completion." />
                         </div>
                     </div>
 
-                    <Rock:CodeEditor ID="ceLavaTemplate" runat="server" Label="Template" EditorMode="Lava" />
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <Rock:RockRadioButtonList Id="rblSignatureType" runat="server" Label="Signature Type" />
-                            <Rock:RockTextBox Id="tbDocumentTerm" runat="server" Label="Document Term" MaxLength="100" />
-                            <Rock:RockDropDownList Id="ddlCompletionSystemCommunication" runat="server" Label="Completion System Communication" />
-                        </div>
+                    <a href="#" onclick="$('.js-template-tips').slideToggle();return false;" class="">
+                        Template Tips
+                    </a>
+                    <div class="js-template-tips well" style="display:none" >
+                        <h2>Template Tips</h2>
+                        <p>Below are some tips to assist you in your template creation. The merge fields that you use to customize your templates will vary depending on where they are being used.</p>
+                        <p>Be sure to add the {{ SignatureInformation }} merge field where you would like the signature information to be displayed. If you do not provide this merge field it will be added for you automatically at the end of the template.</p>
                     </div>
+                    
+                    <Rock:HtmlEditor ID="ceESignatureLavaTemplate" runat="server" Label="Lava Template" Help="The Lava template that makes up the body of the document." Height="200" />
+
+                    <%-- Legacy Signature Provider Settings --%>
+                    <asp:Panel ID="pnlLegacySignatureProviderSettings" runat="server" class="well">
+                        <label>Legacy Signature Provider Settings</label>
+                        <span>Support for these providers will be fully removed in the next full release.</span>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <Rock:ComponentPicker ID="cpExternalProvider" runat="server" ContainerType="Rock.Security.DigitalSignatureContainer, Rock" Label="External Digital Signature Provider"
+                                    OnSelectedIndexChanged="cpExternalProvider_SelectedIndexChanged" AutoPostBack="true" Required="false" Help="This will be obsolete in a future version of Rock. Leave this blank to use the Rock's built-in eSignature." />
+                            </div>
+                            <div class="col-md-6">
+                                <Rock:RockDropDownList ID="ddlExternalProviderTemplate" runat="server" Label="External Provider Template" Help="A template that has been created with your digital signature provider" Required="false" Visible="true" />
+                            </div>
+                        </div>
+
+                    </asp:Panel>
+
 
                     <div class="actions">
                         <asp:LinkButton ID="btnSaveType" runat="server" AccessKey="s" ToolTip="Alt+s" Text="Save" CssClass="btn btn-primary" OnClick="btnSaveType_Click" />

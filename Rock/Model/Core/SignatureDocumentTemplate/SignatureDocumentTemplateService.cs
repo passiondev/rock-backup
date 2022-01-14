@@ -222,48 +222,6 @@ namespace Rock.Model
         }
 
         /// <summary>
-        /// Sends the invite.
-        /// </summary>
-        /// <param name="rockContext">The rock context.</param>
-        /// <param name="component">The component.</param>
-        /// <param name="document">The document.</param>
-        /// <param name="person">The person.</param>
-        /// <param name="errors">The errors.</param>
-        /// <returns></returns>
-        private bool SendInvite( RockContext rockContext, DigitalSignatureComponent component, SignatureDocument document, Person person, out List<string> errors )
-        {
-            errors = new List<string>();
-            if ( document != null &&
-                document.SignatureDocumentTemplate != null && 
-                document.SignatureDocumentTemplate.InviteSystemCommunicationId.HasValue &&
-                person != null &&
-                !string.IsNullOrWhiteSpace( person.Email ) )
-            {
-                string inviteLink = component.GetInviteLink( document, person, out errors );
-                if ( !errors.Any() )
-                {
-                    var systemEmail = new SystemCommunicationService( rockContext ).Get( document.SignatureDocumentTemplate.InviteSystemCommunicationId.Value );
-                    if ( systemEmail != null )
-                    {
-                        var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, person );
-                        mergeFields.Add( "SignatureDocument", document );
-                        mergeFields.Add( "InviteLink", inviteLink );
-
-                        var emailMessage = new RockEmailMessage( systemEmail );
-                        emailMessage.AddRecipient( new RockEmailMessageRecipient( person, mergeFields ) );
-                        emailMessage.Send();
-                    }
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// Updates the document status.
         /// </summary>
         /// <param name="signatureDocument">The signature document.</param>

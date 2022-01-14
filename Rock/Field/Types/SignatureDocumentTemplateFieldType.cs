@@ -14,6 +14,8 @@ namespace Rock.Field.Types
     /// </summary>
     public class SignatureDocumentTemplateFieldType : FieldType, IEntityFieldType
     {
+        private const string SHOW_TEMPLATES_WITH_EXTERNAL_PROVIDERS = "SHOW_TEMPLATES_WITH_EXTERNAL_PROVIDERS";
+
         #region Formatting
 
         /// <summary>
@@ -61,7 +63,19 @@ namespace Rock.Field.Types
             var editControl = new RockDropDownList { ID = id };
             editControl.Items.Add( new ListItem() );
 
-            var templates = new SignatureDocumentTemplateService( new RockContext() ).Queryable().OrderBy( t => t.Name ).Select( a => new
+            bool showExternalProviders = configurationValues.GetValueOrNull( SHOW_TEMPLATES_WITH_EXTERNAL_PROVIDERS )?.AsBoolean() ?? false;
+
+            var templatesQuery = new SignatureDocumentTemplateService( new RockContext() ).Queryable();
+            if ( showExternalProviders )
+            {
+                templatesQuery = templatesQuery.Where( a => a.ProviderEntityTypeId.HasValue );
+            }
+            else
+            {
+                templatesQuery = templatesQuery.Where( a => !a.ProviderEntityTypeId.HasValue );
+            };
+
+            var templates = templatesQuery.OrderBy( t => t.Name ).Select( a => new
             {
                 a.Guid,
                 a.Name

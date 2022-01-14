@@ -23,6 +23,7 @@ using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
 using Rock.Transactions;
@@ -741,19 +742,28 @@ namespace RockWeb.Blocks.WorkFlow
                 return;
             }
 
-            if ( _actionType.WorkflowAction is Rock.Workflow.Action.ElectronicSignature )
+            if ( _actionType.WorkflowAction is Rock.Workflow.Action.ElectronicSignature  )
             {
-                BuildWorkflowActionDigitalSignature( setValues );
+                var eSignatureWorkflowAction = _actionType.WorkflowAction as Rock.Workflow.Action.ElectronicSignature;
+                BuildWorkflowActionDigitalSignature( eSignatureWorkflowAction, _action, setValues );
             }
         }
 
 
-        private void BuildWorkflowActionDigitalSignature( bool setValues )
+        private void BuildWorkflowActionDigitalSignature( Rock.Workflow.Action.ElectronicSignature eSignatureWorkflowAction, WorkflowAction workflowAction, bool setValues )
         {
             // todo
             pnlWorkflowUserForm.Visible = false;
             divWorkflowActionUserFormNotes.Visible = false;
             pnlWorkflowActionElectronicSignature.Visible = true;
+
+            var rockContext = new RockContext();
+
+            var signatureDocumentTemplate = eSignatureWorkflowAction.GetSignatureDocumentTemplate( rockContext, workflowAction );
+            var lavaTemplate = signatureDocumentTemplate?.LavaTemplate;
+            var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage );
+            lSignatureDocumentHTML.Text = lavaTemplate?.ResolveMergeFields( mergeFields );
+            
         }
 
         /// <summary>

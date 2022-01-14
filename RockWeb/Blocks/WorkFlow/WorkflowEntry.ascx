@@ -81,8 +81,11 @@
 
                         </asp:Panel>
 
+                        <%-- eSignature UI --%>
                         <asp:Panel ID="pnlWorkflowActionElectronicSignature" runat="server" Visible="false">
-                            TODO: pnlWorkflowActionElectronicSignature
+                            <asp:Literal ID="lSignatureDocumentHTML" runat="server" />
+
+                            ### TODO Signature Signer Component ###
                         </asp:Panel>
 
 

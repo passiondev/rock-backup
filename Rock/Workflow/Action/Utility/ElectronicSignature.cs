@@ -34,11 +34,12 @@ namespace Rock.Workflow.Action
     [Description( "Allows for e-signing a document based on a workflow template." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "eSignature" )]
-    
+
     [SignatureDocumentTemplateField(
         "Signature Document Template",
         Description = "The template to use for the signature document.",
         Key = AttributeKey.SignatureDocumentTemplate,
+        ShowTemplatesThatHaveExternalProviders = false,
         IsRequired = true,
         Order = 1 )]
 
@@ -69,7 +70,7 @@ namespace Rock.Workflow.Action
     [WorkflowAttribute(
         "Signature Document",
         Description = "The workflow attribute to place the document in.",
-        Key =  AttributeKey.SignatureDocument,
+        Key = AttributeKey.SignatureDocument,
         IsRequired = false,
         FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 5 )]
@@ -89,6 +90,23 @@ namespace Rock.Workflow.Action
         }
 
         /// <summary>
+        /// Gets the signature document template.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="workflowAction">The workflow action.</param>
+        /// <returns>SignatureDocumentTemplate.</returns>
+        public SignatureDocumentTemplate GetSignatureDocumentTemplate( RockContext rockContext, WorkflowAction workflowAction )
+        {
+            var templateGuid = this.GetAttributeValue( workflowAction, AttributeKey.SignatureDocumentTemplate ).AsGuidOrNull();
+            if ( templateGuid.HasValue )
+            {
+                return new SignatureDocumentTemplateService( rockContext ).Get( templateGuid.Value );
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Executes the specified workflow.
         /// </summary>
         /// <param name="rockContext">The rock context.</param>
@@ -101,7 +119,6 @@ namespace Rock.Workflow.Action
             errorMessages = new List<string>();
 
             var actionType = action.ActionTypeCache;
-
 
             // Always return false. Special logic for e-Signature will be handled in the WorkflowEntry block
             return false;
