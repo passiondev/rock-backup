@@ -107,6 +107,17 @@ namespace Rock.Workflow.Action
         }
 
         /// <summary>
+        /// Saves the signature binary file unique identifier to attribute.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="workflowAction">The workflow action.</param>
+        /// <param name="signatureDocument">The signature document.</param>
+        public void SaveSignatureSignatureDocumentGuidToAttribute( RockContext rockContext, WorkflowAction workflowAction, SignatureDocument signatureDocument )
+        {
+            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignatureDocument, signatureDocument.Guid );
+        }
+
+        /// <summary>
         /// Executes the specified workflow.
         /// </summary>
         /// <param name="rockContext">The rock context.</param>

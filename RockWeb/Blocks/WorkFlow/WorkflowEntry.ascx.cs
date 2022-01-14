@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -742,7 +743,7 @@ namespace RockWeb.Blocks.WorkFlow
                 return;
             }
 
-            if ( _actionType.WorkflowAction is Rock.Workflow.Action.ElectronicSignature  )
+            if ( _actionType.WorkflowAction is Rock.Workflow.Action.ElectronicSignature )
             {
                 var eSignatureWorkflowAction = _actionType.WorkflowAction as Rock.Workflow.Action.ElectronicSignature;
                 BuildWorkflowActionDigitalSignature( eSignatureWorkflowAction, _action, setValues );
@@ -752,6 +753,9 @@ namespace RockWeb.Blocks.WorkFlow
 
         private void BuildWorkflowActionDigitalSignature( Rock.Workflow.Action.ElectronicSignature eSignatureWorkflowAction, WorkflowAction workflowAction, bool setValues )
         {
+            RockPage.AddScriptLink( Page, "~/Scripts/signature_pad/signature_pad.umd.min.js" );
+
+
             // todo
             pnlWorkflowUserForm.Visible = false;
             divWorkflowActionUserFormNotes.Visible = false;
@@ -763,7 +767,7 @@ namespace RockWeb.Blocks.WorkFlow
             var lavaTemplate = signatureDocumentTemplate?.LavaTemplate;
             var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage );
             lSignatureDocumentHTML.Text = lavaTemplate?.ResolveMergeFields( mergeFields );
-            
+
         }
 
         /// <summary>
@@ -1992,5 +1996,70 @@ namespace RockWeb.Blocks.WorkFlow
         }
 
         #endregion Interaction Methods
+
+        protected void btnSaveSignature_Click( object sender, EventArgs e )
+        {
+            var imageDataUrl = hfSignatureImageDataUrl.Value;
+            var imageDataUrlParts = imageDataUrl.Split( ',' );
+            if (imageDataUrlParts.Length == 2 )
+            {
+                var eSignatureWorkflowAction = _actionType?.WorkflowAction as Rock.Workflow.Action.ElectronicSignature;
+                if (eSignatureWorkflowAction == null)
+                {
+                    // todo
+                    return;
+                }
+
+                var rockContext = new RockContext();
+                var workflowAction = _action;
+                var signatureDocumentTemplate = eSignatureWorkflowAction.GetSignatureDocumentTemplate( rockContext, workflowAction );
+
+                var imgDataBase64 = imageDataUrlParts[1];
+                byte[] decodedImageBytes = Convert.FromBase64String( imgDataBase64 );
+                var binaryFile = new BinaryFile();
+                binaryFile.FileSize = decodedImageBytes.Length;
+                binaryFile.ContentStream = new MemoryStream( decodedImageBytes );
+                binaryFile.BinaryFileTypeId = signatureDocumentTemplate.BinaryFileTypeId;
+
+                new BinaryFileService( rockContext ).Add( binaryFile );
+                rockContext.SaveChanges();
+                var binaryFileId = binaryFile.Id;
+                var signatureDocument = new SignatureDocument();
+                signatureDocument.BinaryFileId = binaryFileId;
+                
+                signatureDocument.SignatureDocumentTemplateId = signatureDocumentTemplate.Id;
+                
+                signatureDocument.Status = SignatureDocumentStatus.Signed;
+                signatureDocument.LastStatusDate = RockDateTime.Now;
+                signatureDocument.SignedDocumentText = lSignatureDocumentHTML.Text;
+                signatureDocument.SignedDateTime = RockDateTime.Now;
+
+
+                // TODO
+                signatureDocument.Name = signatureDocumentTemplate.DocumentTerm;
+                signatureDocument.EntityTypeId = EntityTypeCache.GetId<Workflow>();
+                signatureDocument.EntityId = _workflow?.Id;
+                //signatureDocument.SignedByPersonAliasId
+
+                //signatureDocument.CompletionEmailSentDateTime
+                //signatureDocument.AppliesToPersonAliasId
+                //signatureDocument.AssignedToPersonAliasId
+                //signatureDocument.SignatureVerificationHash
+                //signatureDocument.SignatureData
+                //signatureDocument.SignedByEmail;
+                //signatureDocument.SignedName
+                //signatureDocument.SignedClientIp
+                //signatureDocument.SignedClientUserAgent
+
+                rockContext.SaveChanges();
+
+
+                eSignatureWorkflowAction.SaveSignatureSignatureDocumentGuidToAttribute( rockContext, workflowAction, signatureDocument );
+                //binaryFile.MimeType = 
+
+
+
+            }
+        }
     }
 }

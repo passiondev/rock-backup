@@ -83,9 +83,17 @@
 
                         <%-- eSignature UI --%>
                         <asp:Panel ID="pnlWorkflowActionElectronicSignature" runat="server" Visible="false">
+                            <Rock:HiddenFieldWithClass ID="hfSignatureImageDataUrl" CssClass="js-signature-data" runat="server" />
                             <asp:Literal ID="lSignatureDocumentHTML" runat="server" />
+                            <div class="signature-pad-body">
+                                <canvas class="js-signature-pad" style="background-color:#c4c4c4">
 
-                            ### TODO Signature Signer Component ###
+
+                                </canvas>
+                            </div>
+
+                            <asp:LinkButton ID="btnSaveSignature" runat="server" CssClass="btn btn-default js-save-signature" OnClick="btnSaveSignature_Click">Sign</asp:LinkButton>
+                            <a id="btnClearSignature" class="btn btn-default js-clear-signature">Clear</a>
                         </asp:Panel>
 
 
@@ -121,6 +129,34 @@
                 //$(this).button('loading');
                 return true;
             }
+
+            Sys.Application.add_load(function () {
+                debugger
+
+                var $signaturePad = $('.js-signature-pad');
+                $signaturePad.prop('width', 400);
+                $signaturePad.prop('height', 200);
+                if ($signaturePad.length) {
+                    var signaturePad = new SignaturePad($signaturePad[ 0 ]);
+
+                    $('.js-clear-signature').click(function () {
+                        signaturePad.clear();
+                    })
+
+                    $('.js-save-signature').click(function () {
+                        debugger
+                        if (signaturePad.isEmpty()) {
+
+                            return false;
+                        }
+
+                        var signatureImageDataUrl = signaturePad.toDataURL("image/jpeg");
+                        $('.js-signature-data').val(signatureImageDataUrl);
+                    });
+                }
+            });
+
+
         </script>
 
     </ContentTemplate>

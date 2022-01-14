@@ -222,7 +222,7 @@ namespace Rock.Model
         /// </value>
         [MaxLength( 40 )]
         [DataMember]
-        public string SignatureVerficationHash { get; set; }
+        public string SignatureVerificationHash { get; set; }
 
         /// <summary>
         /// The EntityType that this document is related to (example Rock.Model.Registration)
