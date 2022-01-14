@@ -34,6 +34,7 @@
     <Content Include="Core\.eslintrc.js" />
     <Content Include="Framework\.eslintrc.js" />
     <Content Include="Framework\Controls\modal.ts" />
+    <Content Include="Framework\Elements\transitionVerticalCollapse.ts" />
     <Content Include="Framework\Util\treeItemProviders.ts" />
     <Content Include="Tests\tsconfig.json" />
     <Content Include="Framework\tsconfig.json" />
