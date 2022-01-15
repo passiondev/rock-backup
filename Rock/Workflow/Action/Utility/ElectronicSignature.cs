@@ -18,13 +18,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Linq;
 
 using Rock.Attribute;
 using Rock.Data;
-using Rock.Field.Types;
 using Rock.Model;
-using Rock.Web.Cache;
 
 namespace Rock.Workflow.Action
 {
@@ -107,13 +104,39 @@ namespace Rock.Workflow.Action
         }
 
         /// <summary>
-        /// Saves the signature binary file unique identifier to attribute.
+        /// Saves the signature signature document values to the workflow attribute.
         /// </summary>
         /// <param name="rockContext">The rock context.</param>
         /// <param name="workflowAction">The workflow action.</param>
         /// <param name="signatureDocument">The signature document.</param>
-        public void SaveSignatureSignatureDocumentGuidToAttribute( RockContext rockContext, WorkflowAction workflowAction, SignatureDocument signatureDocument )
+        public void SaveSignatureDocumentValuesToAttributes( RockContext rockContext, WorkflowAction workflowAction, SignatureDocument signatureDocument )
         {
+            var signatureTemplate = new SignatureDocumentTemplateService( rockContext ).Get( signatureDocument.SignatureDocumentTemplateId );
+            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignatureDocumentTemplate, signatureTemplate?.Guid );
+
+            var personAliasService = new PersonAliasService( rockContext );
+
+            Guid? appliesToPersonAliasGuid = null;
+            Guid? assignedToPersonAliasGuid = null;
+            Guid? signedByPersonAliasGuid = null;
+            if ( signatureDocument.AppliesToPersonAliasId.HasValue )
+            {
+                appliesToPersonAliasGuid = personAliasService.GetGuid( signatureDocument.AppliesToPersonAliasId.Value );
+            }
+
+            if ( signatureDocument.AssignedToPersonAliasId.HasValue )
+            {
+                assignedToPersonAliasGuid = personAliasService.GetGuid( signatureDocument.AssignedToPersonAliasId.Value );
+            }
+
+            if ( signatureDocument.SignedByPersonAliasId.HasValue )
+            {
+                signedByPersonAliasGuid = personAliasService.GetGuid( signatureDocument.SignedByPersonAliasId.Value );
+            }
+
+            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.AppliesToPerson, appliesToPersonAliasGuid );
+            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.AssignedToPerson, assignedToPersonAliasGuid );
+            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignedByPerson, signedByPersonAliasGuid );
             this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignatureDocument, signatureDocument.Guid );
         }
 

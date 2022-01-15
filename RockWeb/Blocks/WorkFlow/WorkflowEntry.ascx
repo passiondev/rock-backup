@@ -3,6 +3,12 @@
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
 
+        <style>
+            .e-signature-pad {
+                border-bottom: 2px solid magenta
+            }
+        </style>
+
         <div class="row">
             <div id="divForm" runat="server" class="col-md-6">
                 <div class="panel panel-block">
@@ -84,15 +90,20 @@
                         <%-- eSignature UI --%>
                         <asp:Panel ID="pnlWorkflowActionElectronicSignature" runat="server" Visible="false">
                             <Rock:HiddenFieldWithClass ID="hfSignatureImageDataUrl" CssClass="js-signature-data" runat="server" />
+                            <a id="signature_waiver"></a>
                             <asp:Literal ID="lSignatureDocumentHTML" runat="server" />
-                            <div class="signature-pad-body">
-                                <canvas class="js-signature-pad" style="background-color:#c4c4c4">
-
-
-                                </canvas>
+                            <asp:Panel ID="pnlSignatureEntryDrawn" runat="server" CssClass="signature-entry-drawn js-signature-entry-drawn">
+                                <canvas class="js-signature-pad-canvas e-signature-pad"></canvas>
+                            </asp:Panel>
+                            <asp:Panel ID="pnlSignatureEntryTyped" runat="server" CssClass="signature-entry-typed">
+                            </asp:Panel>
+                            <asp:Literal ID="lSignatureSignDisclaimer" runat="server">
+                                By clicking the sign button below, I agree to the <a href='#signature_waiver'>waiver</a> above and understand this is a legal representation of my signature.
+                            </asp:Literal>
+                            <div class="alert alert-danger js-signature-empty-alert" style="display: none">
+                                Please enter a signature
                             </div>
-
-                            <asp:LinkButton ID="btnSaveSignature" runat="server" CssClass="btn btn-default js-save-signature" OnClick="btnSaveSignature_Click">Sign</asp:LinkButton>
+                            <asp:LinkButton ID="btnSignSignature" runat="server" CssClass="btn btn-default js-save-signature" OnClick="btnSignSignature_Click">Sign</asp:LinkButton>
                             <a id="btnClearSignature" class="btn btn-default js-clear-signature">Clear</a>
                         </asp:Panel>
 
@@ -130,30 +141,63 @@
                 return true;
             }
 
-            Sys.Application.add_load(function () {
-                debugger
-
-                var $signaturePad = $('.js-signature-pad');
-                $signaturePad.prop('width', 400);
-                $signaturePad.prop('height', 200);
-                if ($signaturePad.length) {
-                    var signaturePad = new SignaturePad($signaturePad[ 0 ]);
-
-                    $('.js-clear-signature').click(function () {
-                        signaturePad.clear();
-                    })
-
-                    $('.js-save-signature').click(function () {
-                        debugger
-                        if (signaturePad.isEmpty()) {
-
-                            return false;
-                        }
-
-                        var signatureImageDataUrl = signaturePad.toDataURL("image/jpeg");
-                        $('.js-signature-data').val(signatureImageDataUrl);
-                    });
+            function resizeSignatureCanvas () {
+                // If the window is resized, that'll affect the drawing canvas
+                // also, if there is an existing signature, it'll get messed up, so clear it and
+                // make them sign it again. See additional details why 
+                // https://github.com/szimek/signature_pad
+                var $signaturePadCanvas = $('.js-signature-pad-canvas');
+                var signaturePadCanvas = $signaturePadCanvas[ 0 ];
+                var containerWidth = $('.js-signature-entry-drawn').width();
+                if (!containerWidth) {
+                    containerWidth = 400;
                 }
+
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                signaturePadCanvas.width = containerWidth * ratio;
+                signaturePadCanvas.height = 100 * ratio;
+                signaturePadCanvas.getContext("2d").scale(ratio, ratio);
+
+                var signaturePad = $signaturePadCanvas.data('signatureComponent');
+                signaturePad.clear();
+            }
+
+            function initializeSignaturePad () {
+                var $signaturePadCanvas = $('.js-signature-pad-canvas');
+                if (!$signaturePadCanvas.length) {
+                    return
+                }
+
+                var signaturePad = new SignaturePad($signaturePadCanvas[ 0 ]);
+                $signaturePadCanvas.data('signatureComponent', signaturePad);
+
+                $('.js-clear-signature').click(function () {
+                    signaturePad.clear();
+                })
+
+                $('.js-save-signature').click(function () {
+                    if (signaturePad.isEmpty()) {
+
+                        $('.js-signature-empty-alert').show();
+                        return false;
+                    }
+
+                    var signatureImageDataUrl = signaturePad.toDataURL("image/jpeg");
+                    $('.js-signature-data').val(signatureImageDataUrl);
+                });
+
+                window.addEventListener("resize", resizeSignatureCanvas);
+
+                signaturePad.addEventListener("beginStroke", () => {
+                    // if there was an error showing, hide the error if they start signing again
+                    $('.js-signature-empty-alert').hide();
+                }, { once: true });
+
+                resizeSignatureCanvas();
+            }
+
+            Sys.Application.add_load(function () {
+                initializeSignaturePad();
             });
 
 
