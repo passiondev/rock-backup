@@ -487,37 +487,41 @@ defineRule("url", (value: unknown) => {
 });
 
 defineRule("endswith", (value: unknown, params?: unknown[]) => {
+    const compare = params && params.length >= 1 ? params[0] : undefined;
+
     // Field is empty, should pass
     if (isNullOrWhiteSpace(value)) {
         return true;
     }
 
     // No parameters, should pass
-    if (!params || params.length === 0) {
+    if (!String(compare)) {
         return true;
     }
 
-    if (String(value).endsWith(String(params[0]))) {
+    if (String(value).endsWith(String(compare))) {
         return true;
     }
 
-    return `must end with "${params[0]}"`;
+    return `must end with "${compare}"`;
 });
 
 defineRule("startswith", (value: unknown, params?: unknown[]) => {
+    const compare = params && params.length >= 1 ? params[0] : undefined;
+
     // Field is empty, should pass
     if (isNullOrWhiteSpace(value)) {
         return true;
     }
 
     // No parameters, should pass
-    if (!params || params.length === 0) {
+    if (!String(compare)) {
         return true;
     }
 
-    if (String(value).startsWith(String(params[0]))) {
+    if (String(value).startsWith(String(compare))) {
         return true;
     }
 
-    return `must start with "${params[0]}"`;
+    return `must start with "${compare}"`;
 });
