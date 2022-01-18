@@ -20,6 +20,7 @@ import { isUrl } from "../Services/url";
 import { isNullOrWhiteSpace } from "../Services/string";
 import { toNumberOrNull } from "../Services/number";
 import { PropType } from "vue";
+import { asBooleanOrNull } from "../Services/boolean";
 
 
 /** The custom validation function signature. */
@@ -309,6 +310,11 @@ defineRule("notequal", (value: unknown, params?: unknown[]) => {
             return true;
         }
     }
+    else if (typeof value === "boolean") {
+        if (value !== asBooleanOrNull(compare)) {
+            return true;
+        }
+    }
     else if (value !== compare) {
         return true;
     }
@@ -321,6 +327,11 @@ defineRule("equal", (value: unknown, params?: unknown[]) => {
 
     if (isNumeric(value) && isNumeric(compare)) {
         if (convertToNumber(value) === convertToNumber(compare)) {
+            return true;
+        }
+    }
+    else if (typeof value === "boolean") {
+        if (value === asBooleanOrNull(compare)) {
             return true;
         }
     }
