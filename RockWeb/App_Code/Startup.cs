@@ -42,7 +42,7 @@ namespace RockWeb
             try
             {
                 // This is for OIDC Connect
-                Rock.Oidc.Startup.OnStartup( app );
+             //   Rock.Oidc.Startup.OnStartup( app );
             }
             catch ( Exception ex )
             {

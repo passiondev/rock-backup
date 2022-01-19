@@ -96,6 +96,7 @@
                                 <canvas class="js-signature-pad-canvas e-signature-pad"></canvas>
                             </asp:Panel>
                             <asp:Panel ID="pnlSignatureEntryTyped" runat="server" CssClass="signature-entry-typed">
+                                <Rock:RockTextBox ID="tbSignatureTyped" runat="server" Placeholder="Type Name" />
                             </asp:Panel>
                             <asp:Literal ID="lSignatureSignDisclaimer" runat="server">
                                 By clicking the sign button below, I agree to the <a href='#signature_waiver'>waiver</a> above and understand this is a legal representation of my signature.

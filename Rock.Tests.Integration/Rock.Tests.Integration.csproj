@@ -73,7 +73,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\RockWeb\Bin\Microsoft.Extensions.FileProviders.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Primitives, Version=1.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60" />
+    <Reference Include="Microsoft.Extensions.Primitives, Version=2.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.2.0.0\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.IdentityModel.Logging, Version=1.1.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IdentityModel.Logging.1.1.5\lib\net451\Microsoft.IdentityModel.Logging.dll</HintPath>
     </Reference>
@@ -160,6 +162,7 @@
     <Compile Include="Lava\Engine\ExceptionHandlingTests.cs" />
     <Compile Include="Lava\Engine\ScopeTests.cs" />
     <Compile Include="Lava\Engine\ParallelExecutionTests.cs" />
+    <Compile Include="Lava\FileSystem\MockFileProvider.cs" />
     <Compile Include="Lava\Filters\EncodingFilterTests.cs" />
     <Compile Include="Lava\Filters\AttributeFilterTests.cs" />
     <Compile Include="Lava\Filters\PersonFilterTests.cs" />
@@ -174,7 +177,6 @@
     <Compile Include="Lava\LavaIntegrationTestHelper.cs" />
     <Compile Include="Lava\LavaIntegrationTestBase.cs" />
     <Compile Include="Lava\FileSystem\MockFileInfo.cs" />
-    <Compile Include="Lava\FileSystem\MockFileProvider.cs" />
     <Compile Include="Lava\Commands\ShortcodeCodeTests.cs" />
     <Compile Include="Lava\Commands\CommandTests.cs" />
     <Compile Include="Lava\Commands\ShortcodeTemplateTests.cs" />
@@ -197,7 +199,6 @@
     <Compile Include="Rest\ControllersTests\InteractionsControllerTests.cs" />
     <Compile Include="Rest\ControllersTests\AuthControllerTests.cs" />
     <Compile Include="Rock.Logging\RockLoggingHelpers.cs" />
-    <Compile Include="Rock.Oidc\RockSigningCredentialsTests.cs" />
     <Compile Include="Rock.Security\OidcClientTests.cs" />
     <Compile Include="StorageTests\AmazonS3ComponentTests.cs" />
     <Compile Include="StorageTests\AzureCloudComponentTests.cs" />
@@ -301,10 +302,6 @@
       <Project>{704740d8-b539-4560-9f8c-681670c9d6ad}</Project>
       <Name>Rock.Migrations</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Rock.Oidc\Rock.Oidc.csproj">
-      <Project>{8ccb8e2a-073c-48cb-b31a-621ec5430a42}</Project>
-      <Name>Rock.Oidc</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Rock.Rest\Rock.Rest.csproj">
       <Project>{add1edd0-a4cb-4e82-b6ad-6ad1d556deae}</Project>
       <Name>Rock.Rest</Name>
@@ -331,6 +328,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Constants\" />
+    <Folder Include="Rock.Oidc\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

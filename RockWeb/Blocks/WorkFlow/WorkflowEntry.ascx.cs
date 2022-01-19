@@ -733,6 +733,10 @@ namespace RockWeb.Blocks.WorkFlow
             }
         }
 
+        /// <summary>
+        /// Builds the workflow action UI.
+        /// </summary>
+        /// <param name="setValues">if set to <c>true</c> [set values].</param>
         private void BuildWorkflowActionUI( bool setValues )
         {
             var form = _actionType.WorkflowForm;
@@ -748,28 +752,6 @@ namespace RockWeb.Blocks.WorkFlow
                 var eSignatureWorkflowAction = _actionType.WorkflowAction as Rock.Workflow.Action.ElectronicSignature;
                 BuildWorkflowActionDigitalSignature( eSignatureWorkflowAction, _action, setValues );
             }
-        }
-
-        /// <summary>
-        /// Builds the workflow action digital signature.
-        /// </summary>
-        /// <param name="eSignatureWorkflowAction">The e signature workflow action.</param>
-        /// <param name="workflowAction">The workflow action.</param>
-        /// <param name="setValues">if set to <c>true</c> [set values].</param>
-        private void BuildWorkflowActionDigitalSignature( Rock.Workflow.Action.ElectronicSignature eSignatureWorkflowAction, WorkflowAction workflowAction, bool setValues )
-        {
-            RockPage.AddScriptLink( Page, "~/Scripts/signature_pad/signature_pad.umd.min.js" );
-            pnlWorkflowUserForm.Visible = false;
-            divWorkflowActionUserFormNotes.Visible = false;
-            pnlWorkflowActionElectronicSignature.Visible = true;
-
-            var rockContext = new RockContext();
-
-            var signatureDocumentTemplate = eSignatureWorkflowAction.GetSignatureDocumentTemplate( rockContext, workflowAction );
-            var lavaTemplate = signatureDocumentTemplate?.LavaTemplate;
-
-            var mergeFields = GetWorkflowEntryMergeFields();
-            lSignatureDocumentHTML.Text = lavaTemplate?.ResolveMergeFields( mergeFields );
         }
 
         /// <summary>
@@ -1436,23 +1418,6 @@ namespace RockWeb.Blocks.WorkFlow
         }
 
         /// <summary>
-        /// Gets the workflow attribute entity attribute value.
-        /// </summary>
-        /// <param name="attribute">The attribute.</param>
-        /// <param name="attributeKey">The attribute key.</param>
-        /// <returns></returns>
-        private string GetWorkflowAttributeEntityAttributeValue( AttributeCache attribute )
-        {
-            var workflowAttributeEntity = GetWorkflowAttributeEntity( attribute );
-            if ( workflowAttributeEntity != null )
-            {
-                return workflowAttributeEntity.GetAttributeValue( attribute.Key );
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Creates or Updates person from person editor.
         /// </summary>
         /// <param name="existingPersonId">The existing person identifier.</param>
@@ -1688,12 +1653,12 @@ namespace RockWeb.Blocks.WorkFlow
             CompleteCurrentWorkflowAction( activityTypeGuid, responseText );
         }
 
-        private void CompleteSignatureAction()
-        {
-            CompleteCurrentWorkflowAction( null, "#TODO#" );
-        }
-
-        private void CompleteCurrentWorkflowAction(Guid? activateActivityTypeGuid, string responseText )
+        /// <summary>
+        /// Completes the current workflow action.
+        /// </summary>
+        /// <param name="activateActivityTypeGuid">The activate activity type unique identifier.</param>
+        /// <param name="responseText">The response text.</param>
+        private void CompleteCurrentWorkflowAction( Guid? activateActivityTypeGuid, string responseText )
         {
             _action.MarkComplete();
 
@@ -1701,7 +1666,7 @@ namespace RockWeb.Blocks.WorkFlow
             {
                 _action.Activity.MarkComplete();
             }
-            
+
             var _workflowType = GetWorkflowType();
 
             if ( activateActivityTypeGuid.HasValue )
@@ -1898,6 +1863,152 @@ namespace RockWeb.Blocks.WorkFlow
 
         #endregion Methods
 
+        #region eSignature Related stuff
+
+        /// <summary>
+        /// Builds the workflow action digital signature.
+        /// </summary>
+        /// <param name="eSignatureWorkflowAction">The e signature workflow action.</param>
+        /// <param name="workflowAction">The workflow action.</param>
+        /// <param name="setValues">if set to <c>true</c> [set values].</param>
+        private void BuildWorkflowActionDigitalSignature( Rock.Workflow.Action.ElectronicSignature eSignatureWorkflowAction, WorkflowAction workflowAction, bool setValues )
+        {
+            RockPage.AddScriptLink( Page, "~/Scripts/signature_pad/signature_pad.umd.min.js" );
+            pnlWorkflowUserForm.Visible = false;
+            divWorkflowActionUserFormNotes.Visible = false;
+            pnlWorkflowActionElectronicSignature.Visible = true;
+
+            var rockContext = new RockContext();
+
+            var signatureDocumentTemplate = eSignatureWorkflowAction.GetSignatureDocumentTemplate( rockContext, workflowAction );
+            if (signatureDocumentTemplate == null)
+            {
+                return;
+            }
+
+            var lavaTemplate = signatureDocumentTemplate.LavaTemplate;
+            pnlSignatureEntryDrawn.Visible = signatureDocumentTemplate.SignatureType == SignatureType.Drawn;
+            pnlSignatureEntryTyped.Visible = signatureDocumentTemplate.SignatureType == SignatureType.Typed;
+
+            var mergeFields = GetWorkflowEntryMergeFields();
+            lSignatureDocumentHTML.Text = lavaTemplate?.ResolveMergeFields( mergeFields );
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnSignSignature control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnSignSignature_Click( object sender, EventArgs e )
+        {
+            var eSignatureWorkflowAction = _actionType?.WorkflowAction as Rock.Workflow.Action.ElectronicSignature;
+            if ( eSignatureWorkflowAction == null )
+            {
+                // todo
+                return;
+            }
+
+            var rockContext = new RockContext();
+            var workflowAction = _action;
+            var signatureDocumentTemplate = eSignatureWorkflowAction.GetSignatureDocumentTemplate( rockContext, workflowAction );
+            if ( signatureDocumentTemplate == null )
+            {
+                return;
+            }
+
+            var imageDataUrl = hfSignatureImageDataUrl.Value;
+
+            // from https://stackoverflow.com/a/5714355/1755417
+            var regex = new System.Text.RegularExpressions.Regex( @"data:(?<mime>[\w/\-\.]+);(?<encoding>\w+),(?<data>.*)" );
+            var match = regex.Match( imageDataUrl );
+            var dataEncoding = match.Groups["encoding"].Value;
+            var imgDataBase64 = match.Groups["data"].Value;
+
+            byte[] decodedImageBytes = Convert.FromBase64String( imgDataBase64 );
+            
+
+            
+            var lavaTemplate = signatureDocumentTemplate.LavaTemplate;
+
+            var signatureInformationMergeTag = "{{ SignatureInformation }}";
+
+            if (!lavaTemplate.Contains( signatureInformationMergeTag ))
+            {
+                lavaTemplate += "<br>{{ SignatureInformation }}";
+            }
+
+            var mergeFields = GetWorkflowEntryMergeFields();
+
+            var signatureInformationHtml = $@"
+";
+
+            mergeFields.Add( "SignatureInformation", signatureInformationHtml );
+
+            var pdfHtml = lavaTemplate.ResolveMergeFields( mergeFields );
+            int pdfBinaryFileId;
+
+           /* using ( var pdfGenerator = new Rock.Pdf.PdfGenerator() )
+            {
+                using ( var pdfStream = pdfGenerator.RenderPDFDocument( pdfHtml ) )
+                {
+                    BinaryFile binaryFile = new BinaryFile();
+                    binaryFile.FileSize = pdfStream.Length;
+                    binaryFile.MimeType = "application/pdf";
+
+                    binaryFile.ContentStream = pdfStream;
+                    binaryFile.FileName = "signed_document.png";
+                    binaryFile.IsTemporary = false;
+
+                    binaryFile.BinaryFileTypeId = signatureDocumentTemplate.BinaryFileTypeId;
+
+                    new BinaryFileService( rockContext ).Add( binaryFile );
+                    rockContext.SaveChanges();
+                    pdfBinaryFileId = binaryFile.Id;
+                }
+            }
+           */
+
+            var signatureDocument = new SignatureDocument();
+            //signatureDocument.BinaryFileId = pdfBinaryFileId;
+
+            signatureDocument.SignatureDocumentTemplateId = signatureDocumentTemplate.Id;
+
+            signatureDocument.Status = SignatureDocumentStatus.Signed;
+            signatureDocument.LastStatusDate = RockDateTime.Now;
+            signatureDocument.SignedDocumentText = lSignatureDocumentHTML.Text;
+            signatureDocument.SignedDateTime = RockDateTime.Now;
+            signatureDocument.Name = $"{this.CurrentPerson?.PrimaryFamily?.Name?.RemoveSpecialCharacters()}_{this.CurrentPerson?.FullName.RemoveSpecialCharacters()}";
+            signatureDocument.EntityTypeId = EntityTypeCache.GetId<WorkflowAction>();
+            signatureDocument.EntityId = _action?.Id;
+            signatureDocument.SignedByPersonAliasId = this.CurrentPersonAliasId;
+            signatureDocument.SignedClientIp = this.GetClientIpAddress();
+            signatureDocument.SignedClientUserAgent = this.RockPage?.BrowserInfo?.UserAgent?.ToString();
+
+            // TODO
+            //signatureDocument.CompletionEmailSentDateTime
+            //signatureDocument.AppliesToPersonAliasId
+            //signatureDocument.AssignedToPersonAliasId
+            //signatureDocument.SignatureVerificationHash
+            //signatureDocument.SignatureData
+            //signatureDocument.SignedByEmail;
+            //signatureDocument.SignedName
+
+            rockContext.SaveChanges();
+            eSignatureWorkflowAction.SaveSignatureDocumentValuesToAttributes( _workflowRockContext, workflowAction, signatureDocument );
+
+            CompleteSignatureAction();
+        }
+
+        /// <summary>
+        /// Completes the signature action.
+        /// </summary>
+        private void CompleteSignatureAction()
+        {
+            CompleteCurrentWorkflowAction( null, "#TODO#" );
+        }
+
+        #endregion eSignature Related stuff
+
         #region Interaction Methods
 
         /// <summary>
@@ -2008,77 +2119,5 @@ namespace RockWeb.Blocks.WorkFlow
         }
 
         #endregion Interaction Methods
-
-        protected void btnSignSignature_Click( object sender, EventArgs e )
-        {
-            var eSignatureWorkflowAction = _actionType?.WorkflowAction as Rock.Workflow.Action.ElectronicSignature;
-            if ( eSignatureWorkflowAction == null )
-            {
-                // todo
-                return;
-            }
-               
-            var imageDataUrl = hfSignatureImageDataUrl.Value;
-
-            // from https://stackoverflow.com/a/5714355/1755417
-            var regex = new System.Text.RegularExpressions.Regex( @"data:(?<mime>[\w/\-\.]+);(?<encoding>\w+),(?<data>.*)" );
-            var match = regex.Match( imageDataUrl );
-            var mimeType = match.Groups["mime"].Value;
-            var dataEncoding = match.Groups["encoding"].Value;
-            var imgDataBase64 = match.Groups["data"].Value;
-
-            var rockContext = new RockContext();
-            var workflowAction = _action;
-            var signatureDocumentTemplate = eSignatureWorkflowAction.GetSignatureDocumentTemplate( rockContext, workflowAction );
-
-            byte[] decodedImageBytes = Convert.FromBase64String( imgDataBase64 );
-            var binaryFile = new BinaryFile();
-            binaryFile.FileSize = decodedImageBytes.Length;
-            binaryFile.MimeType = mimeType ?? "image/jpeg";
-            binaryFile.ContentStream = new MemoryStream( decodedImageBytes );
-            if ( binaryFile.MimeType.Equals( "image/png" ) )
-            {
-                binaryFile.FileName = "signature.png";
-            }
-            else
-            {
-                binaryFile.FileName = "signature.jpg";
-            }
-
-            binaryFile.BinaryFileTypeId = signatureDocumentTemplate.BinaryFileTypeId;
-
-            new BinaryFileService( rockContext ).Add( binaryFile );
-            rockContext.SaveChanges();
-            var binaryFileId = binaryFile.Id;
-            var signatureDocument = new SignatureDocument();
-            signatureDocument.BinaryFileId = binaryFileId;
-
-            signatureDocument.SignatureDocumentTemplateId = signatureDocumentTemplate.Id;
-
-            signatureDocument.Status = SignatureDocumentStatus.Signed;
-            signatureDocument.LastStatusDate = RockDateTime.Now;
-            signatureDocument.SignedDocumentText = lSignatureDocumentHTML.Text;
-            signatureDocument.SignedDateTime = RockDateTime.Now;
-            signatureDocument.Name = signatureDocumentTemplate.DocumentTerm;
-            signatureDocument.EntityTypeId = EntityTypeCache.GetId<Workflow>();
-            signatureDocument.EntityId = _workflow?.Id;
-            signatureDocument.SignedByPersonAliasId = this.CurrentPersonAliasId;
-            signatureDocument.SignedClientIp = this.GetClientIpAddress();
-            signatureDocument.SignedClientUserAgent = this.RockPage?.BrowserInfo?.UserAgent?.ToString();
-
-            // TODO
-            //signatureDocument.CompletionEmailSentDateTime
-            //signatureDocument.AppliesToPersonAliasId
-            //signatureDocument.AssignedToPersonAliasId
-            //signatureDocument.SignatureVerificationHash
-            //signatureDocument.SignatureData
-            //signatureDocument.SignedByEmail;
-            //signatureDocument.SignedName
-
-            rockContext.SaveChanges();
-            eSignatureWorkflowAction.SaveSignatureDocumentValuesToAttributes( _workflowRockContext, workflowAction, signatureDocument );
-
-            CompleteSignatureAction();
-        }
     }
 }

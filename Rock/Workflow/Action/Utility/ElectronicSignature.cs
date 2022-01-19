@@ -66,10 +66,10 @@ namespace Rock.Workflow.Action
 
     [WorkflowAttribute(
         "Signature Document",
-        Description = "The workflow attribute to place the document in.",
+        Description = "The workflow attribute to place the PDF document in.",
         Key = AttributeKey.SignatureDocument,
         IsRequired = false,
-        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.BinaryFileFieldType" },
         Order = 5 )]
 
     public class ElectronicSignature : ActionComponent
@@ -134,10 +134,16 @@ namespace Rock.Workflow.Action
                 signedByPersonAliasGuid = personAliasService.GetGuid( signatureDocument.SignedByPersonAliasId.Value );
             }
 
+            if ( signatureDocument.BinaryFileId.HasValue )
+            {
+                var binaryFileGuid = new BinaryFileService( rockContext ).GetSelect( signatureDocument.BinaryFileId.Value, s => s.Guid );
+                this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignatureDocument, signatureDocument.Guid );
+            }
+
             this.SetWorkflowAttributeValue( workflowAction, AttributeKey.AppliesToPerson, appliesToPersonAliasGuid );
             this.SetWorkflowAttributeValue( workflowAction, AttributeKey.AssignedToPerson, assignedToPersonAliasGuid );
             this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignedByPerson, signedByPersonAliasGuid );
-            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignatureDocument, signatureDocument.Guid );
+
         }
 
         /// <summary>
