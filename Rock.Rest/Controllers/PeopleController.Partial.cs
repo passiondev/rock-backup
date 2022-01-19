@@ -716,6 +716,7 @@ namespace Rock.Rest.Controllers
         /// <param name="address">The search parameter for the person's address.</param>
         /// <param name="phone">The search parameter for the person's phone.</param>
         /// <param name="email">The search parameter for the person's name email.</param>
+        /// <param name="includeHtml"><c>true</c> if the results should include the pre-formatted HTML values.</param>
         /// <returns></returns>
         internal static IQueryable<PersonSearchResult> SearchForPeople(
             RockContext rockContext,
@@ -797,7 +798,7 @@ namespace Rock.Rest.Controllers
             }
             else
             {
-                List<PersonSearchResult> searchResult = SearchWithDetails( rockContext, personSearchQry, sortbyFullNameReversed );
+                List<PersonSearchResult> searchResult = SearchWithDetails( rockContext, personSearchQry, sortbyFullNameReversed, includeHtml );
                 return searchResult.AsQueryable();
             }
         }
@@ -822,7 +823,7 @@ namespace Rock.Rest.Controllers
 
             if ( person != null )
             {
-                GetPersonSearchDetails( Service.Context as RockContext, personSearchResult, person );
+                GetPersonSearchDetails( Service.Context as RockContext, personSearchResult, person, true );
                 return personSearchResult.SearchDetailsHtml;
             }
             else
@@ -837,8 +838,9 @@ namespace Rock.Rest.Controllers
         /// <param name="rockContext">The rock database context.</param>
         /// <param name="sortedPersonQry">The sorted person qry.</param>
         /// <param name="showFullNameReversed">if set to <c>true</c> [show full name reversed].</param>
+        /// <param name="includeHtml"><c>true</c> if the results should include the pre-formatted HTML values.</param>
         /// <returns></returns>
-        private static List<PersonSearchResult> SearchWithDetails( RockContext rockContext, IQueryable<Person> sortedPersonQry, bool showFullNameReversed )
+        private static List<PersonSearchResult> SearchWithDetails( RockContext rockContext, IQueryable<Person> sortedPersonQry, bool showFullNameReversed, bool includeHtml )
         {
             var phoneNumbersQry = new PhoneNumberService( rockContext ).Queryable();
 
@@ -869,7 +871,7 @@ namespace Rock.Rest.Controllers
                     personSearchResult.IsActive = false;
                 }
 
-                GetPersonSearchDetails( rockContext, personSearchResult, person );
+                GetPersonSearchDetails( rockContext, personSearchResult, person, includeHtml );
 
                 searchResult.Add( personSearchResult );
             }
@@ -883,7 +885,7 @@ namespace Rock.Rest.Controllers
         /// <param name="rockContext">The rock database context.</param>
         /// <param name="personSearchResult">The person search result.</param>
         /// <param name="person">The person.</param>
-        private static void GetPersonSearchDetails( RockContext rockContext, PersonSearchResult personSearchResult, Person person )
+        private static void GetPersonSearchDetails( RockContext rockContext, PersonSearchResult personSearchResult, Person person, bool includeHtml )
         {
             var appPath = System.Web.VirtualPathUtility.ToAbsolute( "~" );
 
@@ -898,7 +900,10 @@ namespace Rock.Rest.Controllers
 
             personSearchResult.IsDeceased = person.IsDeceased;
             personSearchResult.IsBusiness = person.IsBusiness();
-            personSearchResult.ImageHtmlTag = Person.GetPersonPhotoImageTag( person, 50, 50 );
+            if ( includeHtml )
+            {
+                personSearchResult.ImageHtmlTag = Person.GetPersonPhotoImageTag( person, 50, 50 );
+            }
             personSearchResult.ImageUrl = Person.GetPersonPhotoUrl( person, 200, 200 );
             personSearchResult.Age = person.Age.HasValue ? person.Age.Value : -1;
             personSearchResult.AgeClassification = person.AgeClassification;
@@ -1004,9 +1009,11 @@ namespace Rock.Rest.Controllers
             // force the link to open a new scrollable, re-sizable browser window (and make it work in FF, Chrome and IE) http://stackoverflow.com/a/2315916/1755417
             personInfoHtmlBuilder.Append( $"<p class='margin-t-sm'><small><a href='/person/{person.Id}' class='cursor-pointer' onclick=\"javascript: window.open('/person/{person.Id}', '_blank', 'scrollbars=1,resizable=1,toolbar=1'); return false;\" data-toggle=\"tooltip\" title=\"View Profile\" tabindex=\"-1\">View Profile</a></small></p>" );
 
-            personSearchResult.PickerItemDetailsImageHtml = imageHtml;
-            personSearchResult.PickerItemDetailsPersonInfoHtml = personInfoHtmlBuilder.ToString();
-            string itemDetailHtml = $@"
+            if ( includeHtml )
+            {
+                personSearchResult.PickerItemDetailsImageHtml = imageHtml;
+                personSearchResult.PickerItemDetailsPersonInfoHtml = personInfoHtmlBuilder.ToString();
+                string itemDetailHtml = $@"
 <div class='picker-select-item-details js-picker-select-item-details clearfix''>
 	{imageHtml}
 	<div class='contents'>
@@ -1015,11 +1022,12 @@ namespace Rock.Rest.Controllers
 </div>
 ";
 
-            personSearchResult.PickerItemDetailsHtml = itemDetailHtml;
+                personSearchResult.PickerItemDetailsHtml = itemDetailHtml;
 
-            var connectionStatusHtml = string.IsNullOrWhiteSpace( personSearchResult.ConnectionStatus ) ? string.Empty : string.Format( "<span class='label label-default pull-right'>{0}</span>", personSearchResult.ConnectionStatus );
-            var searchDetailsFormat = @"{0}{1}<div class='contents'>{2}</div>";
-            personSearchResult.SearchDetailsHtml = string.Format( searchDetailsFormat, personSearchResult.PickerItemDetailsImageHtml, connectionStatusHtml, personSearchResult.PickerItemDetailsPersonInfoHtml );
+                var connectionStatusHtml = string.IsNullOrWhiteSpace( personSearchResult.ConnectionStatus ) ? string.Empty : string.Format( "<span class='label label-default pull-right'>{0}</span>", personSearchResult.ConnectionStatus );
+                var searchDetailsFormat = @"{0}{1}<div class='contents'>{2}</div>";
+                personSearchResult.SearchDetailsHtml = string.Format( searchDetailsFormat, personSearchResult.PickerItemDetailsImageHtml, connectionStatusHtml, personSearchResult.PickerItemDetailsPersonInfoHtml );
+            }
         }
 
         /// <summary>

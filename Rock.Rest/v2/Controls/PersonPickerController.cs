@@ -30,26 +30,19 @@ namespace Rock.Rest.v2.Controls
     public class PersonPickerController : ControlsControllerBase
     {
         /// <summary>
-        /// Returns results to the Person Picker
+        /// Searches for people that match the given search options and returns
+        /// those matches.
         /// </summary>
-        /// <param name="name">The search parameter for the person's name.</param>
-        /// <param name="includeDetails">Set to <c>true</c> details will be included instead of lazy loaded.</param>
-        /// <param name="includeBusinesses">Set to <c>true</c> to also search businesses.</param>
-        /// <param name="includeDeceased">Set to <c>true</c> to include deceased people.</param>
-        /// <param name="address">The search parameter for the person's address.</param>
-        /// <param name="phone">The search parameter for the person's phone.</param>
-        /// <param name="email">The search parameter for the person's name email.</param>
-        /// <returns></returns>
+        /// <returns>A collection of <see cref="Rock.Rest.Controllers.PersonSearchResult"/> objects.</returns>
         [Authenticate]
         [Secured]
         [HttpPost]
         [System.Web.Http.Route( "Search" )]
-        public IQueryable<Rock.Rest.Controllers.PersonSearchResult> Search( [FromBody] SearchOptions searchOptions )
+        public IQueryable<Rock.Rest.Controllers.PersonSearchResult> PostSearch( [FromBody] SearchOptions searchOptions )
         {
-            using ( var rockContext = new RockContext() )
-            {
-                return Rock.Rest.Controllers.PeopleController.SearchForPeople( rockContext, name, address, phone, email, includeDetails, includeBusinesses, includeDeceased, false );
-            }
+            var rockContext = new RockContext();
+
+            return Rock.Rest.Controllers.PeopleController.SearchForPeople( rockContext, searchOptions.Name, searchOptions.Address, searchOptions.Phone, searchOptions.Email, searchOptions.IncludeDetails, searchOptions.IncludeBusinesses, searchOptions.IncludeDeceased, false );
         }
 
         #region Options

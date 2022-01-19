@@ -54,6 +54,7 @@ import CheckBoxList from "../../Elements/checkBoxList";
 import Rating from "../../Elements/rating";
 import Fullscreen from "../../Elements/fullscreen";
 import Panel from "../../Controls/panel";
+import PersonPicker from "../../Controls/personPicker";
 import { toNumber } from "../../Services/number";
 import { ListItem } from "../../ViewModels";
 
@@ -1212,6 +1213,33 @@ const panelGallery = defineComponent({
 </GalleryAndResult>`
 });
 
+/** Demonstrates a person picker */
+const personPickerGallery = defineComponent({
+    name: "PersonPickerGallery",
+    components: {
+        GalleryAndResult,
+        PersonPicker
+    },
+    data() {
+        return {
+            value: undefined
+        };
+    },
+    template: `
+<GalleryAndResult :splitWidth="false">
+    <template #header>
+        PersonPicker
+    </template>
+    <template #gallery>
+        <PersonPicker label="Person" />
+    </template>
+    <template #result>
+    </template>
+</GalleryAndResult>`
+});
+
+
+
 
 
 const galleryComponents: Record<string, Component> = {
@@ -1248,7 +1276,8 @@ const galleryComponents: Record<string, Component> = {
     progressTrackerGallery,
     itemsWithPreAndPostHtmlGallery,
     fullscreenGallery,
-    panelGallery
+    panelGallery,
+    personPickerGallery
 };
 
 const galleryTemplate = Object.keys(galleryComponents).sort().map(g => `<${g} />`).join("");
