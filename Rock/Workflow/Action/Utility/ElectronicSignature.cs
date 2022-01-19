@@ -28,9 +28,9 @@ namespace Rock.Workflow.Action
     /// <summary>
     /// </summary>
     [ActionCategory( "Utility" )]
-    [Description( "Allows for e-signing a document based on a workflow template." )]
+    [Description( "Allows for electronic signing a document based on a workflow template." )]
     [Export( typeof( ActionComponent ) )]
-    [ExportMetadata( "ComponentName", "eSignature" )]
+    [ExportMetadata( "ComponentName", "Electronic Signature" )]
 
     [SignatureDocumentTemplateField(
         "Signature Document Template",
