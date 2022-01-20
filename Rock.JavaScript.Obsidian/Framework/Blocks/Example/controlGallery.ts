@@ -1205,7 +1205,7 @@ const panelGallery = defineComponent({
                 </span>
             </template>
 
-            <div v-for="c in colors" :style="{ background: c, height: '1px' }"></div>
+            <div v-for="c in colors" :style="{ background: c, height: '5px' }"></div>
         </Panel>
     </template>
     <template #result>
@@ -1226,14 +1226,15 @@ const personPickerGallery = defineComponent({
         };
     },
     template: `
-<GalleryAndResult :splitWidth="false">
+<GalleryAndResult>
     <template #header>
         PersonPicker
     </template>
     <template #gallery>
-        <PersonPicker label="Person" />
+        <PersonPicker v-model="value" label="Person" />
     </template>
     <template #result>
+        <span v-if="value">{{ JSON.stringify(value) }}</span>
     </template>
 </GalleryAndResult>`
 });

@@ -104,6 +104,9 @@ export default defineComponent({
         /** True if the panel should be shown in full screen mode. */
         const isFullscreen = useVModelPassthrough(props, "isFullscreen", emit);
 
+        /** True if the collapse action should be shown. */
+        const hasCollapseAction = computed((): boolean => props.hasCollapse && !isFullscreen.value);
+
         /** The CSS class names to be applied to the panel. */
         const panelClass = computed((): string[] => {
             const classes = ["panel", "panel-flex"];
@@ -129,7 +132,7 @@ export default defineComponent({
         });
 
         /** True if the panel body should be displayed. */
-        const isPanelOpen = computed((): boolean => !props.hasCollapse || internalValue.value !== false);
+        const isPanelOpen = computed((): boolean => !props.hasCollapse || internalValue.value !== false || isFullscreen.value);
 
         /** Event handler when the drawer expander is clicked. */
         const onDrawerPullClick = (): void => {
@@ -151,6 +154,7 @@ export default defineComponent({
         };
 
         return {
+            hasCollapseAction,
             isDrawerOpen,
             isFullscreen,
             isPanelOpen,
@@ -166,6 +170,11 @@ export default defineComponent({
 <Fullscreen v-model="isFullscreen" :isPageOnly="isFullscreenPageOnly">
     <div :class="panelClass" v-bind="$attrs">
         <v-style>
+            .panel.panel-flex {
+                display: flex;
+                flex-direction: column;
+            }
+
             .panel.panel-flex > .panel-heading {
                 display: flex;
                 align-items: center;
@@ -195,12 +204,22 @@ export default defineComponent({
 
             .panel.panel-fullscreen {
                 margin: 0px;
-                min-height: 100vh;
+                position: absolute;
+                left: 0;
+                top: 0;
+                right: 0;
+                bottom: 0;
             }
 
             .panel.panel-fullscreen,
             .panel.panel-fullscreen > .panel-heading {
                 border-radius: 0px;
+            }
+
+            .panel.panel-flex.panel-fullscreen > .panel-body {
+                flex-grow: 1;
+                position: relative;
+                overflow-y: auto;
             }
         </v-style>
 
@@ -216,7 +235,7 @@ export default defineComponent({
             <div class="panel-aside">
                 <slot name="titleAside" />
 
-                <template v-if="hasCollapse">
+                <template v-if="hasCollapseAction">
                     <i v-if="isPanelOpen" class="fa fa-chevron-up fa-xs ml-2"></i>
                     <i v-else class="fa fa-chevron-down fa-xs ml-2"></i>
                 </template>
