@@ -290,21 +290,14 @@ export default defineComponent({
                 return;
             }
 
-            // If already selected, emit and close.
-            if (selectedSearchResult.value === result.guid) {
-                internalValue.value = {
-                    value: selectedSearchResult.value,
-                    text: result.name
-                };
+            internalValue.value = {
+                value: selectedSearchResult.value,
+                text: result.name
+            };
 
-                // Emit the new value and close the popup.
-                emit("update:modelValue", internalValue.value);
-                showPopup.value = false;
-
-                return;
-            }
-
-            selectedSearchResult.value = result.guid;
+            // Emit the new value and close the popup.
+            emit("update:modelValue", internalValue.value);
+            showPopup.value = false;
         };
 
         /**
