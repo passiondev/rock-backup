@@ -57,8 +57,10 @@
     <Folder Include="Framework\Blocks\Finance\" />
     <Folder Include="Framework\Blocks\Groups\" />
     <Folder Include="Framework\Blocks\Core\" />
+    <Folder Include="Framework\Blocks\Workflow\" />
     <Folder Include="Framework\Blocks\Security\" />
     <Folder Include="Framework\Blocks\Utility\" />
+    <Folder Include="Framework\Blocks\Workflow\FormBuilderDetail\" />
     <Folder Include="Framework\Controls\" />
     <Folder Include="Framework\Elements\" />
     <Folder Include="Framework\Fields\" />
@@ -111,6 +113,7 @@
     <TypeScriptCompile Include="Framework\Blocks\Groups\groupMemberList.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Security\login.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Utility\starkDetail.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\formBuilderDetail.ts" />
     <TypeScriptCompile Include="Framework\Controls\addressControl.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeEditor.ts" />
     <TypeScriptCompile Include="Framework\Controls\categoryPicker.ts" />
