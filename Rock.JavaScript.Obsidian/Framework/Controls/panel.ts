@@ -238,8 +238,8 @@ export default defineComponent({
                 position: absolute;
                 left: 0;
                 top: 0;
-                right: 0;
-                bottom: 0;
+                width: 100vw;
+                height: 100vh;
             }
 
             .panel.panel-fullscreen,
@@ -251,6 +251,14 @@ export default defineComponent({
                 flex-grow: 1;
                 position: relative;
                 overflow-y: auto;
+            }
+
+            .page-fullscreen-capable .panel.panel-block.panel-flex {
+                overflow-y: hidden;
+            }
+
+            .page-fullscreen-capable .panel.panel-flex.panel-block > .panel-body {
+                position: relative;
             }
         </v-style>
 
