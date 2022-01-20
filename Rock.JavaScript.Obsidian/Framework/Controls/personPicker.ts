@@ -273,6 +273,7 @@ export default defineComponent({
          */
         const onPopupKeyDown = (ev: KeyboardEvent): void => {
             if (ev.keyCode === 27 && showPopup.value) {
+                ev.stopImmediatePropagation();
                 onCancel();
             }
         };
@@ -428,7 +429,7 @@ export default defineComponent({
                         </span>
                     </template>
 
-                    <div @keydown.stop="onPopupKeyDown" tabindex="0">
+                    <div @keydown="onPopupKeyDown" tabindex="0">
                         <div ref="searchTextBox">
                             <TextBox v-model="searchText" label="Search" />
                         </div>

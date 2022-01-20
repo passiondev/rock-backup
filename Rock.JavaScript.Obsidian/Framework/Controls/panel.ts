@@ -14,7 +14,7 @@
 // limitations under the License.
 // </copyright>
 //
-import { computed, defineComponent, PropType } from "vue";
+import { computed, defineComponent, nextTick, PropType, ref, watch } from "vue";
 import { useVModelPassthrough } from "../Util/component";
 import RockButton from "../Elements/rockButton";
 import Fullscreen from "../Elements/fullscreen";
@@ -104,6 +104,9 @@ export default defineComponent({
         /** True if the panel should be shown in full screen mode. */
         const isFullscreen = useVModelPassthrough(props, "isFullscreen", emit);
 
+        /** The HTML Element that is the main panel div. */
+        const panelElement = ref<HTMLElement | null>(null);
+
         /** True if the collapse action should be shown. */
         const hasCollapseAction = computed((): boolean => props.hasCollapse && !isFullscreen.value);
 
@@ -131,6 +134,9 @@ export default defineComponent({
             return classes;
         });
 
+        /** The tab index for the panel, this allows us to catch the escape key. */
+        const panelTabIndex = computed((): string | undefined => isFullscreen.value ? "0" : undefined);
+
         /** True if the panel body should be displayed. */
         const isPanelOpen = computed((): boolean => !props.hasCollapse || internalValue.value !== false || isFullscreen.value);
 
@@ -146,12 +152,34 @@ export default defineComponent({
             }
         };
 
+        /**
+         * Event handler for when a key is pressed down inside the panel.
+         * 
+         * @param ev The event that describes which key was pressed.
+         */
+        const onPanelKeyDown = (ev: KeyboardEvent): void => {
+            if (isFullscreen.value && ev.keyCode === 27) {
+                ev.stopImmediatePropagation();
+
+                isFullscreen.value = false;
+            }
+        };
+
         /** Event handler when the full-screen button is clicked. */
         const onFullscreenClick = (): void => {
             if (props.hasFullscreen) {
                 isFullscreen.value = !isFullscreen.value;
             }
         };
+
+        // Watches for changes to our full screen status and responds accordingly.
+        watch(isFullscreen, () => {
+            // If we have entered full screen then wait for the UI to update
+            // and set focus on the panel. This allows the escape key to work.
+            if (isFullscreen.value) {
+                nextTick(() => panelElement.value?.focus());
+            }
+        });
 
         return {
             hasCollapseAction,
@@ -161,14 +189,17 @@ export default defineComponent({
             onDrawerPullClick,
             onFullscreenClick,
             onPanelHeadingClick,
+            onPanelKeyDown,
             panelClass,
-            panelHeadingClass
+            panelElement,
+            panelHeadingClass,
+            panelTabIndex
         };
     },
 
     template: `
 <Fullscreen v-model="isFullscreen" :isPageOnly="isFullscreenPageOnly">
-    <div :class="panelClass" v-bind="$attrs">
+    <div :class="panelClass" ref="panelElement" v-bind="$attrs" :tabIndex="panelTabIndex" @keydown="onPanelKeyDown">
         <v-style>
             .panel.panel-flex {
                 display: flex;
@@ -247,11 +278,14 @@ export default defineComponent({
                 <i class="fa fa-expand"></i>
             </span>
         </div>
-    
+
         <div v-if="$slots.drawer" class="panel-drawer rock-panel-drawer" :class="isDrawerOpen ? 'open' : ''">
-            <div class="drawer-content" v-show="isDrawerOpen">
-                <slot name="drawer" />
-            </div>
+            <TransitionVerticalCollapse>
+                <div v-show="isDrawerOpen" class="drawer-content">
+                    <slot name="drawer" />
+                </div>
+            </TransitionVerticalCollapse>
+
             <div class="drawer-pull" @click="onDrawerPullClick">
                 <i :class="isDrawerOpen ? 'fa fa-chevron-up fa-xs' : 'fa fa-chevron-down fa-xs'"></i>
             </div>
