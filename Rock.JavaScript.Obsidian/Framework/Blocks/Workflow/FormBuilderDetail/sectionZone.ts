@@ -78,9 +78,11 @@ export default defineComponent({
 
     template: `
 <ConfigurableZone class="field-zone">
-    <div class="form-section" v-drag-target="dragTargetId" :data-section-id="section.guid">
+    <div class="form-section" style="padding: 20px;" v-drag-target="dragTargetId" :data-section-id="section.guid">
         <ConfigurableZone v-for="field in section.fields" :class="getFieldColumnSize(field)">
-            <RockField :attributeValue="getAttributeValue(field)" isEditMode />
+            <div style="padding: 20px;">
+                <RockField :attributeValue="getAttributeValue(field)" isEditMode />
+            </div>
         </ConfigurableZone>
     </div>
 

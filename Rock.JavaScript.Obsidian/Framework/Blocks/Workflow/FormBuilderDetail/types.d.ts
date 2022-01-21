@@ -45,4 +45,13 @@ export type FormFieldType = {
     guid: Guid;
 
     icon: string;
+
+    isCommon: boolean;
 }
+
+export type GeneralAsideSettings = {
+    campusSetFrom?: number;
+
+    hasPersonEntry?: boolean;
+};
+

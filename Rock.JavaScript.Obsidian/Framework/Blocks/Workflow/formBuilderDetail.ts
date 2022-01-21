@@ -15,7 +15,7 @@
 // </copyright>
 //
 
-import { defineComponent, reactive, ref } from "vue";
+import { computed, defineComponent, reactive, Ref, ref } from "vue";
 import { useConfigurationValues } from "../../Util/block";
 import DropDownList from "../../Elements/dropDownList";
 import Panel from "../../Controls/panel";
@@ -24,18 +24,80 @@ import RockLabel from "../../Elements/rockLabel";
 import Switch from "../../Elements/switch";
 import TextBox from "../../Elements/textBox";
 import ConfigurableZone from "./FormBuilderDetail/configurableZone";
+import GeneralAside from "./FormBuilderDetail/generalAside";
 import SectionZone from "./FormBuilderDetail/sectionZone";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../Directives/dragDrop";
 import { newGuid } from "../../Util/guid";
 import { List } from "../../Util/linq";
-import { FormFieldType, FormSection } from "./FormBuilderDetail/types";
+import { FormFieldType, FormSection, GeneralAsideSettings } from "./FormBuilderDetail/types";
 import { FieldType } from "../../SystemGuids";
+
+function getSectionDragSourceOptions(sections: FormSection[]): IDragSourceOptions {
+    return {
+        id: newGuid(),
+        copyElement: true,
+        dragDrop(operation) {
+            operation.element.remove();
+
+            if (operation.targetIndex !== undefined) {
+                sections.splice(operation.targetIndex, 0, {
+                    guid: newGuid(),
+                    title: "",
+                    description: "",
+                    showHeadingSeparator: false,
+                    type: "",
+                    fields: []
+                });
+            }
+        }
+    };
+}
+
+function getFieldDragSourceOptions(sections: FormSection[], availableFieldTypes: Ref<FormFieldType[]>): IDragSourceOptions {
+    return {
+        id: newGuid(),
+        copyElement: true,
+        dragOver(operation) {
+            if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
+                operation.targetContainer.closest(".field-zone")?.classList.add("highlight");
+            }
+        },
+        dragOut(operation) {
+            if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
+                operation.targetContainer.closest(".field-zone")?.classList.remove("highlight");
+            }
+        },
+        dragShadow(operation) {
+            if (operation.shadow) {
+                operation.shadow.classList.remove("col-xs-6");
+                operation.shadow.classList.add("flex-col", "flex-col-12");
+            }
+        },
+        dragDrop(operation) {
+            operation.element.remove();
+
+            const fieldTypeGuid = (operation.element as HTMLElement).dataset.fieldType;
+            const sectionGuid = (operation.targetContainer as HTMLElement).dataset.sectionId;
+            const section = new List(sections).firstOrUndefined(s => s.guid === sectionGuid);
+            const fieldType = new List(availableFieldTypes.value).firstOrUndefined(f => f.guid === fieldTypeGuid);
+
+            if (section && fieldType && operation.targetIndex !== undefined) {
+                section.fields.splice(operation.targetIndex, 0, {
+                    fieldTypeGuid: fieldType.guid,
+                    label: fieldType.text,
+                    size: 12
+                });
+            }
+        }
+    };
+}
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail",
     components: {
         ConfigurableZone,
         DropDownList,
+        GeneralAside,
         Panel,
         RockButton,
         RockLabel,
@@ -52,53 +114,62 @@ export default defineComponent({
     setup() {
         const config = useConfigurationValues<Record<string, string> | null>();
 
-        const commonFieldTypes: FormFieldType[] = [
+        const availableFieldTypes = ref<FormFieldType[]>([
             {
                 guid: FieldType.Text,
                 text: "Text",
-                icon: "fa fa-font"
+                icon: "fa fa-font",
+                isCommon: true
             },
             {
                 guid: FieldType.Memo,
                 text: "Memo",
-                icon: "fa fa-align-left"
+                icon: "fa fa-align-left",
+                isCommon: true
             },
             {
                 guid: FieldType.SingleSelect,
                 text: "Single Select",
-                icon: "fa fa-dot-circle"
+                icon: "fa fa-dot-circle",
+                isCommon: true
             },
             {
                 guid: FieldType.MultiSelect,
                 text: "Multi Select",
-                icon: "fa fa-check-circle"
+                icon: "fa fa-check-circle",
+                isCommon: true
             },
             {
                 guid: FieldType.Decimal,
                 text: "Decimal",
-                icon: "fa fa-font"
+                icon: "fa fa-font",
+                isCommon: true
             },
             {
                 guid: FieldType.Date,
                 text: "Date",
-                icon: "fa fa-calendar"
+                icon: "fa fa-calendar",
+                isCommon: true
             },
             {
                 guid: FieldType.Time,
                 text: "Time",
-                icon: "fa fa-clock"
+                icon: "fa fa-clock",
+                isCommon: true
             },
             {
                 guid: FieldType.DateTime,
                 text: "Date Time",
-                icon: "fa fa-calendar-alt"
+                icon: "fa fa-calendar-alt",
+                isCommon: true
             },
             {
                 guid: FieldType.Boolean,
                 text: "Boolean",
-                icon: "fa fa-check"
+                icon: "fa fa-check",
+                isCommon: true
             }
-        ];
+        ]);
 
         const sections = reactive<FormSection[]>([
             {
@@ -127,72 +198,26 @@ export default defineComponent({
             }
         ]);
 
-        const sectionDragSourceOptions: IDragSourceOptions = {
-            id: newGuid(),
-            copyElement: true,
-            dragDrop(operation) {
-                operation.element.remove();
+        const sectionDragSourceOptions = getSectionDragSourceOptions(sections);
+        const fieldDragSourceOptions = getFieldDragSourceOptions(sections, availableFieldTypes);
 
-                if (operation.targetIndex !== undefined) {
-                    sections.splice(operation.targetIndex, 0, {
-                        guid: newGuid(),
-                        title: "",
-                        description: "",
-                        showHeadingSeparator: false,
-                        type: "",
-                        fields: []
-                    });
-                }
-            }
-        };
+        const hasPersonEntry = computed((): boolean => generalAsideSettings.value.hasPersonEntry ?? false);
 
-        const fieldDragSourceOptions: IDragSourceOptions = {
-            id: newGuid(),
-            copyElement: true,
-            dragOver(operation) {
-                if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
-                    operation.targetContainer.closest(".field-zone")?.classList.add("highlight");
-                }
-            },
-            dragOut(operation) {
-                if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
-                    operation.targetContainer.closest(".field-zone")?.classList.remove("highlight");
-                }
-            },
-            dragShadow(operation) {
-                if (operation.shadow) {
-                    operation.shadow.classList.remove("col-xs-6");
-                    operation.shadow.classList.add("flex-col", "flex-col-12");
-                }
-            },
-            dragDrop(operation) {
-                operation.element.remove();
-
-                const fieldTypeGuid = (operation.element as HTMLElement).dataset.fieldType;
-                const sectionGuid = (operation.targetContainer as HTMLElement).dataset.sectionId;
-                const section = new List(sections).firstOrUndefined(s => s.guid === sectionGuid);
-                const fieldType = new List(commonFieldTypes).firstOrUndefined(f => f.guid === fieldTypeGuid);
-
-                if (section && fieldType && operation.targetIndex !== undefined) {
-                    section.fields.splice(operation.targetIndex, 0, {
-                        fieldTypeGuid: fieldType.guid,
-                        label: fieldType.text,
-                        size: 12
-                    });
-                }
-            }
-        };
-
-        const hasPersonEntry = ref(true);
+        const generalAsideSettings = ref<GeneralAsideSettings>({
+            campusSetFrom: undefined,
+            hasPersonEntry: true
+        });
 
         return {
-            commonFieldTypes,
+            availableFieldTypes,
             fieldDragSourceOptions,
             fieldDragTargetId: fieldDragSourceOptions.id,
+            generalAsideSettings,
             hasPersonEntry,
             sectionDragSourceOptions,
             sectionDragTargetId: sectionDragSourceOptions.id,
-            sections
+            sections,
+            showGeneralAside: true
         };
     },
 
@@ -278,7 +303,6 @@ export default defineComponent({
             }
 
             .form-builder-detail .configurable-zone > .zone-content-container > .zone-content {
-                padding: 20px;
                 flex-grow: 1;
             }
 
@@ -395,43 +419,20 @@ export default defineComponent({
 
             <div class="d-flex" style="flex-grow: 1; overflow-y: hidden;">
                 <div class="d-flex flex-column" style="background-color: #f8f9fa; width: 320px; flex-shrink: 0; overflow-y: hidden;">
-                    <div class="p-2" style="border-right: 1px solid #dfe0e1; border-bottom: 1px solid #dfe0e1;">
-                        <strong>Field List</strong>
-                    </div>
-
-                    <div class="p-2 d-flex flex-column" style="flex-grow: 1; overflow-y: auto;">
-                        <div class="mt-3" v-drag-source="sectionDragSourceOptions">
-                            <div class="form-template-item form-template-item-section">
-                                <i class="fa fa-expand fa-fw"></i>
-                                Section
-                            </div>
-                        </div>
-
-                        <div class="mt-3" style="flex-grow: 1;">
-                            <RockLabel>Field Types</RockLabel>
-
-                            <div class="d-flex flex-wrap" style="overflow-x: clip; margin-right: -5px;" v-drag-source="fieldDragSourceOptions">
-                                    <div v-for="field in commonFieldTypes" class="form-template-item form-template-item-field" :data-field-type="field.guid">
-                                            <i :class="field.icon + ' fa-fw'"></i>
-                                            <div class="text">{{ field.text }}</div>
-                                    </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-3">
-                            <DropDownList label="Campus Set From" />
-                            <Switch v-model="hasPersonEntry" text="Enable Person Entry" />
-                        </div>
-                    </div>
+                    <GeneralAside v-if="showGeneralAside" v-model="generalAsideSettings" :fieldTypes="availableFieldTypes" :sectionDragOptions="sectionDragSourceOptions" :fieldDragOptions="fieldDragSourceOptions" />
                 </div>
 
                 <div class="p-3 d-flex flex-column" style="flex-grow: 1; overflow-y: auto;">
                     <ConfigurableZone>
-                        <div class="text-center">Form Header</div>
+                        <div style="padding: 20px;">
+                            <div class="text-center">Form Header</div>
+                        </div>
                     </ConfigurableZone>
 
                     <ConfigurableZone v-if="hasPersonEntry" class="active">
-                        <div class="text-center">Person Entry Form</div>
+                        <div style="padding: 20px;">
+                            <div class="text-center">Person Entry Form</div>
+                        </div>
                     </ConfigurableZone>
 
                     <div style="flex-grow: 1; display: flex; flex-direction: column;" v-drag-target="sectionDragTargetId">
@@ -439,7 +440,9 @@ export default defineComponent({
                     </div>
 
                     <ConfigurableZone>
-                        <div class="text-center">Form Footer</div>
+                        <div style="padding: 20px;">
+                            <div class="text-center">Form Footer</div>
+                        </div>
                     </ConfigurableZone>
                 </div>
             </div>
