@@ -90,7 +90,6 @@
                         <%-- eSignature UI --%>
                         <asp:Panel ID="pnlWorkflowActionElectronicSignature" runat="server" Visible="false">
                             <Rock:HiddenFieldWithClass ID="hfSignatureImageDataUrl" CssClass="js-signature-data" runat="server" />
-                            <a id="signature_waiver"></a>
                             <asp:Literal ID="lSignatureDocumentHTML" runat="server" />
                             <asp:Panel ID="pnlSignatureEntryDrawn" runat="server" CssClass="signature-entry-drawn js-signature-entry-drawn">
                                 <canvas class="js-signature-pad-canvas e-signature-pad"></canvas>
@@ -99,12 +98,12 @@
                                 <Rock:RockTextBox ID="tbSignatureTyped" runat="server" Placeholder="Type Name" />
                             </asp:Panel>
                             <asp:Literal ID="lSignatureSignDisclaimer" runat="server">
-                                By clicking the sign button below, I agree to the <a href='#signature_waiver'>waiver</a> above and understand this is a legal representation of my signature.
+                                By clicking the sign button below, I agree to the above and understand this is a legal representation of my signature.
                             </asp:Literal>
                             <div class="alert alert-danger js-signature-empty-alert" style="display: none">
                                 Please enter a signature
                             </div>
-                            <asp:LinkButton ID="btnSignSignature" runat="server" CssClass="btn btn-default js-save-signature" OnClick="btnSignSignature_Click">Sign</asp:LinkButton>
+                            <Rock:BootstrapButton ID="btnSignSignature" runat="server" CssClass="btn btn-default js-save-signature" OnClick="btnSignSignature_Click">Sign</Rock:BootstrapButton>
                             <a id="btnClearSignature" class="btn btn-default js-clear-signature">Clear</a>
                         </asp:Panel>
 
@@ -169,7 +168,10 @@
                     return
                 }
 
-                var signaturePad = new SignaturePad($signaturePadCanvas[ 0 ]);
+                var signaturePad = new SignaturePad($signaturePadCanvas[ 0 ], {
+                    //penColor: 'black',
+                    //backgroundColor: 'white'
+                });
                 $signaturePadCanvas.data('signatureComponent', signaturePad);
 
                 $('.js-clear-signature').click(function () {
@@ -183,7 +185,11 @@
                         return false;
                     }
 
+                    //var signatureImageDataUrl = signaturePad.toDataURL("image/png");
+                    // NOTE That if we use jpeg, we'll have to deal with this https://github.com/szimek/signature_pad/issues/584
                     var signatureImageDataUrl = signaturePad.toDataURL("image/jpeg");
+                    //var signatureImageDataUrl = signaturePad.toDataURL("image/png");
+                    //var signatureImageDataUrl = signaturePad.toDataURL("image/svg+xml")
                     $('.js-signature-data').val(signatureImageDataUrl);
                 });
 

@@ -43,7 +43,7 @@ namespace Rock.Workflow.Action
     [WorkflowAttribute(
         "Applies to Person",
         Description = "The attribute that represents the person that the document applies to.",
-        Key = AttributeKey.AppliesToPerson,
+        Key = AttributeKey.AppliesToPersonAlias,
         IsRequired = true,
         FieldTypeClassNames = new string[] { "Rock.Field.Types.PersonFieldType", "Rock.Field.Types.TextFieldType" },
         Order = 2 )]
@@ -51,7 +51,7 @@ namespace Rock.Workflow.Action
     [WorkflowAttribute(
         "Assigned To Person",
         Description = "The attribute that represents the person that will be signing the document. This is only needed if the signature will be completed via an email",
-        Key = AttributeKey.AssignedToPerson,
+        Key = AttributeKey.AssignedToPersonAlias,
         IsRequired = false,
         FieldTypeClassNames = new string[] { "Rock.Field.Types.PersonFieldType", "Rock.Field.Types.TextFieldType" },
         Order = 3 )]
@@ -59,7 +59,7 @@ namespace Rock.Workflow.Action
     [WorkflowAttribute(
         "Signed by Person",
         Description = "The attribute that represents the person that signed the document. If a person is logged in that person will override this value.",
-        Key = AttributeKey.SignedByPerson,
+        Key = AttributeKey.SignedByPersonAlias,
         IsRequired = false,
         FieldTypeClassNames = new string[] { "Rock.Field.Types.PersonFieldType", "Rock.Field.Types.TextFieldType" },
         Order = 4 )]
@@ -72,6 +72,13 @@ namespace Rock.Workflow.Action
         FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.BinaryFileFieldType" },
         Order = 5 )]
 
+    [TextField(
+        "Signature Document Name",
+        Description = "The name to use for the new document that is created. <span class='tip tip-lava'></span>",
+        Key = AttributeKey.SignatureDocumentName,
+        IsRequired = true,
+        Order = 6 )]
+
     public class ElectronicSignature : ActionComponent
     {
         /// <summary>
@@ -80,10 +87,11 @@ namespace Rock.Workflow.Action
         private static class AttributeKey
         {
             public const string SignatureDocumentTemplate = "SignatureDocumentTemplate";
-            public const string AppliesToPerson = "AppliesToPerson";
-            public const string AssignedToPerson = "AssignedToPerson";
-            public const string SignedByPerson = "SignedByPerson";
+            public const string AppliesToPersonAlias = "AppliesToPersonAlias";
+            public const string AssignedToPersonAlias = "AssignedToPersonAlias";
+            public const string SignedByPersonAlias = "SignedByPersonAlias";
             public const string SignatureDocument = "SignatureDocument";
+            public const string SignatureDocumentName = "SignatureDocumentName";
         }
 
         /// <summary>
@@ -101,6 +109,79 @@ namespace Rock.Workflow.Action
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets the PersonAliasId of the person that should be specified for <see cref="Rock.Model.SignatureDocument.SignedByPersonAliasId"></see>
+        /// If the workflow doesn't specify one, <paramref name="currentPersonAliasId" /> will be used.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="workflowAction">The workflow action.</param>
+        /// <param name="currentPersonAliasId">The current person alias identifier.</param>
+        /// <returns>Person.</returns>
+        public int? GetSignedByPersonAliasId( RockContext rockContext, WorkflowAction workflowAction, int? currentPersonAliasId )
+        {
+            int? personAliasId = null;
+            var personAliasGuid = this.GetAttributeValue( workflowAction, AttributeKey.SignedByPersonAlias ).AsGuidOrNull();
+            if ( personAliasGuid.HasValue )
+            {
+                personAliasId = new PersonAliasService( rockContext ).GetId( personAliasGuid.Value );
+            }
+
+            if ( personAliasId == null )
+            {
+                personAliasId = currentPersonAliasId;
+            }
+
+            return personAliasId;
+        }
+
+        /// <summary>
+        /// Gets the PersonAliasId of the person that should be specified for  <see cref="Rock.Model.SignatureDocument.AppliesToPersonAliasId" ></see>
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="workflowAction">The workflow action.</param>
+        /// <returns>Person.</returns>
+        public int? GetAppliesToPersonAliasId( RockContext rockContext, WorkflowAction workflowAction )
+        {
+            int? personAliasId = null;
+            var personAliasGuid = this.GetAttributeValue( workflowAction, AttributeKey.AppliesToPersonAlias ).AsGuidOrNull();
+            if ( personAliasGuid.HasValue )
+            {
+                personAliasId = new PersonAliasService( rockContext ).GetId( personAliasGuid.Value );
+            }
+
+            return personAliasId;
+        }
+
+        /// <summary>
+        /// Gets the PersonAliasId of the person that should be specified for  <see cref="Rock.Model.SignatureDocument.AssignedToPersonAliasId" ></see>
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="workflowAction">The workflow action.</param>
+        /// <returns>Person.</returns>
+        public int? GetAssignedToPersonAliasId( RockContext rockContext, WorkflowAction workflowAction )
+        {
+            int? personAliasId = null;
+            var personAliasGuid = this.GetAttributeValue( workflowAction, AttributeKey.AssignedToPersonAlias ).AsGuidOrNull();
+            if ( personAliasGuid.HasValue )
+            {
+                personAliasId = new PersonAliasService( rockContext ).GetId( personAliasGuid.Value );
+            }
+
+            return personAliasId;
+        }
+
+        /// <summary>
+        /// Gets the value that should be specified for <see cref="Rock.Model.SignatureDocument.Name" ></see>
+        /// </summary>
+        /// <param name="workflowAction">The workflow action.</param>
+        /// <param name="mergeFields">The merge fields.</param>
+        /// <returns>System.String.</returns>
+        public string GetSignatureDocumentName( WorkflowAction workflowAction, Dictionary<string, object> mergeFields )
+        {
+            string signatureDocumentName = this.GetAttributeValue( workflowAction, AttributeKey.SignatureDocumentName );
+            return signatureDocumentName?.ResolveMergeFields( mergeFields );
         }
 
         /// <summary>
@@ -136,13 +217,13 @@ namespace Rock.Workflow.Action
 
             if ( signatureDocument.BinaryFileId.HasValue )
             {
-                var binaryFileGuid = new BinaryFileService( rockContext ).GetSelect( signatureDocument.BinaryFileId.Value, s => s.Guid );
-                this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignatureDocument, signatureDocument.Guid );
+                var binaryFileGuid = new BinaryFileService( rockContext ).GetGuid( signatureDocument.BinaryFileId.Value );
+                this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignatureDocument, binaryFileGuid );
             }
 
-            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.AppliesToPerson, appliesToPersonAliasGuid );
-            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.AssignedToPerson, assignedToPersonAliasGuid );
-            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignedByPerson, signedByPersonAliasGuid );
+            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.AppliesToPersonAlias, appliesToPersonAliasGuid );
+            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.AssignedToPersonAlias, assignedToPersonAliasGuid );
+            this.SetWorkflowAttributeValue( workflowAction, AttributeKey.SignedByPersonAlias, signedByPersonAliasGuid );
 
         }
 

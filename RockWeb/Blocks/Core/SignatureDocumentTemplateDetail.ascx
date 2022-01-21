@@ -4,7 +4,7 @@
     <ContentTemplate>
         <asp:HiddenField ID="hfSignatureDocumentTemplateId" runat="server" />
 
-        <asp:Panel ID="pnlDetails" CssClass="panel panel-block" runat="server" Visible="false">
+        <asp:Panel ID="pnlDetails" CssClass="panel panel-block" runat="server">
 
             <div class="panel-heading">
                 <h1 class="panel-title"><i class="fa fa-file-signature"></i>
@@ -61,7 +61,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <Rock:ComponentPicker ID="cpExternalProvider" runat="server" ContainerType="Rock.Security.DigitalSignatureContainer, Rock" Label="External Digital Signature Provider"
-                                    OnSelectedIndexChanged="cpExternalProvider_SelectedIndexChanged" AutoPostBack="true" Required="false" Help="This will be obsolete in a future version of Rock. Leave this blank to use the Rock's built-in eSignature." />
+                                    OnSelectedIndexChanged="cpExternalProvider_SelectedIndexChanged" AutoPostBack="true" Required="false" Help="This will be obsolete in a future version of Rock. Leave this blank to use the Rock's built-in Electronic Signature." />
                             </div>
                             <div class="col-md-6">
                                 <Rock:RockDropDownList ID="ddlExternalProviderTemplate" runat="server" Label="External Provider Template" Help="A template that has been created with your digital signature provider" Required="false" Visible="true" />

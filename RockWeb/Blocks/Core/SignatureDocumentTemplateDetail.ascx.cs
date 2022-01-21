@@ -295,7 +295,6 @@ namespace RockWeb.Blocks.Core
             {
                 cpExternalProvider.SetValue( string.Empty );
                 ddlExternalProviderTemplate.SetValue( string.Empty );
-                ceESignatureLavaTemplate.Visible = true;
             }
 
             // Rock eSignature
@@ -351,8 +350,13 @@ namespace RockWeb.Blocks.Core
             int? entityTypeId = cpExternalProvider.SelectedEntityTypeId;
             if ( !entityTypeId.HasValue )
             {
+                // Not using legacy component, so we'll need a electronic signature template 
+                ceESignatureLavaTemplate.Required = true;
                 return;
             }
+
+            // Using legacy component, so we'll don't need a electronic signature template 
+            ceESignatureLavaTemplate.Required = false;
 
             var entityType = EntityTypeCache.Get( entityTypeId.Value );
 
@@ -395,7 +399,6 @@ namespace RockWeb.Blocks.Core
         /// <param name="signatureDocumentTemplateId">The signature document type identifier.</param>
         public void ShowDetail( int signatureDocumentTemplateId )
         {
-            pnlDetails.Visible = true;
             SignatureDocumentTemplate signatureDocumentTemplate = null;
 
             using ( var rockContext = new RockContext() )
@@ -408,13 +411,6 @@ namespace RockWeb.Blocks.Core
                 if ( signatureDocumentTemplate == null )
                 {
                     signatureDocumentTemplate = new SignatureDocumentTemplate { Id = 0 };
-                    var components = DigitalSignatureContainer.Instance.Components;
-                    var entityType = components.Where( c => c.Value.Value.IsActive ).OrderBy( c => c.Value.Value.Order ).Select( c => c.Value.Value.EntityType ).FirstOrDefault();
-                    if ( entityType != null )
-                    {
-                        signatureDocumentTemplate.ProviderEntityType = new EntityTypeService( rockContext ).Get( entityType.Id );
-                    }
-
                     Guid? fileTypeGuid = GetAttributeValue( AttributeKey.DefaultFileType ).AsGuidOrNull();
                     if ( fileTypeGuid.HasValue )
                     {
@@ -425,7 +421,6 @@ namespace RockWeb.Blocks.Core
                             signatureDocumentTemplate.BinaryFileTypeId = binaryFileType.Id;
                         }
                     }
-
                 }
 
                 hfSignatureDocumentTemplateId.SetValue( signatureDocumentTemplate.Id );
@@ -436,7 +431,6 @@ namespace RockWeb.Blocks.Core
                 nbEditModeMessage.Text = string.Empty;
                 bool canEdit = UserCanEdit || signatureDocumentTemplate.IsAuthorized( Authorization.EDIT, CurrentPerson );
                 bool canView = canEdit || signatureDocumentTemplate.IsAuthorized( Authorization.VIEW, CurrentPerson );
-                
 
                 if ( !canView )
                 {

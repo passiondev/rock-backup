@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using PuppeteerSharp;
+using PuppeteerSharp.Media;
+
+using Rock.Web.Cache;
 
 namespace Rock.Pdf
 {
@@ -16,31 +15,6 @@ namespace Rock.Pdf
     /// <seealso cref="System.IDisposable" />
     public class PdfGenerator : IDisposable
     {
-        private Browser _puppeteerBrowser;
-        private Page _puppeteerPage;
-
-        private static int _lastProgressPercentage = 0;
-
-        public static void EnsureChromeEngineInstalled()
-        {
-            var browserDownloadPath = System.Web.Hosting.HostingEnvironment.MapPath( "~/App_Data/ChromeEngine" );
-            Directory.CreateDirectory( browserDownloadPath );
-
-            var browserFetcherOptions = new BrowserFetcherOptions
-            {
-                Product = Product.Chrome,
-                Path = browserDownloadPath
-            };
-
-            _lastProgressPercentage = 0;
-
-            using ( var browserFetcher = new BrowserFetcher( browserFetcherOptions ) )
-            {
-                browserFetcher.DownloadProgressChanged += BrowserFetcher_DownloadProgressChanged;
-                browserFetcher.DownloadAsync().Wait();
-            }
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PdfGenerator"/> class.
         /// </summary>
@@ -49,30 +23,85 @@ namespace Rock.Pdf
             InitializeChromeEngine();
         }
 
+        // #TODO#. Seems to be quite a bit faster as a singleton, so this could be static, but Page would be trickier 
+        private Browser _puppeteerBrowser = null;
+
+        // #TODO#. If we do a singleton, we would have to be careful with Page since it isn't thread-safe. StatementGenerater has some tricks to keep page instances around in a thread-safe way. 
+        private Page _puppeteerPage;
+
+        private static int _lastProgressPercentage = 0;
+
+        /// <summary>
+        /// Ensures the chrome engine is downloaded and installed.
+        /// Note this could take several minutes if the chrome engine hasn't been downloaded yet.
+        /// </summary>
+        public static void EnsureChromeEngineInstalled()
+        {
+            using ( var browserFetcher = GetBrowserFetcher() )
+            {
+                EnsureChromeEngineInstalled( browserFetcher );
+            }
+        }
+
+        /// <inheritdoc cref="PdfGenerator.EnsureChromeEngineInstalled()"/>
+        private static void EnsureChromeEngineInstalled( BrowserFetcher browserFetcher )
+        {
+            _lastProgressPercentage = 0;
+            browserFetcher.DownloadProgressChanged += BrowserFetcher_DownloadProgressChanged;
+            browserFetcher.DownloadAsync().Wait();
+        }
+
+        /// <summary>
+        /// Gets the browser fetcher.
+        /// </summary>
+        /// <returns>BrowserFetcher.</returns>
+        private static BrowserFetcher GetBrowserFetcher()
+        {
+            var browserDownloadPath = System.Web.Hosting.HostingEnvironment.MapPath( "~/App_Data/ChromeEngine" );
+            Directory.CreateDirectory( browserDownloadPath );
+
+            var browserFetcherOptions = new BrowserFetcherOptions
+            {
+                Product = Product.Chrome,
+                Path = browserDownloadPath,
+            };
+
+            return new BrowserFetcher( browserFetcherOptions );
+        }
+
         /// <summary>
         /// Initializes the chrome engine.
         /// </summary>
         private void InitializeChromeEngine()
         {
-            EnsureChromeEngineInstalled();
-
-            var launchOptions = new LaunchOptions
+            if ( _puppeteerBrowser == null )
             {
-                Headless = true,
-                DefaultViewport = new ViewPortOptions { Width = 1280, Height = 1024, DeviceScaleFactor = 1 },
-                //    ExecutablePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-            };
+                var launchOptions = new LaunchOptions
+                {
+                    Headless = true,
+                    DefaultViewport = new ViewPortOptions { Width = 1280, Height = 1024, DeviceScaleFactor = 1 },
 
-            _puppeteerBrowser = Puppeteer.LaunchAsync( launchOptions ).Result;
+                };
+
+                using ( var browserFetcher = GetBrowserFetcher() )
+                {
+                    // should have already been installed, but just in case it hasn't, download it now.
+                    EnsureChromeEngineInstalled( browserFetcher );
+                    launchOptions.ExecutablePath = browserFetcher.RevisionInfo( BrowserFetcher.DefaultChromiumRevision ).ExecutablePath;
+                }
+
+                _puppeteerBrowser = Puppeteer.LaunchAsync( launchOptions ).Result;
+            }
+
             _puppeteerPage = _puppeteerBrowser.NewPageAsync().Result;
-            //_puppeteerPage.EmulateMediaTypeAsync( PuppeteerSharp.Media.MediaType.Screen ).Wait();
+            _puppeteerPage.EmulateMediaTypeAsync( PuppeteerSharp.Media.MediaType.Screen ).Wait();
         }
 
         /// <summary>
-        /// Occurs when [download progress changed].
+        /// Handles the DownloadProgressChanged event of the BrowserFetcher control.
         /// </summary>
-        //public event DownloadProgressChangedEventHandler DownloadProgressChanged;
-
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.Net.DownloadProgressChangedEventArgs"/> instance containing the event data.</param>
         private static void BrowserFetcher_DownloadProgressChanged( object sender, System.Net.DownloadProgressChangedEventArgs e )
         {
             if ( e.ProgressPercentage != _lastProgressPercentage )
@@ -82,33 +111,83 @@ namespace Rock.Pdf
             }
         }
 
+
+        /// <summary>
+        /// Renders the PDF document from URL.
+        /// </summary>
+        /// <param name="url">The URL.</param>
+        /// <returns>Stream.</returns>
+        public Stream RenderPDFDocumentFromURL( string url )
+        {
+            return RenderPDFDocument( null, url );
+        }
+
+        /// <summary>
+        /// Renders the PDF document from HTML.
+        /// </summary>
+        /// <param name="html">The HTML.</param>
+        /// <returns>Stream.</returns>
+        public Stream RenderPDFDocumentFromHtml( string html )
+        {
+            return RenderPDFDocument( html, null );
+        }
+
         /// <summary>
         /// Renders the PDF document.
         /// </summary>
         /// <param name="html">The HTML.</param>
+        /// <param name="url">The URL.</param>
         /// <returns>Stream.</returns>
-        public Stream RenderPDFDocument( string html )
+        private Stream RenderPDFDocument( string html, string url )
         {
-            _puppeteerPage.SetContentAsync( html ).Wait();
-
-            /*MarginOptions marginOptions = new MarginOptions
+            if ( html.IsNotNullOrWhiteSpace() )
             {
-                Bottom = $"{_reportSettings.PDFSettings.MarginBottomMillimeters ?? 15}mm",
-                Left = $"{_reportSettings.PDFSettings.MarginLeftMillimeters ?? 10}mm",
-                Top = $"{_reportSettings.PDFSettings.MarginTopMillimeters ?? 10}mm",
-                Right = $"{_reportSettings.PDFSettings.MarginRightMillimeters ?? 10}mm",
-            };*/
+                var pdfHtml = html;
+
+                // update all relative urls to absolute url
+                string publicAppRoot = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" );
+                if ( publicAppRoot.IsNotNullOrWhiteSpace() )
+                {
+                    pdfHtml = pdfHtml.Replace( "~/", publicAppRoot );
+                    pdfHtml = pdfHtml.Replace( @" src=""/", @" src=""" + publicAppRoot );
+                    pdfHtml = pdfHtml.Replace( @" src='/", @" src='" + publicAppRoot );
+                    pdfHtml = pdfHtml.Replace( @" href=""/", @" href=""" + publicAppRoot );
+                    pdfHtml = pdfHtml.Replace( @" href='/", @" href='" + publicAppRoot );
+                }
+
+                _puppeteerPage.SetContentAsync( pdfHtml ).Wait();
+            }
+            else if ( url.IsNotNullOrWhiteSpace() )
+            {
+                _puppeteerPage.GoToAsync( url ).Wait();
+            }
+            else
+            {
+                return null;
+            }
+
+            MarginOptions marginOptions = new MarginOptions
+            {
+                Bottom = $"15mm",
+                Left = $"10mm",
+                Top = $"10mm",
+                Right = $"10mm",
+            };
 
             var pdfOptions = new PdfOptions();
 
-            //pdfOptions.MarginOptions = marginOptions;
-            pdfOptions.PrintBackground = true;
+            // set HeaderTemplate to something so that it doesn't end up using the default, which is Page Title and Date
+            pdfOptions.HeaderTemplate = "<!-- -->";
+
+            // let Footer Template be the default, which is Page/PageCount
+            pdfOptions.FooterTemplate = null;
+
+            pdfOptions.MarginOptions = marginOptions;
+            pdfOptions.PrintBackground = false;
             pdfOptions.DisplayHeaderFooter = true;
             //pdfOptions.FooterTemplate = financialStatementGeneratorRecipientResult.FooterHtmlFragment;
-
-            // set HeaderTemplate to something so that it doesn't end up using the default
-            /*pdfOptions.HeaderTemplate = "<!-- -->";
-
+            
+            /*
             switch ( _reportSettings.PDFSettings.PaperSize )
             {
                 case FinancialStatementTemplatePDFSettingsPaperSize.A4:
@@ -135,8 +214,8 @@ namespace Rock.Pdf
         /// </summary>
         public void Dispose()
         {
-            _puppeteerPage?.Dispose();
-            _puppeteerBrowser?.Dispose();
+            _puppeteerPage.Dispose();
+            _puppeteerBrowser.Dispose();
         }
     }
 }
