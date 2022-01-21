@@ -33,6 +33,7 @@
     <Content Include=".eslintrc.js" />
     <Content Include="Core\.eslintrc.js" />
     <Content Include="Framework\.eslintrc.js" />
+    <Content Include="Framework\Blocks\Workflow\FormBuilderDetail\configurableZone.ts" />
     <Content Include="Framework\Controls\modal.ts" />
     <Content Include="Framework\Elements\transitionVerticalCollapse.ts" />
     <Content Include="Framework\Util\treeItemProviders.ts" />
@@ -114,6 +115,8 @@
     <TypeScriptCompile Include="Framework\Blocks\Security\login.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Utility\starkDetail.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\formBuilderDetail.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\sectionZone.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\types.d.ts" />
     <TypeScriptCompile Include="Framework\Controls\addressControl.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeEditor.ts" />
     <TypeScriptCompile Include="Framework\Controls\categoryPicker.ts" />

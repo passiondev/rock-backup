@@ -15,22 +15,33 @@
 // </copyright>
 //
 
-import { defineComponent } from "vue";
+import { defineComponent, reactive, ref } from "vue";
 import { useConfigurationValues } from "../../Util/block";
 import DropDownList from "../../Elements/dropDownList";
 import Panel from "../../Controls/panel";
 import RockButton from "../../Elements/rockButton";
+import RockLabel from "../../Elements/rockLabel";
 import Switch from "../../Elements/switch";
+import TextBox from "../../Elements/textBox";
+import ConfigurableZone from "./FormBuilderDetail/configurableZone";
+import SectionZone from "./FormBuilderDetail/sectionZone";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../Directives/dragDrop";
 import { newGuid } from "../../Util/guid";
+import { List } from "../../Util/linq";
+import { FormFieldType, FormSection } from "./FormBuilderDetail/types";
+import { FieldType } from "../../SystemGuids";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail",
     components: {
+        ConfigurableZone,
         DropDownList,
         Panel,
         RockButton,
-        Switch
+        RockLabel,
+        SectionZone,
+        Switch,
+        TextBox
     },
 
     directives: {
@@ -41,24 +52,147 @@ export default defineComponent({
     setup() {
         const config = useConfigurationValues<Record<string, string> | null>();
 
-        const dragSourceOptions: IDragSourceOptions = {
+        const commonFieldTypes: FormFieldType[] = [
+            {
+                guid: FieldType.Text,
+                text: "Text",
+                icon: "fa fa-font"
+            },
+            {
+                guid: FieldType.Memo,
+                text: "Memo",
+                icon: "fa fa-align-left"
+            },
+            {
+                guid: FieldType.SingleSelect,
+                text: "Single Select",
+                icon: "fa fa-dot-circle"
+            },
+            {
+                guid: FieldType.MultiSelect,
+                text: "Multi Select",
+                icon: "fa fa-check-circle"
+            },
+            {
+                guid: FieldType.Decimal,
+                text: "Decimal",
+                icon: "fa fa-font"
+            },
+            {
+                guid: FieldType.Date,
+                text: "Date",
+                icon: "fa fa-calendar"
+            },
+            {
+                guid: FieldType.Time,
+                text: "Time",
+                icon: "fa fa-clock"
+            },
+            {
+                guid: FieldType.DateTime,
+                text: "Date Time",
+                icon: "fa fa-calendar-alt"
+            },
+            {
+                guid: FieldType.Boolean,
+                text: "Boolean",
+                icon: "fa fa-check"
+            }
+        ];
+
+        const sections = reactive<FormSection[]>([
+            {
+                guid: newGuid(),
+                title: "My Favorite Things",
+                description: "Below is a form that helps us get to know you a bit more. Please complete it and we'll keep it on record.",
+                showHeadingSeparator: true,
+                type: "",
+                fields: [
+                    {
+                        fieldTypeGuid: FieldType.SingleSelect,
+                        label: "Single Select",
+                        size: 6
+                    },
+                    {
+                        fieldTypeGuid: FieldType.Memo,
+                        label: "Memo",
+                        size: 6
+                    },
+                    {
+                        fieldTypeGuid: FieldType.MultiSelect,
+                        label: "Multi Select",
+                        size: 12
+                    }
+                ]
+            }
+        ]);
+
+        const sectionDragSourceOptions: IDragSourceOptions = {
             id: newGuid(),
             copyElement: true,
-            dragOver(operation) {
-                if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
-                    operation.targetContainer.style.border = "2px solid var(--brand-primary)";
-                }
-            },
-            dragOut(operation) {
-                if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
-                    operation.targetContainer.style.border = "2px dashed #dfe0e1";
+            dragDrop(operation) {
+                operation.element.remove();
+
+                if (operation.targetIndex !== undefined) {
+                    sections.splice(operation.targetIndex, 0, {
+                        guid: newGuid(),
+                        title: "",
+                        description: "",
+                        showHeadingSeparator: false,
+                        type: "",
+                        fields: []
+                    });
                 }
             }
         };
 
+        const fieldDragSourceOptions: IDragSourceOptions = {
+            id: newGuid(),
+            copyElement: true,
+            dragOver(operation) {
+                if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
+                    operation.targetContainer.closest(".field-zone")?.classList.add("highlight");
+                }
+            },
+            dragOut(operation) {
+                if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
+                    operation.targetContainer.closest(".field-zone")?.classList.remove("highlight");
+                }
+            },
+            dragShadow(operation) {
+                if (operation.shadow) {
+                    operation.shadow.classList.remove("col-xs-6");
+                    operation.shadow.classList.add("col-xs-12");
+                }
+            },
+            dragDrop(operation) {
+                operation.element.remove();
+
+                const fieldTypeGuid = (operation.element as HTMLElement).dataset.fieldType;
+                const sectionGuid = (operation.targetContainer as HTMLElement).dataset.sectionId;
+                const section = new List(sections).firstOrUndefined(s => s.guid === sectionGuid);
+                const fieldType = new List(commonFieldTypes).firstOrUndefined(f => f.guid === fieldTypeGuid);
+
+                if (section && fieldType && operation.targetIndex !== undefined) {
+                    section.fields.splice(operation.targetIndex, 0, {
+                        fieldTypeGuid: fieldType.guid,
+                        label: fieldType.text,
+                        size: 12
+                    });
+                }
+            }
+        };
+
+        const hasPersonEntry = ref(true);
+
         return {
-            commonFieldTypes: ["Text", "Memo", "Single Select", "Multi Select", "Number", "Date", "Time", "Date Time", "Boolean", "Fixed Message"],
-            dragSourceOptions
+            commonFieldTypes,
+            fieldDragSourceOptions,
+            fieldDragTargetId: fieldDragSourceOptions.id,
+            hasPersonEntry,
+            sectionDragSourceOptions,
+            sectionDragTargetId: sectionDragSourceOptions.id,
+            sections
         };
     },
 
@@ -66,29 +200,113 @@ export default defineComponent({
 <Panel type="block" hasFullscreen title="Workflow Form Builder" titleIconClass="fa fa-hammer">
     <template #default>
         <v-style>
+            /*** Overrides for theme CSS ***/
+            .form-builder-detail .form-section {
+                margin-bottom: 0px;
+            }
+
+            /*** Style Variables ***/
+            .form-builder-detail {
+                --zone-color: #e1e1e1;
+                --zone-action-text-color: #a7a7a7;
+                --zone-active-color: #c9eaf9;
+                --zone-active-action-text-color: #83bad3;
+                --zone-highlight-color: #ee7725;
+                --zone-highlight-action-text-color: #e4bda2;
+            }
+
+            /*** Form Template Items ***/
             .form-builder-detail .form-template-item,
-            .gu-mirror.form-template-item {
-                font-size: 13px;
-                font-weight: 600;
-                padding: 6px;
+            .gu-mirror > .form-template-item {
+                display: flex;
+                align-items: center;
                 background-color: #ffffff;
                 border: 1px solid #e1e1e1;
                 border-left: 3px solid #e1e1e1;
                 border-radius: 3px;
+                padding: 6px;
+                font-size: 13px;
+                font-weight: 600;
                 cursor: grab;
             }
 
+            .form-builder-detail .form-template-item > .fa,
+            .gu-mirror > .form-template-item > .fa {
+                margin-right: 6px;
+            }
+
+            .form-builder-detail .form-template-item > .text,
+            .gu-mirror > .form-template-item > .text {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
             .form-builder-detail .form-template-item.form-template-item-section,
-            .gu-mirror.form-template-item.form-template-item-section {
+            .gu-mirror > .form-template-item.form-template-item-section {
                 border-left-color: #009ce3;
             }
 
             .form-builder-detail .form-template-item.form-template-item-field,
-            .gu-mirror.form-template-item.form-template-item-field {
+            .gu-mirror > .form-template-item.form-template-item-field {
                 border-left-color: #ee7725;
                 margin-right: 5px;
                 margin-bottom: 5px;
                 flex-basis: calc(50% - 5px);
+            }
+
+            /*** Configurable Zones ***/
+            .form-builder-detail .configurable-zone {
+                display: flex;
+                margin-bottom: 12px;
+            }
+
+            .form-builder-detail .configurable-zone.field-zone {
+                flex-grow: 1;
+                min-height: 75px;
+            }
+
+            .form-builder-detail .configurable-zone > .zone-content-container {
+                display: flex;
+                flex-grow: 1;
+                border: 2px solid var(--zone-color);
+            }
+
+            .form-builder-detail .configurable-zone.field-zone > .zone-content-container {
+                border-style: dashed;
+                border-right-style: solid;
+            }
+
+            .form-builder-detail .configurable-zone > .zone-content-container > .zone-content {
+                padding: 20px;
+                flex-grow: 1;
+            }
+
+            .form-builder-detail .configurable-zone > .zone-actions {
+                background-color: var(--zone-color);
+                border: 2px solid var(--zone-color);
+                border-left: 0px;
+                width: 40px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: var(--zone-action-text-color);
+                cursor: pointer;
+            }
+
+            .form-builder-detail .configurable-zone.active > .zone-content-container {
+                border-color: var(--zone-active-color);
+            }
+
+            .form-builder-detail .configurable-zone.active > .zone-actions {
+                background-color: var(--zone-active-color);
+                border-color: var(--zone-active-color);
+                color: var(--zone-active-action-text-color);
+            }
+
+            .form-builder-detail .configurable-zone.highlight > .zone-content-container {
+                border-color: var(--zone-highlight-color);
+                border-right-style: dashed;
             }
         </v-style>
 
@@ -114,7 +332,7 @@ export default defineComponent({
                     </div>
 
                     <div class="p-2 d-flex flex-column" style="flex-grow: 1; overflow-y: auto;">
-                        <div class="mt-3" v-drag-source="dragSourceOptions">
+                        <div class="mt-3" v-drag-source="sectionDragSourceOptions">
                             <div class="form-template-item form-template-item-section">
                                 <i class="fa fa-expand fa-fw"></i>
                                 Section
@@ -122,38 +340,47 @@ export default defineComponent({
                         </div>
 
                         <div class="mt-3" style="flex-grow: 1;">
-                            <div><strong>Field Types</strong></div>
+                            <RockLabel>Field Types</RockLabel>
 
-                            <div class="d-flex flex-wrap" v-drag-source="dragSourceOptions">
-                                <div v-for="field in commonFieldTypes" class="form-template-item form-template-item-field">
-                                    <i class="fa fa-font fa-fw"></i>
-                                    {{ field }}
+                            <div style="overflow-x: clip; margin-right: -5px;">
+                                <div class="row" v-drag-source="fieldDragSourceOptions">
+                                    <div v-for="field in commonFieldTypes" class="col-xs-6" :data-field-type="field.guid">
+                                        <div class="form-template-item form-template-item-field">
+                                            <i :class="field.icon + ' fa-fw'"></i>
+                                            <div class="text">{{ field.text }}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mt-3">
                             <DropDownList label="Campus Set From" />
-                            <Switch text="Enable Person Entry" />
+                            <Switch v-model="hasPersonEntry" text="Enable Person Entry" />
                         </div>
                     </div>
                 </div>
 
                 <div class="p-3 d-flex flex-column" style="flex-grow: 1; overflow-y: auto;">
-                    <div style="border: 1px solid #dfe0e1; padding: 20px; text-align: center;">
-                        Form Header
+                    <ConfigurableZone>
+                        <div class="text-center">Form Header</div>
+                    </ConfigurableZone>
+
+                    <ConfigurableZone v-if="hasPersonEntry" class="active">
+                        <div class="text-center">Person Entry Form</div>
+                    </ConfigurableZone>
+
+                    <div style="flex-grow: 1; display: flex; flex-direction: column;" v-drag-target="sectionDragTargetId">
+                        <SectionZone v-for="section in sections" :key="section.guid" v-model="section" :dragTargetId="fieldDragTargetId" />
                     </div>
 
-                    <div class="mt-3" style="flex-grow: 1; border: 2px dashed #dfe0e1;" v-drag-target="dragSourceOptions">
-                        
-                    </div>
-
-                    <div class="mt-3" style="border: 1px solid #dfe0e1; padding: 20px; text-align: center;">
-                        Form Footer
-                    </div>
+                    <ConfigurableZone>
+                        <div class="text-center">Form Footer</div>
+                    </ConfigurableZone>
                 </div>
             </div>
         </div>
     </template>
-</Panel>`
+</Panel>
+`
 });
