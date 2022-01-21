@@ -162,7 +162,7 @@ export default defineComponent({
             dragShadow(operation) {
                 if (operation.shadow) {
                     operation.shadow.classList.remove("col-xs-6");
-                    operation.shadow.classList.add("col-xs-12");
+                    operation.shadow.classList.add("flex-col", "flex-col-12");
                 }
             },
             dragDrop(operation) {
@@ -213,11 +213,12 @@ export default defineComponent({
                 --zone-active-action-text-color: #83bad3;
                 --zone-highlight-color: #ee7725;
                 --zone-highlight-action-text-color: #e4bda2;
+                --flex-col-gutter: 30px;
             }
 
             /*** Form Template Items ***/
             .form-builder-detail .form-template-item,
-            .gu-mirror > .form-template-item {
+            .gu-mirror.form-template-item {
                 display: flex;
                 align-items: center;
                 background-color: #ffffff;
@@ -231,24 +232,24 @@ export default defineComponent({
             }
 
             .form-builder-detail .form-template-item > .fa,
-            .gu-mirror > .form-template-item > .fa {
+            .gu-mirror.form-template-item > .fa {
                 margin-right: 6px;
             }
 
             .form-builder-detail .form-template-item > .text,
-            .gu-mirror > .form-template-item > .text {
+            .gu-mirror.form-template-item > .text {
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
 
             .form-builder-detail .form-template-item.form-template-item-section,
-            .gu-mirror > .form-template-item.form-template-item-section {
+            .gu-mirror.form-template-item.form-template-item-section {
                 border-left-color: #009ce3;
             }
 
             .form-builder-detail .form-template-item.form-template-item-field,
-            .gu-mirror > .form-template-item.form-template-item-field {
+            .gu-mirror.form-template-item.form-template-item-field {
                 border-left-color: #ee7725;
                 margin-right: 5px;
                 margin-bottom: 5px;
@@ -308,6 +309,71 @@ export default defineComponent({
                 border-color: var(--zone-highlight-color);
                 border-right-style: dashed;
             }
+
+            /*** Form Sections ***/
+            .form-builder-detail .form-section {
+                display: flex;
+                flex-wrap: wrap;
+                margin-right: calc(0px - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .form-section .form-template-item.form-template-item-field {
+                margin: 0px 0px 12px 0px;
+                flex-basis: calc(100% - var(--flex-col-gutter));
+            }
+
+            /*** Flex Column Sizes ***/
+            .form-builder-detail .flex-col {
+                margin-right: var(--flex-col-gutter);
+            }
+
+            .form-builder-detail .flex-col-1 {
+                flex-basis: calc(8.3333% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-2 {
+                flex-basis: calc(16.6666% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-3 {
+                flex-basis: calc(25% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-4 {
+                flex-basis: calc(33.3333% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-5 {
+                flex-basis: calc(41.6666% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-6 {
+                flex-basis: calc(50% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-7 {
+                flex-basis: calc(58.3333% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-8 {
+                flex-basis: calc(66.6666% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-9 {
+                flex-basis: calc(75% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-10 {
+                flex-basis: calc(83.3333% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-11 {
+                flex-basis: calc(91.6666% - var(--flex-col-gutter));
+            }
+
+            .form-builder-detail .flex-col-12 {
+                flex-basis: calc(100% - var(--flex-col-gutter));
+            }
         </v-style>
 
         <div class="form-builder-detail d-flex flex-column position-absolute inset-0" style="overflow-y: hidden;">
@@ -342,15 +408,11 @@ export default defineComponent({
                         <div class="mt-3" style="flex-grow: 1;">
                             <RockLabel>Field Types</RockLabel>
 
-                            <div style="overflow-x: clip; margin-right: -5px;">
-                                <div class="row" v-drag-source="fieldDragSourceOptions">
-                                    <div v-for="field in commonFieldTypes" class="col-xs-6" :data-field-type="field.guid">
-                                        <div class="form-template-item form-template-item-field">
+                            <div class="d-flex flex-wrap" style="overflow-x: clip; margin-right: -5px;" v-drag-source="fieldDragSourceOptions">
+                                    <div v-for="field in commonFieldTypes" class="form-template-item form-template-item-field" :data-field-type="field.guid">
                                             <i :class="field.icon + ' fa-fw'"></i>
                                             <div class="text">{{ field.text }}</div>
-                                        </div>
                                     </div>
-                                </div>
                             </div>
                         </div>
 

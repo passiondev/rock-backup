@@ -54,7 +54,7 @@ export default defineComponent({
     setup(props, { emit }) {
         const section = useVModelPassthrough(props, "modelValue", emit);
 
-        const getFieldColumnSize = (field: FormField): string => `col-xs-${field.size}`;
+        const getFieldColumnSize = (field: FormField): string => `flex-col flex-col-${field.size}`;
 
         const getAttributeValue = (field: FormField): ClientEditableAttributeValue => {
             return {
@@ -78,12 +78,10 @@ export default defineComponent({
 
     template: `
 <ConfigurableZone class="field-zone">
-    <div class="row form-section" style="min-height: 100%;" v-drag-target="dragTargetId" :data-section-id="section.guid">
-        <div v-for="field in section.fields" :class="getFieldColumnSize(field)">
-            <ConfigurableZone>
-                <RockField :attributeValue="getAttributeValue(field)" isEditMode />
-            </ConfigurableZone>
-        </div>
+    <div class="form-section" style="min-height: 100%;" v-drag-target="dragTargetId" :data-section-id="section.guid">
+        <ConfigurableZone v-for="field in section.fields" :class="getFieldColumnSize(field)">
+            <RockField :attributeValue="getAttributeValue(field)" isEditMode />
+        </ConfigurableZone>
     </div>
 
 </ConfigurableZone>
