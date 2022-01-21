@@ -287,6 +287,7 @@ export default defineComponent({
                 border: 2px solid var(--zone-color);
                 border-left: 0px;
                 width: 40px;
+                flex-shrink: 0;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -393,7 +394,7 @@ export default defineComponent({
             </div>
 
             <div class="d-flex" style="flex-grow: 1; overflow-y: hidden;">
-                <div class="d-flex flex-column" style="background-color: #f8f9fa; width: 320px; overflow-y: hidden;">
+                <div class="d-flex flex-column" style="background-color: #f8f9fa; width: 320px; flex-shrink: 0; overflow-y: hidden;">
                     <div class="p-2" style="border-right: 1px solid #dfe0e1; border-bottom: 1px solid #dfe0e1;">
                         <strong>Field List</strong>
                     </div>
