@@ -264,7 +264,6 @@ export default defineComponent({
 
             .form-builder-detail .configurable-zone.field-zone {
                 flex-grow: 1;
-                min-height: 75px;
             }
 
             .form-builder-detail .configurable-zone > .zone-content-container {
@@ -314,7 +313,9 @@ export default defineComponent({
             .form-builder-detail .form-section {
                 display: flex;
                 flex-wrap: wrap;
+                align-content: flex-start;
                 margin-right: calc(0px - var(--flex-col-gutter));
+                min-height: 100%;
             }
 
             .form-builder-detail .form-section .form-template-item.form-template-item-field {

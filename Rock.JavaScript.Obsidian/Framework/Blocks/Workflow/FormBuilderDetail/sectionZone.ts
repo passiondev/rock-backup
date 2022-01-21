@@ -78,7 +78,7 @@ export default defineComponent({
 
     template: `
 <ConfigurableZone class="field-zone">
-    <div class="form-section" style="min-height: 100%;" v-drag-target="dragTargetId" :data-section-id="section.guid">
+    <div class="form-section" v-drag-target="dragTargetId" :data-section-id="section.guid">
         <ConfigurableZone v-for="field in section.fields" :class="getFieldColumnSize(field)">
             <RockField :attributeValue="getAttributeValue(field)" isEditMode />
         </ConfigurableZone>
