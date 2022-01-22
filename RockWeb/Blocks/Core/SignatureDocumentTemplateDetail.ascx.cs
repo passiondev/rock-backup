@@ -143,9 +143,15 @@ namespace RockWeb.Blocks.Core
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnSaveType_Click( object sender, EventArgs e )
         {
+            if ( ceESignatureLavaTemplate.Text.IsNullOrWhiteSpace() && !cpExternalProvider.SelectedEntityTypeId.HasValue )
+            {
+                nbSignatureLavaTemplateWarning.Visible = true;
+                return;
+            }
+
             var rockContext = new RockContext();
 
-            SignatureDocumentTemplate signatureDocumentTemplate = null;
+            SignatureDocumentTemplate signatureDocumentTemplate;
             SignatureDocumentTemplateService typeService = new SignatureDocumentTemplateService( rockContext );
 
             int signatureDocumentTemplateId = hfSignatureDocumentTemplateId.ValueAsInt();
@@ -350,13 +356,8 @@ namespace RockWeb.Blocks.Core
             int? entityTypeId = cpExternalProvider.SelectedEntityTypeId;
             if ( !entityTypeId.HasValue )
             {
-                // Not using legacy component, so we'll need a electronic signature template 
-                ceESignatureLavaTemplate.Required = true;
                 return;
             }
-
-            // Using legacy component, so we'll don't need a electronic signature template 
-            ceESignatureLavaTemplate.Required = false;
 
             var entityType = EntityTypeCache.Get( entityTypeId.Value );
 

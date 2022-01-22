@@ -51,8 +51,9 @@
                         <p>Below are some tips to assist you in your template creation. The merge fields that you use to customize your templates will vary depending on where they are being used.</p>
                         <p>Be sure to add the {{ SignatureInformation }} merge field where you would like the signature information to be displayed. If you do not provide this merge field it will be added for you automatically at the end of the template.</p>
                     </div>
-                    
-                    <Rock:HtmlEditor ID="ceESignatureLavaTemplate" runat="server" Label="Lava Template" Help="The Lava template that makes up the body of the document." Height="200" />
+
+                    <Rock:NotificationBox ID="nbSignatureLavaTemplateWarning" runat="server" NotificationBoxType="Validation" Text="Lava Template is required." Visible="false" />
+                    <Rock:HtmlEditor ID="ceESignatureLavaTemplate" runat="server" Label="Lava Template" Help="The Lava template that makes up the body of the document." Height="300" />
 
                     <%-- Legacy Signature Provider Settings --%>
                     <asp:Panel ID="pnlLegacySignatureProviderSettings" runat="server" class="well">

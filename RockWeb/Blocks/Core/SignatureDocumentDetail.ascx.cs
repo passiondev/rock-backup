@@ -269,12 +269,6 @@ namespace RockWeb.Blocks.Core
             var lDetails = new DescriptionList();
             var rDetails = new DescriptionList();
 
-            if ( signatureDocument.BinaryFile != null )
-            {
-                var getFileUrl = string.Format( "{0}GetFile.ashx?guid={1}", System.Web.VirtualPathUtility.ToAbsolute( "~" ), signatureDocument.BinaryFile.Guid );
-                lDetails.Add( "Document", string.Format( "<a href='{0}'>View</a>", getFileUrl ) );
-            }
-
             lDetails.Add( "Document Key", signatureDocument.DocumentKey );
 
             if ( signatureDocument.LastInviteDate.HasValue )
@@ -304,7 +298,17 @@ namespace RockWeb.Blocks.Core
 
             lLeftDetails.Text = lDetails.Html;
             lRightDetails.Text = rDetails.Html;
-
+            
+            if ( signatureDocument.BinaryFile != null )
+            {
+                var getFileUrl = string.Format( "{0}GetFile.ashx?guid={1}", System.Web.VirtualPathUtility.ToAbsolute( "~" ), signatureDocument.BinaryFile.Guid );
+                pdfSignatureDocument.Visible = true;
+                pdfSignatureDocument.SourceUrl = getFileUrl;
+            }
+            else
+            {
+                pdfSignatureDocument.Visible = false;
+            }
         }
 
         /// <summary>
@@ -446,14 +450,7 @@ namespace RockWeb.Blocks.Core
                         nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( SignatureDocument.FriendlyTypeName );
                     }
 
-                    if ( readOnly )
-                    {
-                        ShowReadonlyDetails( signatureDocument );
-                    }
-                    else
-                    {
-                        ShowEditDetails( signatureDocument, false );
-                    }
+                    ShowReadonlyDetails( signatureDocument );
                 }
             }
         }

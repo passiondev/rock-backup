@@ -68,6 +68,8 @@
                         </div>
                     </div>
 
+                    <Rock:PDFViewer ID="pdfSignatureDocument" runat="server" />
+
                     <div class="actions">
                         <asp:LinkButton ID="btnCancelView" runat="server" AccessKey="m" ToolTip="Alt+m" Text="Edit" CssClass="btn btn-link" CausesValidation="false" OnClick="btnCancel_Click" />
                     </div>

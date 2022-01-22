@@ -70,6 +70,18 @@ namespace Rock.Pdf
         }
 
         /// <summary>
+        /// Gets or sets CSS @media. Defaults to <see cref="MediaType.Print"/>
+        /// </summary>
+        /// <value>The type of the PDF media.</value>
+        public MediaType PDFMediaType { get; set; } = MediaType.Print;
+
+        /// <summary>
+        /// Gets or sets the paper format (Letter, Legal, A4)
+        /// </summary>
+        /// <value>The paper format.</value>
+        public PaperFormat PaperFormat { get; set; } = PaperFormat.Letter;
+
+        /// <summary>
         /// Initializes the chrome engine.
         /// </summary>
         private void InitializeChromeEngine()
@@ -80,7 +92,6 @@ namespace Rock.Pdf
                 {
                     Headless = true,
                     DefaultViewport = new ViewPortOptions { Width = 1280, Height = 1024, DeviceScaleFactor = 1 },
-
                 };
 
                 using ( var browserFetcher = GetBrowserFetcher() )
@@ -94,7 +105,7 @@ namespace Rock.Pdf
             }
 
             _puppeteerPage = _puppeteerBrowser.NewPageAsync().Result;
-            _puppeteerPage.EmulateMediaTypeAsync( PuppeteerSharp.Media.MediaType.Screen ).Wait();
+            _puppeteerPage.EmulateMediaTypeAsync( this.PDFMediaType ).Wait();
         }
 
         /// <summary>
@@ -110,7 +121,6 @@ namespace Rock.Pdf
                 System.Diagnostics.Debug.WriteLine( $"Downloading PdfGenerator ChromeEngine:  {e.ProgressPercentage}%" );
             }
         }
-
 
         /// <summary>
         /// Renders the PDF document from URL.
@@ -168,25 +178,29 @@ namespace Rock.Pdf
 
             MarginOptions marginOptions = new MarginOptions
             {
-                Bottom = $"15mm",
-                Left = $"10mm",
-                Top = $"10mm",
-                Right = $"10mm",
+                Bottom = "15mm",
+                Left = "10mm",
+                Top = "10mm",
+                Right = "10mm",
             };
 
             var pdfOptions = new PdfOptions();
+            
+            pdfOptions.MarginOptions = marginOptions;
+            pdfOptions.PrintBackground = false;
+            pdfOptions.DisplayHeaderFooter = true;
 
             // set HeaderTemplate to something so that it doesn't end up using the default, which is Page Title and Date
             pdfOptions.HeaderTemplate = "<!-- -->";
 
-            // let Footer Template be the default, which is Page/PageCount
-            pdfOptions.FooterTemplate = null;
+            // Set footer template to show pageNumber/totalPages on the bottom right.
+            // See chrome source code at  https://source.chromium.org/chromium/chromium/src/+/main:components/printing/resources/print_header_footer_template_page.html
+            pdfOptions.FooterTemplate = @"
+<div class='text left grow'></div>
+<div class='text right'>
+    <span class='pageNumber'></span>/<span class='totalPages'></span>
+</div>;";
 
-            pdfOptions.MarginOptions = marginOptions;
-            pdfOptions.PrintBackground = false;
-            pdfOptions.DisplayHeaderFooter = true;
-            //pdfOptions.FooterTemplate = financialStatementGeneratorRecipientResult.FooterHtmlFragment;
-            
             /*
             switch ( _reportSettings.PDFSettings.PaperSize )
             {

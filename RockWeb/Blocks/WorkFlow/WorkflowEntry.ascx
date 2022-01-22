@@ -3,12 +3,6 @@
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
 
-        <style>
-            .e-signature-pad {
-                border-bottom: 2px solid magenta
-            }
-        </style>
-
         <div class="row">
             <div id="divForm" runat="server" class="col-md-6">
                 <div class="panel panel-block">
@@ -89,25 +83,12 @@
 
                         <%-- eSignature UI --%>
                         <asp:Panel ID="pnlWorkflowActionElectronicSignature" runat="server" Visible="false">
-                            <Rock:HiddenFieldWithClass ID="hfSignatureImageDataUrl" CssClass="js-signature-data" runat="server" />
-                            <asp:Literal ID="lSignatureDocumentHTML" runat="server" />
-                            <asp:Panel ID="pnlSignatureEntryDrawn" runat="server" CssClass="signature-entry-drawn js-signature-entry-drawn">
-                                <canvas class="js-signature-pad-canvas e-signature-pad"></canvas>
+                            <%-- Put the signature document html in an Iframe so it doesn't inherit styling from the page --%>
+                            <asp:Panel ID="pnlIframeSignatureDocumentHTML" runat="server">
+                                <iframe id="iframeSignatureDocumentHTML" name="signature-document-html-iframe" class="signaturedocument-iframe js-signaturedocument-iframe" runat="server" src="javascript: window.frameElement.getAttribute('srcdoc');" frameborder="0" border="0" cellspacing="0" style="width: 100%; height: 100%"></iframe>
                             </asp:Panel>
-                            <asp:Panel ID="pnlSignatureEntryTyped" runat="server" CssClass="signature-entry-typed">
-                                <Rock:RockTextBox ID="tbSignatureTyped" runat="server" Placeholder="Type Name" />
-                            </asp:Panel>
-                            <asp:Literal ID="lSignatureSignDisclaimer" runat="server">
-                                By clicking the sign button below, I agree to the above and understand this is a legal representation of my signature.
-                            </asp:Literal>
-                            <div class="alert alert-danger js-signature-empty-alert" style="display: none">
-                                Please enter a signature
-                            </div>
-                            <Rock:BootstrapButton ID="btnSignSignature" runat="server" CssClass="btn btn-default js-save-signature" OnClick="btnSignSignature_Click">Sign</Rock:BootstrapButton>
-                            <a id="btnClearSignature" class="btn btn-default js-clear-signature">Clear</a>
+                            <Rock:ElectronicSignatureControl ID="escElectronicSignatureControl" runat="server" OnSignSignatureClicked="btnSignSignature_Click" CssClass="well" />
                         </asp:Panel>
-
-
 
                         <%-- This needs a 'js-workflow-entry-message-notification-box' javascript hook so that Rock.Workflow.Action.ShowHtml can find it.--%>
                         <Rock:NotificationBox ID="nbMessage" runat="server" Dismissable="true" CssClass="margin-t-lg js-workflow-entry-message-notification-box" />
@@ -141,72 +122,26 @@
                 return true;
             }
 
-            function resizeSignatureCanvas () {
-                // If the window is resized, that'll affect the drawing canvas
-                // also, if there is an existing signature, it'll get messed up, so clear it and
-                // make them sign it again. See additional details why 
-                // https://github.com/szimek/signature_pad
-                var $signaturePadCanvas = $('.js-signature-pad-canvas');
-                var signaturePadCanvas = $signaturePadCanvas[ 0 ];
-                var containerWidth = $('.js-signature-entry-drawn').width();
-                if (!containerWidth) {
-                    containerWidth = 400;
-                }
-
-                const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                signaturePadCanvas.width = containerWidth * ratio;
-                signaturePadCanvas.height = 100 * ratio;
-                signaturePadCanvas.getContext("2d").scale(ratio, ratio);
-
-                var signaturePad = $signaturePadCanvas.data('signatureComponent');
-                signaturePad.clear();
-            }
-
-            function initializeSignaturePad () {
-                var $signaturePadCanvas = $('.js-signature-pad-canvas');
-                if (!$signaturePadCanvas.length) {
-                    return
-                }
-
-                var signaturePad = new SignaturePad($signaturePadCanvas[ 0 ], {
-                    //penColor: 'black',
-                    //backgroundColor: 'white'
-                });
-                $signaturePadCanvas.data('signatureComponent', signaturePad);
-
-                $('.js-clear-signature').click(function () {
-                    signaturePad.clear();
-                })
-
-                $('.js-save-signature').click(function () {
-                    if (signaturePad.isEmpty()) {
-
-                        $('.js-signature-empty-alert').show();
-                        return false;
-                    }
-
-                    //var signatureImageDataUrl = signaturePad.toDataURL("image/png");
-                    // NOTE That if we use jpeg, we'll have to deal with this https://github.com/szimek/signature_pad/issues/584
-                    var signatureImageDataUrl = signaturePad.toDataURL("image/jpeg");
-                    //var signatureImageDataUrl = signaturePad.toDataURL("image/png");
-                    //var signatureImageDataUrl = signaturePad.toDataURL("image/svg+xml")
-                    $('.js-signature-data').val(signatureImageDataUrl);
-                });
-
-                window.addEventListener("resize", resizeSignatureCanvas);
-
-                signaturePad.addEventListener("beginStroke", () => {
-                    // if there was an error showing, hide the error if they start signing again
-                    $('.js-signature-empty-alert').hide();
-                }, { once: true });
-
-                resizeSignatureCanvas();
-            }
-
             Sys.Application.add_load(function () {
-                initializeSignaturePad();
-            });
+                if ($('#<%=pnlIframeSignatureDocumentHTML.ClientID%>').length) {
+                    var $signatureDocumentIframe = $('.js-signaturedocument-iframe');
 
+                    $signatureDocumentIframe.height('auto');
+
+                    $signatureDocumentIframe.load(function () {
+                        new ResizeSensor($('#<%=pnlIframeSignatureDocumentHTML.ClientID%>'), function () {
+                            $('#<%=iframeSignatureDocumentHTML.ClientID%>', window.parent.document).height($('#<%=pnlIframeSignatureDocumentHTML.ClientID%>').height());
+                        });
+
+                        var newHeight = $(this.contentWindow.document).height();
+                        if ($(this).height() != newHeight) {
+                            $(this).height(newHeight);
+                        }
+
+                        $('#<%=pnlIframeSignatureDocumentHTML.ClientID%>').height(newHeight);
+                    });
+                }
+            });
 
         </script>
 
