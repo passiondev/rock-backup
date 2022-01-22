@@ -1585,6 +1585,7 @@
     <Compile Include="Web\Cache\RockCacheConsumer.cs" />
     <Compile Include="Web\PageRouteWasUpdatedConsumer.cs" />
     <Compile Include="Web\UI\Controls\CompositePlaceHolder.cs" />
+    <Compile Include="Web\UI\Controls\ElectronicSignatureControl.cs" />
     <Compile Include="Web\UI\Controls\FieldVisibilityRuleField.cs" />
     <Compile Include="Web\UI\Controls\FirstNameTextBox.cs" />
     <Compile Include="Web\UI\Controls\IDoNotBlockValidate.cs" />
@@ -1594,6 +1595,7 @@
     <Compile Include="Web\UI\Controls\PageNavButtons.cs" />
     <Compile Include="Web\UI\Controls\Grid\PersonProfileLinkField.cs" />
     <Compile Include="Web\UI\Controls\LocationList.cs" />
+    <Compile Include="Web\UI\Controls\PDFViewer.cs" />
     <Compile Include="Web\UI\Controls\Pickers\CacheabilityPicker.cs" />
     <Compile Include="Web\UI\Controls\Pickers\FinancialStatementTemplatePicker.cs" />
     <Compile Include="Web\UI\Controls\Pickers\IntervalPicker.cs" />
