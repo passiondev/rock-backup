@@ -1,0 +1,571 @@
+﻿// <copyright>
+// Copyright by the Spark Development Network
+//
+// Licensed under the Rock Community License (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.rockrms.com/license
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
+using TreeNode = Rock.Web.UI.Controls.TreeNode;
+
+namespace Rock.Field.Types
+{
+    /// <summary>
+    /// Field used to save and display a selection from a Defined Type that supports categorized values.
+    /// </summary>
+    [Serializable]
+    public class CategorizedDefinedValueFieldType : FieldType
+    {
+        #region Configuration
+
+        private const string DEFINED_TYPE_KEY = "DefinedType";
+        private const string SELECTABLE_VALUES_KEY = "SelectableDefinedValues";
+
+        /// <summary>
+        /// The settings for this Field Type.
+        /// </summary>
+        internal class Settings : FieldTypeConfigurationSettings
+        {
+            public Settings()
+            {
+                Add( DEFINED_TYPE_KEY, "Defined Type", "The Defined Type to select values from", string.Empty );
+                Add( SELECTABLE_VALUES_KEY, "Selectable Values", "Specify the values eligible for this control. If none are specified then all will be displayed.", string.Empty );
+            }
+
+            public Settings( Dictionary<string, ConfigurationValue> configurationValues )
+                : this()
+            {
+                SetConfigurationValues( configurationValues );
+            }
+
+            public int? DefinedTypeId
+            {
+                get
+                {
+                    return TryGetValue( DEFINED_TYPE_KEY ).AsIntegerOrNull();
+                }
+                set
+                {
+                    TrySetValue( DEFINED_TYPE_KEY, value.ToStringSafe() );
+                }
+            }
+
+            public List<string> SelectableValueIdList
+            {
+                get
+                {
+                    return TryGetValue( SELECTABLE_VALUES_KEY ).SplitDelimitedValues( ",", StringSplitOptions.RemoveEmptyEntries ).ToList();
+                }
+                set
+                {
+                    TrySetValue( SELECTABLE_VALUES_KEY, value.AsDelimited( "," ) );
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public override List<string> ConfigurationKeys()
+        {
+            var configKeys = base.ConfigurationKeys();
+            configKeys.Add( DEFINED_TYPE_KEY );
+            configKeys.Add( SELECTABLE_VALUES_KEY );
+            return configKeys;
+        }
+
+        /// <inheritdoc/>
+        public override bool HasDefaultControl => false;
+
+        /// <inheritdoc/>
+        public override List<Control> ConfigurationControls()
+        {
+            var controls = base.ConfigurationControls();
+
+            // Get the Defined Types that are configured for categorized values.
+            var definedTypes = DefinedTypeCache.All()
+                .Where( x => ( x.CategorizedValuesEnabled ?? false ) )
+                .OrderBy( d => d.Order )
+                .Select( v => new ListItem { Text = v.Name, Value = v.Id.ToString() } )
+                .ToList();
+            definedTypes.Insert( 0, new ListItem( string.Empty, string.Empty ) );
+
+            var ddlDefinedType = new RockDropDownList()
+            {
+                AutoPostBack = true,
+                Label = "Defined Type",
+                Help = "A Defined Type that is configured to support categorized values.",
+                EnhanceForLongLists = true
+            };
+            ddlDefinedType.SelectedIndexChanged += OnQualifierUpdated;
+
+            ddlDefinedType.Items.AddRange( definedTypes.ToArray() );
+
+            var definedValues = GetDefinedValueListItems( ddlDefinedType.SelectedValue.AsInteger() );
+
+            var cblSelectableValues = new RockCheckBoxList
+            {
+                RepeatDirection = RepeatDirection.Horizontal,
+                Label = "Selectable Values",
+            };
+            cblSelectableValues.Items.AddRange( definedValues.ToArray() );
+
+            controls.Add( ddlDefinedType );
+            controls.Add( cblSelectableValues );
+
+            return controls;
+        }
+
+        /// <inheritdoc/>
+        public override Dictionary<string, ConfigurationValue> ConfigurationValues( List<Control> controls )
+        {
+            var settings = new Settings();
+            GetSettingsFromConfigurationControls( settings, controls );
+
+            return settings.GetConfigurationValues();
+        }
+
+        /// <inheritdoc/>
+        public override void SetConfigurationValues( List<Control> controls, Dictionary<string, ConfigurationValue> configurationValues )
+        {
+            if ( controls == null )
+            {
+                return;
+            }
+
+            var settings = new Settings( configurationValues );
+            ApplySettingsToConfigurationControls( settings, controls );
+        }
+
+        /// <summary>
+        /// Update the configuration settings from the values stored in the edit controls.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="controls"></param>
+        private void GetSettingsFromConfigurationControls( Settings settings, List<Control> controls )
+        {
+            if ( controls == null )
+            {
+                return;
+            }
+
+            // Defined Type.
+            if ( controls.Count > 0 && controls[0] is RockDropDownList rdd )
+            {
+                settings.DefinedTypeId = rdd.SelectedValue.AsIntegerOrNull();
+            }
+
+            // Selectable Values.
+            if ( controls.Count > 1 && controls[1] is RockCheckBoxList cblSelectableValues )
+            {
+                var selectableValues = new List<string>( cblSelectableValues.SelectedValues );
+
+                var definedValues = GetDefinedValueListItems( settings.DefinedTypeId );
+                cblSelectableValues.Items.Clear();
+                cblSelectableValues.Items.AddRange( definedValues.ToArray() );
+
+                if ( selectableValues != null && selectableValues.Any() )
+                {
+                    foreach ( ListItem listItem in cblSelectableValues.Items )
+                    {
+                        listItem.Selected = selectableValues.Contains( listItem.Value );
+                    }
+                }
+
+                settings.SelectableValueIdList = cblSelectableValues.SelectedValues;
+
+                cblSelectableValues.Visible = ( definedValues.Count > 0 );
+            }
+
+        }
+
+        private void ApplySettingsToConfigurationControls( Settings settings, List<Control> controls )
+        {
+            if ( controls == null )
+            {
+                return;
+            }
+
+            // Defined Type.
+            if ( controls.Count > 0 && controls[0] is RockDropDownList ddl )
+            {
+                ddl.SelectedValue = settings.DefinedTypeId.ToStringSafe();
+            }
+
+            // Selectable Values.
+            if ( controls.Count > 1 && controls[1] is RockCheckBoxList cblSelectableValues )
+            {
+                if ( settings.DefinedTypeId != null )
+                {
+                    // Show the Defined Values
+                    var definedValues = GetDefinedValueListItems( settings.DefinedTypeId );
+                    cblSelectableValues.Items.Clear();
+                    cblSelectableValues.Items.AddRange( definedValues.ToArray() );
+
+                    // Set the selected values.
+                    if ( settings.SelectableValueIdList != null && settings.SelectableValueIdList.Any() )
+                    {
+                        foreach ( ListItem listItem in cblSelectableValues.Items )
+                        {
+                            listItem.Selected = settings.SelectableValueIdList.Contains( listItem.Value );
+                        }
+                    }
+                }
+            }
+
+        }
+
+        private List<ListItem> GetDefinedValueListItems( int? definedTypeId )
+        {
+            var definedValues = new List<ListItem>();
+
+            if ( definedTypeId != null )
+            {
+                var definedType = DefinedTypeCache.Get( definedTypeId.Value );
+
+                if ( definedType != null )
+                {
+                    definedValues = definedType.DefinedValues
+                        .Select( v => new ListItem { Text = v.Value, Value = v.Id.ToString() } )
+                        .ToList();
+                }
+            }
+
+            return definedValues;
+        }
+
+        #endregion
+
+        #region Formatting
+
+        /// <inheritdoc/>
+        public override string FormatValue( Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed )
+        {
+            var settings = new Settings( configurationValues );
+
+            var values = value?.Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries ).ToArray() ?? new string[0];
+            values = values.Select( s => HttpUtility.UrlDecode( s ) ).ToArray();
+
+            if ( settings.DefinedTypeId != null )
+            {
+                for ( int i = 0; i < values.Length; i++ )
+                {
+                    var definedValue = DefinedValueCache.Get( values[i].AsInteger() );
+                    if ( definedValue != null )
+                    {
+                        values[i] = definedValue.Value;
+                    }
+                }
+            }
+
+            return values.ToList().AsDelimited( ", " );
+        }
+
+        #endregion
+
+        #region Edit Control
+
+        /// <inheritdoc/>
+        public override Control EditControl( Dictionary<string, ConfigurationValue> configurationValues, string id )
+        {
+            var settings = new Settings( configurationValues );
+
+            var control = new CategorizedValuePicker { ID = id };
+            control.ValueTree = GetSelectionTreeForDefinedType( settings.DefinedTypeId, settings.SelectableValueIdList );
+
+            return control;
+        }
+
+        /// <inheritdoc/>
+        public override string GetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues )
+        {
+            if ( control is CategorizedValuePicker cvp )
+            {
+                return cvp.Value;
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public override void SetEditValue( Control control, Dictionary<string, ConfigurationValue> configurationValues, string value )
+        {
+            if ( control is CategorizedValuePicker cvp )
+            {
+                cvp.Value = value;
+            }
+        }
+
+        /// <summary>
+        /// Create a tree data structure to store the hierarchy of categories and values available for selection.
+        /// </summary>
+        /// <param name="definedTypeId"></param>
+        /// <param name="selectableValueKeys"></param>
+        /// <returns></returns>
+        private TreeNode<CategorizedValuePickerItem> GetSelectionTreeForDefinedType( int? definedTypeId, List<string> selectableValueKeys )
+        {
+            var listItems = new List<CategorizedValuePickerItem>();
+            var rockContext = new RockContext();
+
+            // Get the Defined Type and associated values.
+            var definedType = DefinedTypeCache.Get( definedTypeId.GetValueOrDefault( 0 ) );
+            if ( definedType == null || !definedType.IsActive )
+            {
+                return null;
+            }
+
+            var definedValueService = new DefinedValueService( rockContext );
+            var definedValues = definedValueService.GetByDefinedTypeId( definedTypeId.Value )
+                .Where( x => x.IsActive )
+                .ToList();
+
+            if ( selectableValueKeys != null
+                 && selectableValueKeys.Any() )
+            {
+                definedValues = definedValues.Where( x => selectableValueKeys.Contains( x.Id.ToString() ) ).ToList();
+            }
+
+            if ( !definedValues.Any() )
+            {
+                return null;
+            }
+
+            // Add Defined Values and their associated Categories to the selection item list.
+            var categories = new Dictionary<int, Category>();
+            var categoryIdList = new List<int>();
+
+            foreach ( var definedValue in definedValues )
+            {
+                // Add the Defined Value as a selectable node.
+                var listItem = new CategorizedValuePickerItem
+                {
+                    Key = definedValue.Id.ToString(),
+                    Text = definedValue.Value,
+                    ItemType = CategorizedValuePickerItemTypeSpecifier.Value
+                };
+
+                if ( definedValue.CategoryId != null )
+                {
+                    var categoryKey = definedValue.CategoryId != null ? $"C{definedValue.CategoryId}" : null;
+                    listItem.ParentKey = categoryKey;
+
+                    if ( !categoryIdList.Contains( definedValue.CategoryId.Value ) )
+                    {
+                        categoryIdList.Add( definedValue.CategoryId.Value );
+                    }
+                }
+
+                listItems.Add( listItem );
+            }
+
+            // Retrieve the Categories associated with the Defined Values, including any parent categories required to build the selection tree.
+            var categoryService = new CategoryService( rockContext );
+
+            foreach ( var categoryId in categoryIdList )
+            {
+                // If this category already exists in the categories list, ignore it as an ancestor of a previous category.
+                if ( categories.ContainsKey( categoryId ) )
+                {
+                    continue;
+                }
+
+                var ancestors = categoryService.GetAllAncestors( categoryId ).ToList();
+                foreach ( var ancestor in ancestors )
+                {
+                    if ( !categories.ContainsKey( ancestor.Id ) )
+                    {
+                        categories.Add( ancestor.Id, ancestor );
+                    }
+                }
+            }
+
+            // Add Categories to the node list.
+            foreach ( var category in categories.Values )
+            {
+                var listItem = new CategorizedValuePickerItem
+                {
+                    Key = $"C{category.Id}",
+                    Text = category.Name,
+                    ItemType = CategorizedValuePickerItemTypeSpecifier.Category
+                };
+
+                if ( category.ParentCategoryId != null )
+                {
+                    listItem.ParentKey = $"C{category.ParentCategoryId}";
+                }
+
+                listItems.Add( listItem );
+            }
+
+            // Create a selection tree from the list of items.
+            var rootNodes = TreeNode.BuildTree( listItems, cv => cv.Key, cv => cv.ParentKey );
+
+            // Add the Defined Type as the root node.
+            var rootKey = $"T{definedType.Id}";
+            var definedTypeItem = new CategorizedValuePickerItem
+            {
+                Key = rootKey,
+                Text = definedType.Name,
+                ItemType = CategorizedValuePickerItemTypeSpecifier.Category
+            };
+            var definedTypeNode = new TreeNode<CategorizedValuePickerItem>( definedTypeItem );
+            definedTypeNode.AddChildren( rootNodes );
+
+            // Finally, apply the node naming rules to the selection tree.
+            // 1. Top-level node is given the name of the Defined Type with "Category" appended.
+            // 2. Intermediate nodes are given the name of the Category with "Category" appended.
+            // 3. Nodes that have no children are given the name of the Defined Type.
+            // Create a tree structure from the nodes.
+            definedTypeNode.Value.CategoryName = $"{definedType.Name} Category";
+
+            foreach ( var node in definedTypeNode.Flatten() )
+            {
+                if ( node.Children.Any( x => x.Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Category ) )
+                {
+                    // The node has child categories, so it is an intermediate selection node.
+                    node.Value.CategoryName = $"{node.Value.Text} Category";
+                }
+                else
+                {
+                    // The node has no child categories, so it is a final value node.
+                    node.Value.CategoryName = definedType.Name;
+                }
+            }
+
+            return rootNodes[0];
+        }
+
+        #endregion
+
+        #region Filter Control
+
+        /// <inheritdoc/>
+        public override System.Web.UI.Control FilterControl( System.Collections.Generic.Dictionary<string, ConfigurationValue> configurationValues, string id, bool required, Rock.Reporting.FilterMode filterMode )
+        {
+            // This field type does not support filtering
+            return null;
+        }
+
+        /// <inheritdoc/>
+        public override bool HasFilterControl()
+        {
+            return false;
+        }
+
+        #endregion
+
+        #region Helper Classes
+
+        /// <summary>
+        /// A base class to provide commonly-used functions for handling Field Type configuration settings.
+        /// </summary>
+        internal abstract class FieldTypeConfigurationSettings
+        {
+            Dictionary<string, ConfigurationValue> _configurationValues = new Dictionary<string, ConfigurationValue>();
+
+            /// <summary>
+            /// Add a configuration value definition.
+            /// </summary>
+            /// <param name="key"></param>
+            /// <param name="name"></param>
+            /// <param name="description"></param>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public ConfigurationValue Add( string key, string name, string description, string value )
+            {
+                var newValue = new ConfigurationValue( name, description, value );
+
+                _configurationValues.Add( key, newValue );
+
+                return newValue;
+            }
+
+            /// <summary>
+            /// Attempt to set a configuration value.
+            /// </summary>
+            /// <param name="key"></param>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public bool TrySetValue( string key, string value )
+            {
+                if ( !_configurationValues.ContainsKey( key ) )
+                {
+                    return false;
+                }
+
+                _configurationValues[key].Value = value;
+                return true;
+            }
+
+            /// <summary>
+            /// Attempt to get a configuration value, or a default value if undefined.
+            /// </summary>
+            /// <param name="key"></param>
+            /// <param name="defaultValue"></param>
+            /// <returns></returns>
+            public string TryGetValue( string key, string defaultValue = null )
+            {
+                if ( !_configurationValues.ContainsKey( key ) )
+                {
+                    return defaultValue;
+                }
+
+                return _configurationValues[key].Value;
+            }
+
+            /// <summary>
+            /// Gets the list of defined configuration keys.
+            /// </summary>
+            /// <returns></returns>
+            public List<string> GetConfigurationKeys()
+            {
+                return _configurationValues.Select( x => x.Key ).ToList();
+            }
+
+            /// <summary>
+            /// Gets a dictionary of defined configuration settings and their values.
+            /// </summary>
+            /// <returns></returns>
+            public Dictionary<string, ConfigurationValue> GetConfigurationValues()
+            {
+                var values = _configurationValues.ToDictionary( k => k.Key, v => new ConfigurationValue( v.Value.Name, v.Value.Description, v.Value.Value ) );
+                return values;
+            }
+
+            /// <summary>
+            /// Sets defined configuration settings from the list of supplied values.
+            /// </summary>
+            /// <param name="configurationValues"></param>
+            public void SetConfigurationValues( Dictionary<string, ConfigurationValue> configurationValues )
+            {
+                if ( configurationValues == null )
+                {
+                    return;
+                }
+                foreach ( var value in configurationValues )
+                {
+                    TrySetValue( value.Key, value.Value.Value );
+                }
+            }
+        }
+
+        #endregion
+    }
+}

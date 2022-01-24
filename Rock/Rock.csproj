@@ -755,6 +755,7 @@
     <Compile Include="Data\RockContextReadOnly.cs" />
     <Compile Include="Data\RockGuidAttribute.cs" />
     <Compile Include="Field\FieldTypeUsage.cs" />
+    <Compile Include="Field\Types\CategorizedDefinedValueFieldType.cs" />
     <Compile Include="Field\Types\MediaWatchFieldType.cs" />
     <Compile Include="Financial\GivingJourneyHelper.cs" />
     <Compile Include="Financial\IObsidianHostedGatewayComponent.cs" />
@@ -1580,6 +1581,7 @@
     <Compile Include="Plugin\HotFixes\118_FixFailedPaymentCommunicationTemplate.cs" />
     <Compile Include="Web\UI\Controls\Pickers\MediaElementPicker.cs" />
     <Compile Include="Web\UI\Controls\TagLiteral.cs" />
+    <Compile Include="Web\UI\Controls\Pickers\CategorizedValuePicker.cs" />
     <Compile Include="Web\UI\RegistrationInstanceBlock.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
