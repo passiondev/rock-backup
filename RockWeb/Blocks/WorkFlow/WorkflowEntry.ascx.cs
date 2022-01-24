@@ -1899,9 +1899,6 @@ namespace RockWeb.Blocks.WorkFlow
             iframeSignatureDocumentHTML.Attributes["srcdoc"] = this.SignatureDocumentHtml;
         }
 
-
-        
-
         /// <summary>
         /// Handles the Click event of the <see cref="ElectronicSignatureControl" />
         /// </summary>
@@ -1912,8 +1909,6 @@ namespace RockWeb.Blocks.WorkFlow
             var electronicSignatureWorkflowAction = _actionType?.WorkflowAction as Rock.Workflow.Action.ElectronicSignature;
             if ( electronicSignatureWorkflowAction == null )
             {
-                // todo
-                
                 return;
             }
 
@@ -1925,44 +1920,23 @@ namespace RockWeb.Blocks.WorkFlow
                 return;
             }
 
-            var imageDataUrl = escElectronicSignatureControl.DrawnSignatureImageDataUrl;
-
             var lavaTemplate = signatureDocumentTemplate.LavaTemplate;
 
-            // if there isn't a SignatureInformation merge field in the template, add one at the bottom.
-            var hasSignatureInformationLavaMergeField = new System.Text.RegularExpressions.Regex( @"(?<=\{).+SignatureInformation.+(?<=\})");
-            if ( !hasSignatureInformationLavaMergeField.IsMatch( lavaTemplate ) )
+            Dictionary<string, object> mergeFields = GetWorkflowEntryMergeFields();
+
+            var signatureInformationArgs = new SignatureDocumentTemplate.GetSignatureInformationHtmlArgs
             {
-                lavaTemplate += "<br>{{ SignatureInformation }}";
-            }
+                SignatureType = signatureDocumentTemplate.SignatureType,
+                DrawnSignatureDataUrl = escElectronicSignatureControl.DrawnSignatureImageDataUrl,
+                ClientIPAddress = this.GetClientIpAddress(),
+                SignedByPerson = this.CurrentPerson,
+                SignedDateTime = RockDateTime.Now,
+                SignatureHash = "TODO",
+                TypedSignature = escElectronicSignatureControl.TypedSignatureText
+            };
 
-            var mergeFields = GetWorkflowEntryMergeFields();
-
-            string signatureInformationHtml;
-
-            if ( signatureDocumentTemplate.SignatureType == SignatureType.Drawn )
-            {
-                // #TODO#
-                signatureInformationHtml = $@"
-#TODO Drawn Signature#
-<br>
-<img src='{imageDataUrl}' />
-";
-            }
-            else
-            {
-                var typedSignature = escElectronicSignatureControl.TypedSignatureText;
-                // #TODO#
-                signatureInformationHtml = $@"
-#TODO Typed Signature#
-<br>
-{typedSignature}
-";
-            }
-
-            mergeFields.Add( "SignatureInformation", signatureInformationHtml );
-
-            var signatureDocumentHtml = lavaTemplate.ResolveMergeFields( mergeFields );
+            var signatureDocumentHtml = SignatureDocumentTemplate.GetSignatureInformationHtml( signatureInformationArgs );
+            
             int pdfBinaryFileId = 0;
 
             var signatureDocumentName = electronicSignatureWorkflowAction.GetSignatureDocumentName( workflowAction, mergeFields );
@@ -1973,7 +1947,7 @@ namespace RockWeb.Blocks.WorkFlow
 
             using ( var pdfGenerator = new Rock.Pdf.PdfGenerator() )
             {
-                using ( var pdfStream = pdfGenerator.RenderPDFDocumentFromHtml( signatureDocumentHtml ) )
+                using ( var pdfStream = pdfGenerator.GetPDFDocumentFromHtml( signatureDocumentHtml ) )
                 {
                     BinaryFile binaryFile = new BinaryFile();
                     binaryFile.FileSize = pdfStream.Length;

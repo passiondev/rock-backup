@@ -43,17 +43,21 @@
                         </div>
                     </div>
 
-                    <a href="#" onclick="$('.js-template-tips').slideToggle();return false;" class="">
-                        Template Tips
+                    <a href="#" onclick="$('.js-template-tips').slideToggle();return false;" class="">Template Tips
                     </a>
-                    <div class="js-template-tips well" style="display:none" >
+                    <div class="js-template-tips well" style="display: none">
                         <h2>Template Tips</h2>
                         <p>Below are some tips to assist you in your template creation. The merge fields that you use to customize your templates will vary depending on where they are being used.</p>
                         <p>Be sure to add the {{ SignatureInformation }} merge field where you would like the signature information to be displayed. If you do not provide this merge field it will be added for you automatically at the end of the template.</p>
                     </div>
 
                     <Rock:NotificationBox ID="nbSignatureLavaTemplateWarning" runat="server" NotificationBoxType="Validation" Text="Lava Template is required." Visible="false" />
-                    <Rock:HtmlEditor ID="ceESignatureLavaTemplate" runat="server" Label="Lava Template" Help="The Lava template that makes up the body of the document." Height="300" />
+                    <Rock:Toggle ID="tglTemplatePreview" runat="server" CssClass="pull-right" OnText="Preview" OffText="Edit" Checked="false" ButtonSizeCssClass="btn-xs" OnCssClass="btn-info" OffCssClass="btn-info" OnCheckedChanged="tglTemplatePreview_CheckedChanged" />
+                    <Rock:HtmlEditor ID="ceESignatureLavaTemplate" runat="server" Label="Lava Template" Help="The Lava template that makes up the body of the document." Height="300"/>
+                    <Rock:RockControlWrapper ID="rcwSignatureDocumentPreview" runat="server" Visible="false" Label="Lava Template Preview" Help="Preview of Signature Template as a PDF">
+                        <Rock:PDFViewer ID="pdfSignatureDocumentPreview" runat="server" />
+                    </Rock:RockControlWrapper>
+
 
                     <%-- Legacy Signature Provider Settings --%>
                     <asp:Panel ID="pnlLegacySignatureProviderSettings" runat="server" class="well">

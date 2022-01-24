@@ -13,26 +13,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
 using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
+using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
-
+using Rock.Lava;
 using Rock.Model;
+using Rock.Pdf;
+using Rock.Security;
 using Rock.Web;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock.Security;
-using Rock.Web.Cache;
-using System.Web.UI.WebControls;
-using Newtonsoft.Json.Linq;
-using System.Data.Entity;
 
 namespace RockWeb.Blocks.Core
 {
@@ -132,8 +131,8 @@ namespace RockWeb.Blocks.Core
         protected void btnEdit_Click( object sender, EventArgs e )
         {
             SignatureDocumentTemplateService signatureDocumentTemplateService = new SignatureDocumentTemplateService( new RockContext() );
-            SignatureDocumentTemplate SignatureDocumentTemplate = signatureDocumentTemplateService.Get( hfSignatureDocumentTemplateId.ValueAsInt() );
-            ShowEditDetails( SignatureDocumentTemplate );
+            SignatureDocumentTemplate signatureDocumentTemplate = signatureDocumentTemplateService.Get( hfSignatureDocumentTemplateId.ValueAsInt() );
+            ShowEditDetails( signatureDocumentTemplate );
         }
 
         /// <summary>
@@ -219,7 +218,6 @@ namespace RockWeb.Blocks.Core
                 signatureDocumentTemplateService.Delete( signatureDocumentTemplate );
 
                 rockContext.SaveChanges();
-
             }
 
             NavigateToParentPage();
@@ -422,6 +420,8 @@ namespace RockWeb.Blocks.Core
                             signatureDocumentTemplate.BinaryFileTypeId = binaryFileType.Id;
                         }
                     }
+
+                    signatureDocumentTemplate.LavaTemplate = SignatureDocumentTemplate.DefaultLavaTemplate;
                 }
 
                 hfSignatureDocumentTemplateId.SetValue( signatureDocumentTemplate.Id );
@@ -472,5 +472,46 @@ namespace RockWeb.Blocks.Core
 
         #endregion
 
+        /// <summary>
+        /// Handles the CheckedChanged event of the tglTemplatePreview control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void tglTemplatePreview_CheckedChanged( object sender, EventArgs e )
+        {
+            if ( tglTemplatePreview.Checked )
+            {
+                var signatureInformationHtml = SignatureDocumentTemplate.GetSignatureInformationHtml( new SignatureDocumentTemplate.GetSignatureInformationHtmlArgs
+                {
+                    SignatureType = rblSignatureType.SelectedValueAsEnumOrNull<SignatureType>() ?? SignatureType.Typed,
+                    DrawnSignatureDataUrl = SignatureDocumentTemplate.SampleSignatureDataURL,
+                    SignedByPerson = this.CurrentPerson,
+                    SignedDateTime = RockDateTime.Now,
+                    ClientIPAddress = this.GetClientIpAddress(),
+                    TypedSignature = this.CurrentPerson.FullName
+                } );
+
+                var mergeFields = LavaHelper.GetCommonMergeFields( null );
+
+                mergeFields.Add( "SignatureInformation", signatureInformationHtml );
+
+                using ( var pdfGenerator = new PdfGenerator() )
+                {
+                    var html = SignatureDocumentTemplate.GetSignatureDocumentHtml( ceESignatureLavaTemplate.Text, mergeFields );
+                    var base64DataUrl = pdfGenerator.GetPDFDocumentFromHtmlAsBase64DataUrl( html );
+                    pdfSignatureDocumentPreview.SourceUrl = base64DataUrl;
+                }
+
+                // toggle to show PDF and hide Lava Template
+                rcwSignatureDocumentPreview.Visible = true;
+                ceESignatureLavaTemplate.Visible = false;
+            }
+            else
+            {
+                // toggle to hide PDF and show Lava Template
+                rcwSignatureDocumentPreview.Visible = false;
+                ceESignatureLavaTemplate.Visible = true;
+            }
+        }
     }
 }
