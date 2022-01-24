@@ -15,6 +15,7 @@
 // </copyright>
 //
 
+import { computed, PropType } from "vue";
 import { defineComponent } from "vue";
 
 export default defineComponent({
@@ -22,21 +23,53 @@ export default defineComponent({
     components: {
     },
 
-    setup() {
+    props: {
+        modelValue: {
+            type: Boolean as PropType<boolean>,
+            default: false
+        },
+
+        iconCssClass: {
+            type: String as PropType<string>,
+            default: "fa fa-gear"
+        }
+    },
+
+    emits: [
+        "configure"
+    ],
+
+    setup(props, { emit }) {
+        const zoneClasses = computed((): string[] => {
+            const classes: string[] = ["configurable-zone"];
+
+            if (props.modelValue) {
+                classes.push("active");
+            }
+
+            return classes;
+        });
+
+        const onActionClick = (): void => {
+            emit("configure");
+        };
+
         return {
+            onActionClick,
+            zoneClasses
         };
     },
 
     template: `
-<div class="configurable-zone">
+<div class="configurable-zone" :class="zoneClasses">
     <div class="zone-content-container">
         <div class="zone-content">
             <slot />
         </div>
     </div>
 
-    <div class="zone-actions">
-        <i class="fa fa-gear"></i>
+    <div class="zone-actions" @click.stop="onActionClick">
+        <i :class="iconCssClass + ' fa-fw'"></i>
     </div>
 </div>
 `

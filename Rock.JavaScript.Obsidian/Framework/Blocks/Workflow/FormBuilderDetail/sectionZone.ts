@@ -15,9 +15,9 @@
 // </copyright>
 //
 
-import { defineComponent, PropType } from "vue";
+import { computed, defineComponent, PropType } from "vue";
 import { useVModelPassthrough } from "../../../Util/component";
-import { DragTarget } from "../../../Directives/dragDrop";
+import { DragSource, DragTarget, IDragSourceOptions } from "../../../Directives/dragDrop";
 import { Guid, newGuid } from "../../../Util/guid";
 import ConfigurableZone from "./configurableZone";
 import RockField from "../../../Controls/rockField";
@@ -32,6 +32,7 @@ export default defineComponent({
     },
 
     directives: {
+        DragSource,
         DragTarget
     },
 
@@ -44,11 +45,22 @@ export default defineComponent({
         dragTargetId: {
             type: String as PropType<Guid>,
             required: true
+        },
+
+        reorderDragOptions: {
+            type: Object as PropType<IDragSourceOptions>,
+            required: true
+        },
+
+        activeZone: {
+            type: String as PropType<string>,
+            required: false
         }
     },
 
     emits: [
-        "update:modelValue"
+        "update:modelValue",
+        "configureField"
     ],
 
     setup(props, { emit }) {
@@ -60,32 +72,44 @@ export default defineComponent({
             return {
                 attributeGuid: newGuid(),
                 fieldTypeGuid: field.fieldTypeGuid,
-                name: field.label,
+                name: !(field.isHideLabel ?? false) ? field.label : "",
                 key: "SampleValue",
-                isRequired: false,
+                isRequired: field.isRequired ?? false,
                 description: "",
                 order: 0,
                 categories: []
             };
         };
 
+        const isSectionActive = computed((): boolean => props.activeZone === section.value.guid);
+
+        const isFieldActive = (field: FormField): boolean => {
+            return field.guid === props.activeZone;
+        };
+
+        const onConfigureField = (field: FormField): void => {
+            emit("configureField", field);
+        };
+
         return {
             getAttributeValue,
             getFieldColumnSize,
+            isFieldActive,
+            isSectionActive,
+            onConfigureField,
             section
         };
     },
 
     template: `
-<ConfigurableZone class="field-zone">
-    <div class="form-section" style="padding: 20px;" v-drag-target="dragTargetId" :data-section-id="section.guid">
-        <ConfigurableZone v-for="field in section.fields" :class="getFieldColumnSize(field)">
+<ConfigurableZone class="field-zone" :modelValue="isSectionActive">
+    <div class="form-section" style="padding: 20px;" v-drag-source="reorderDragOptions" v-drag-target="reorderDragOptions.id" v-drag-target:2="dragTargetId" :data-section-id="section.guid">
+        <ConfigurableZone v-for="field in section.fields" :key="field.guid" :modelValue="isFieldActive(field)" :class="getFieldColumnSize(field)" :data-field-id="field.guid" @configure="onConfigureField(field)">
             <div style="padding: 20px;">
                 <RockField :attributeValue="getAttributeValue(field)" isEditMode />
             </div>
         </ConfigurableZone>
     </div>
-
 </ConfigurableZone>
 `
 });

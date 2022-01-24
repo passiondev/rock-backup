@@ -15,21 +15,24 @@
 // </copyright>
 //
 
-import { computed, defineComponent, reactive, Ref, ref } from "vue";
+import { computed, defineComponent, onMounted, reactive, Ref, ref } from "vue";
 import { useConfigurationValues } from "../../Util/block";
 import DropDownList from "../../Elements/dropDownList";
+import Modal from "../../Controls/modal";
 import Panel from "../../Controls/panel";
 import RockButton from "../../Elements/rockButton";
 import RockLabel from "../../Elements/rockLabel";
+import RockForm from "../../Controls/rockForm";
 import Switch from "../../Elements/switch";
 import TextBox from "../../Elements/textBox";
 import ConfigurableZone from "./FormBuilderDetail/configurableZone";
+import FieldEditAside from "./FormBuilderDetail/fieldEditAside";
 import GeneralAside from "./FormBuilderDetail/generalAside";
 import SectionZone from "./FormBuilderDetail/sectionZone";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../Directives/dragDrop";
 import { newGuid } from "../../Util/guid";
 import { List } from "../../Util/linq";
-import { FormFieldType, FormSection, GeneralAsideSettings } from "./FormBuilderDetail/types";
+import { FormField, FormFieldType, FormSection, GeneralAsideSettings } from "./FormBuilderDetail/types";
 import { FieldType } from "../../SystemGuids";
 
 function getSectionDragSourceOptions(sections: FormSection[]): IDragSourceOptions {
@@ -83,6 +86,7 @@ function getFieldDragSourceOptions(sections: FormSection[], availableFieldTypes:
 
             if (section && fieldType && operation.targetIndex !== undefined) {
                 section.fields.splice(operation.targetIndex, 0, {
+                    guid: newGuid(),
                     fieldTypeGuid: fieldType.guid,
                     label: fieldType.text,
                     size: 12
@@ -92,14 +96,42 @@ function getFieldDragSourceOptions(sections: FormSection[], availableFieldTypes:
     };
 }
 
+function getFieldReorderDragSourceOptions(sections: FormSection[]): IDragSourceOptions {
+    return {
+        id: newGuid(),
+        copyElement: false,
+        handleSelector: ".zone-actions",
+        dragDrop(operation) {
+            const sourceSectionGuid = (operation.sourceContainer as HTMLElement).dataset.sectionId;
+            const sourceSection = new List(sections).firstOrUndefined(s => s.guid === sourceSectionGuid);
+            const targetSectionGuid = (operation.targetContainer as HTMLElement).dataset.sectionId;
+            const targetSection = new List(sections).firstOrUndefined(s => s.guid === targetSectionGuid);
+
+            if (sourceSection && targetSection && operation.targetIndex !== undefined) {
+                const field = sourceSection.fields[operation.sourceIndex];
+
+                sourceSection.fields.splice(operation.sourceIndex, 1);
+                targetSection.fields.splice(operation.targetIndex, 0, field);
+            }
+        }
+    };
+}
+
+const formHeaderZoneGuid = "C7D522D0-A18C-4CB0-B604-B2E9727E9E33";
+const formFooterZoneGuid = "317E5892-C156-4614-806F-BE4CAB67AC10";
+const personEntryZoneGuid = "5257312E-102C-4026-B558-10184AFEAC4D";
+
 export default defineComponent({
     name: "Workflow.FormBuilderDetail",
     components: {
         ConfigurableZone,
         DropDownList,
+        FieldEditAside,
         GeneralAside,
+        Modal,
         Panel,
         RockButton,
+        RockForm,
         RockLabel,
         SectionZone,
         Switch,
@@ -113,6 +145,8 @@ export default defineComponent({
 
     setup() {
         const config = useConfigurationValues<Record<string, string> | null>();
+
+        const bodyElement = ref<HTMLElement | null>(null);
 
         const availableFieldTypes = ref<FormFieldType[]>([
             {
@@ -171,6 +205,8 @@ export default defineComponent({
             }
         ]);
 
+        const activeZone = ref("");
+
         const sections = reactive<FormSection[]>([
             {
                 guid: newGuid(),
@@ -180,16 +216,19 @@ export default defineComponent({
                 type: "",
                 fields: [
                     {
+                        guid: newGuid(),
                         fieldTypeGuid: FieldType.SingleSelect,
                         label: "Single Select",
                         size: 6
                     },
                     {
+                        guid: newGuid(),
                         fieldTypeGuid: FieldType.Memo,
                         label: "Memo",
                         size: 6
                     },
                     {
+                        guid: newGuid(),
                         fieldTypeGuid: FieldType.MultiSelect,
                         label: "Multi Select",
                         size: 12
@@ -200,24 +239,115 @@ export default defineComponent({
 
         const sectionDragSourceOptions = getSectionDragSourceOptions(sections);
         const fieldDragSourceOptions = getFieldDragSourceOptions(sections, availableFieldTypes);
-
-        const hasPersonEntry = computed((): boolean => generalAsideSettings.value.hasPersonEntry ?? false);
+        const fieldReorderDragSourceOptions = getFieldReorderDragSourceOptions(sections);
 
         const generalAsideSettings = ref<GeneralAsideSettings>({
             campusSetFrom: undefined,
             hasPersonEntry: true
         });
 
+        const showGeneralAside = computed((): boolean => {
+            return editField.value === null;
+        });
+
+        const hasPersonEntry = computed((): boolean => generalAsideSettings.value.hasPersonEntry ?? false);
+
+        const isFormHeaderActive = computed({
+            get: (): boolean => {
+                return activeZone.value === formHeaderZoneGuid;
+            },
+            set(value: boolean) {
+                if (!value && activeZone.value === formHeaderZoneGuid) {
+                    activeZone.value = "";
+                }
+            }
+        });
+
+        const isFormFooterActive = computed({
+            get: (): boolean => {
+                return activeZone.value === formFooterZoneGuid;
+            },
+            set(value: boolean) {
+                if (!value && activeZone.value === formFooterZoneGuid) {
+                    activeZone.value = "";
+                }
+            }
+        });
+        const isPersonEntryActive = computed((): boolean => activeZone.value === personEntryZoneGuid);
+
+        const configureFormHeader = (): void => {
+            formHeaderEditContent.value = "";
+            activeZone.value = formHeaderZoneGuid;
+        };
+
+        const configureFormFooter = (): void => {
+            activeZone.value = formFooterZoneGuid;
+        };
+
+        const configurePersonEntry = (): void => {
+            activeZone.value = personEntryZoneGuid;
+        };
+
+        const configureSection = (section: FormSection): void => {
+            activeZone.value = section.guid;
+        };
+
+        const configureField = (field: FormField): void => {
+            activeZone.value = field.guid;
+            editField.value = field;
+        };
+
+        const submitFormHeader = ref(false);
+        const formHeaderEditContent = ref("");
+        const startSaveFormHeader = (): void => {
+            submitFormHeader.value = true;
+        };
+        const saveFormHeader = (): void => {
+            // TODO: Store this somewhere.
+            activeZone.value = "";
+        };
+
+        const editField = ref<FormField | null>(null);
+
+        const onAsideClose = (): void => {
+            // TODO: Check if the aside can be closed.
+            activeZone.value = "";
+            editField.value = null;
+        };
+
+        onMounted(() => {
+            sectionDragSourceOptions.mirrorContainer = bodyElement.value ?? undefined;
+            fieldDragSourceOptions.mirrorContainer = bodyElement.value ?? undefined;
+            fieldReorderDragSourceOptions.mirrorContainer = bodyElement.value ?? undefined;
+        });
+
         return {
+            activeZone,
             availableFieldTypes,
+            bodyElement,
+            configureField,
+            configureFormHeader,
+            configureFormFooter,
+            configurePersonEntry,
+            configureSection,
+            editField,
             fieldDragSourceOptions,
             fieldDragTargetId: fieldDragSourceOptions.id,
+            fieldReorderDragSourceOptions,
+            fieldReorderDragTargetId: fieldReorderDragSourceOptions.id,
             generalAsideSettings,
             hasPersonEntry,
+            isFormFooterActive,
+            isFormHeaderActive,
+            isPersonEntryActive,
+            onAsideClose,
+            saveFormHeader,
             sectionDragSourceOptions,
             sectionDragTargetId: sectionDragSourceOptions.id,
             sections,
-            showGeneralAside: true
+            showGeneralAside,
+            startSaveFormHeader,
+            submitFormHeader
         };
     },
 
@@ -242,8 +372,7 @@ export default defineComponent({
             }
 
             /*** Form Template Items ***/
-            .form-builder-detail .form-template-item,
-            .gu-mirror.form-template-item {
+            .form-builder-detail .form-template-item {
                 display: flex;
                 align-items: center;
                 background-color: #ffffff;
@@ -256,29 +385,44 @@ export default defineComponent({
                 cursor: grab;
             }
 
-            .form-builder-detail .form-template-item > .fa,
-            .gu-mirror.form-template-item > .fa {
+            .form-builder-detail .form-template-item > .fa {
                 margin-right: 6px;
             }
 
-            .form-builder-detail .form-template-item > .text,
-            .gu-mirror.form-template-item > .text {
+            .form-builder-detail .form-template-item > .text {
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
 
-            .form-builder-detail .form-template-item.form-template-item-section,
-            .gu-mirror.form-template-item.form-template-item-section {
+            .form-builder-detail .form-template-item.form-template-item-section {
                 border-left-color: #009ce3;
             }
 
-            .form-builder-detail .form-template-item.form-template-item-field,
-            .gu-mirror.form-template-item.form-template-item-field {
+            .form-builder-detail .form-template-item.form-template-item-field {
                 border-left-color: #ee7725;
                 margin-right: 5px;
                 margin-bottom: 5px;
                 flex-basis: calc(50% - 5px);
+            }
+
+            /*** Configuration Asides ***/
+            .form-builder-detail .aside-header {
+                border-right: 1px solid #dfe0e1;
+                border-bottom: 1px solid #dfe0e1;
+            }
+
+            .form-builder-detail .aside-header .fa {
+                margin-right: 4px;
+            }
+
+            .form-builder-detail .aside-header .title {
+                font-size: 85%;
+                font-weight: 600;
+            }
+
+            .form-builder-detail .aside-body {
+                padding: 15px;
             }
 
             /*** Configurable Zones ***/
@@ -402,7 +546,7 @@ export default defineComponent({
             }
         </v-style>
 
-        <div class="form-builder-detail d-flex flex-column position-absolute inset-0" style="overflow-y: hidden;">
+        <div ref="bodyElement" class="form-builder-detail d-flex flex-column position-absolute inset-0" style="overflow-y: hidden;">
             <div class="p-2 d-flex" style="border-bottom: 1px solid #dfe0e1;">
                 <ul class="nav nav-pills" style="flex-grow: 1;">
                     <li role="presentation"><a href="#">Submissions</a></li>
@@ -419,27 +563,43 @@ export default defineComponent({
 
             <div class="d-flex" style="flex-grow: 1; overflow-y: hidden;">
                 <div class="d-flex flex-column" style="background-color: #f8f9fa; width: 320px; flex-shrink: 0; overflow-y: hidden;">
-                    <GeneralAside v-if="showGeneralAside" v-model="generalAsideSettings" :fieldTypes="availableFieldTypes" :sectionDragOptions="sectionDragSourceOptions" :fieldDragOptions="fieldDragSourceOptions" />
+                    <GeneralAside v-if="showGeneralAside"
+                        v-model="generalAsideSettings"
+                        :fieldTypes="availableFieldTypes"
+                        :sectionDragOptions="sectionDragSourceOptions"
+                        :fieldDragOptions="fieldDragSourceOptions" />
+
+                    <FieldEditAside v-else-if="editField"
+                        v-model="editField"
+                        :fieldTypes="availableFieldTypes"
+                        @close="onAsideClose" />
                 </div>
 
                 <div class="p-3 d-flex flex-column" style="flex-grow: 1; overflow-y: auto;">
-                    <ConfigurableZone>
+                    <ConfigurableZone :modelValue="isFormHeaderActive" iconCssClass="fa fa-pencil" @configure="configureFormHeader">
                         <div style="padding: 20px;">
                             <div class="text-center">Form Header</div>
                         </div>
                     </ConfigurableZone>
 
-                    <ConfigurableZone v-if="hasPersonEntry" class="active">
+                    <ConfigurableZone v-if="hasPersonEntry" :modelValue="isPersonEntryActive" @configure="configurePersonEntry">
                         <div style="padding: 20px;">
                             <div class="text-center">Person Entry Form</div>
                         </div>
                     </ConfigurableZone>
 
                     <div style="flex-grow: 1; display: flex; flex-direction: column;" v-drag-target="sectionDragTargetId">
-                        <SectionZone v-for="section in sections" :key="section.guid" v-model="section" :dragTargetId="fieldDragTargetId" />
+                        <SectionZone v-for="section in sections"
+                            :key="section.guid"
+                            v-model="section"
+                            :activeZone="activeZone"
+                            :dragTargetId="fieldDragTargetId"
+                            :reorderDragOptions="fieldReorderDragSourceOptions"
+                            @configure="configureSection(section)"
+                            @configureField="configureField" />
                     </div>
 
-                    <ConfigurableZone>
+                    <ConfigurableZone :modelValue="isFormFooterActive" iconCssClass="fa fa-pencil" @configure="configureFormFooter">
                         <div style="padding: 20px;">
                             <div class="text-center">Form Footer</div>
                         </div>
@@ -449,5 +609,15 @@ export default defineComponent({
         </div>
     </template>
 </Panel>
+
+<Modal v-model="isFormHeaderActive" title="Form Header">
+    <RockForm v-model:submit="submitFormHeader" @submit="saveFormHeader">
+        <TextBox v-model="formHeaderEditContent" label="Content" textMode="multiline" />
+    </RockForm>
+
+    <template #customButtons>
+        <RockButton btnType="primary" @click="startSaveFormHeader">Update</RockButton>
+    </template>
+</Modal>
 `
 });

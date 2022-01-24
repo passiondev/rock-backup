@@ -32,11 +32,17 @@ export type FormSection = {
 };
 
 export type FormField = {
+    guid: Guid;
+
     fieldTypeGuid: Guid;
 
     label: string;
 
     size: number;
+
+    isRequired?: boolean;
+
+    isHideLabel?: boolean;
 };
 
 export type FormFieldType = {

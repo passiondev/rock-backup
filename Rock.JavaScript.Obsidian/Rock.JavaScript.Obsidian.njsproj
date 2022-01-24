@@ -115,6 +115,7 @@
     <TypeScriptCompile Include="Framework\Blocks\Security\login.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Utility\starkDetail.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\formBuilderDetail.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\fieldEditAside.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\generalAside.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\sectionZone.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\types.d.ts" />
