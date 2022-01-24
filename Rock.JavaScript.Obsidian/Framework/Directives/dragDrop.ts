@@ -39,6 +39,14 @@ export interface IDragSourceOptions {
     handleSelector?: string;
 
     /**
+     * Defines the container element that dragged mirror elements will be added
+     * to. If not set then the body element is used. This property is dynamic and
+     * can be updated on the fly. It will be used anytime a drag operation is
+     * about to begin.
+     */
+    mirrorContainer?: Element;
+
+    /**
      * true if elements are duplicated and instead of the original being moved.
      */
     copyElement?: boolean | ((operation: DragOperation) => boolean);
@@ -166,6 +174,8 @@ class DragDropService {
     /** The internal drag operation that is currently in progress. */
     private internalOperation?: DragOperation;
 
+    private options: dragula.DragulaOptions;
+
     /**
      * Creates a new instance of the DragDropService class.
      * 
@@ -173,12 +183,14 @@ class DragDropService {
      */
     constructor(identifier: string) {
         this.id = identifier;
-        this.drake = window.dragula([], {
+        this.options = {
             accepts: this.drakeAccepts.bind(this),
             copy: this.drakeCopy.bind(this),
             moves: this.drakeMoves.bind(this),
             revertOnSpill: true
-        });
+        };
+
+        this.drake = window.dragula([], this.options);
 
         this.drake.on("drag", this.drakeEventDrag.bind(this));
         this.drake.on("drop", this.drakeEventDrop.bind(this));
@@ -336,6 +348,8 @@ class DragDropService {
         if (!elementOptions) {
             return false;
         }
+
+        this.options.mirrorContainer = elementOptions.options.mirrorContainer;
 
         // User has defined their own custom logic to determine if a drag
         // operation can begin.
