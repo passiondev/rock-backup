@@ -80,7 +80,7 @@ namespace Rock.Migrations
         {
             if ( IsFrozen )
             {
-                throw new System.Exception( $"Cannot add migration. Migrations are frozen in this branch. The Migration owner is currently {MigrationTokenOwner}" );
+                //throw new System.Exception( $"Cannot add migration. Migrations are frozen in this branch. The Migration owner is currently {MigrationTokenOwner}" );
             }
 
             string result = string.Empty;
