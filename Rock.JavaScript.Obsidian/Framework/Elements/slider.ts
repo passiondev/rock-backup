@@ -16,26 +16,41 @@
 //
 import { defineComponent, PropType } from "vue";
 import { useVModelPassthrough } from "../Util/component";
-import InlineSwitch from "./inlineSwitch";
+import InlineSlider from "./inlineSlider";
 import RockFormField from "./rockFormField";
 
 export default defineComponent({
-    name: "Switch",
+    name: "Slider",
 
     components: {
-        InlineSwitch,
+        InlineSlider,
         RockFormField
     },
 
     props: {
         modelValue: {
-            type: Boolean as PropType<boolean>,
+            type: Number as PropType<number>,
             required: true
         },
 
-        text: {
-            type: String as PropType<string>,
-            default: ""
+        isIntegerOnly: {
+            type: Boolean as PropType<boolean>,
+            default: false
+        },
+
+        min: {
+            type: Number as PropType<number>,
+            default: 0
+        },
+
+        max: {
+            type: Number as PropType<number>,
+            default: 100
+        },
+
+        showValueBar: {
+            type: Boolean as PropType<boolean>,
+            default: false
         }
     },
 
@@ -58,7 +73,7 @@ export default defineComponent({
     name="switch">
     <template #default="{uniqueId, field}">
         <div class="control-wrapper">
-            <InlineSwitch v-model="internalValue" :label="text" :uniqueId="uniqueId" v-bind="field" />
+            <InlineSlider v-model="internalValue" :uniqueId="uniqueId" v-bind="field" :isIntegerOnly="isIntegerOnly" :min="min" :max="max" :showValueBar="showValueBar" />
         </div>
     </template>
 </RockFormField>
