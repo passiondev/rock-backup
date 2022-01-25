@@ -15,7 +15,7 @@
 // </copyright>
 //
 
-import { computed, defineComponent, onMounted, reactive, Ref, ref, watch } from "vue";
+import { computed, defineComponent, reactive, Ref, ref, watch } from "vue";
 import { useConfigurationValues } from "../../Util/block";
 import DropDownList from "../../Elements/dropDownList";
 import Modal from "../../Controls/modal";
@@ -28,11 +28,12 @@ import TextBox from "../../Elements/textBox";
 import ConfigurableZone from "./FormBuilderDetail/configurableZone";
 import FieldEditAside from "./FormBuilderDetail/fieldEditAside";
 import GeneralAside from "./FormBuilderDetail/generalAside";
+import SectionEditAside from "./FormBuilderDetail/sectionEditAside";
 import SectionZone from "./FormBuilderDetail/sectionZone";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../Directives/dragDrop";
 import { areEqual, newGuid } from "../../Util/guid";
 import { List } from "../../Util/linq";
-import { FormField, FormFieldType, FormSection, GeneralAsideSettings, IAsideProvider } from "./FormBuilderDetail/types";
+import { FormField, FormFieldType, FormSection, GeneralAsideSettings, IAsideProvider, SectionAsideSettings, SectionStyleType } from "./FormBuilderDetail/types";
 import { FieldType } from "../../SystemGuids";
 
 /**
@@ -56,7 +57,7 @@ function getSectionDragSourceOptions(sections: FormSection[]): IDragSourceOption
                     title: "",
                     description: "",
                     showHeadingSeparator: false,
-                    type: "",
+                    type: SectionStyleType.None,
                     fields: []
                 });
             }
@@ -215,7 +216,7 @@ const temporarySections: FormSection[] = [
         title: "My Favorite Things",
         description: "Below is a form that helps us get to know you a bit more. Please complete it and we'll keep it on record.",
         showHeadingSeparator: true,
-        type: "",
+        type: SectionStyleType.None,
         fields: [
             {
                 guid: newGuid(),
@@ -255,6 +256,7 @@ export default defineComponent({
         RockButton,
         RockForm,
         RockLabel,
+        SectionEditAside,
         SectionZone,
         Switch,
         TextBox
@@ -306,6 +308,9 @@ export default defineComponent({
             hasPersonEntry: true
         });
 
+        /** The settings object used by the section aside. */
+        const sectionAsideSettings = ref<SectionAsideSettings | null>(null);
+
         // #endregion
 
         // #region Computed Values
@@ -331,7 +336,17 @@ export default defineComponent({
 
         /** True if the general aside should be currently displayed. */
         const showGeneralAside = computed((): boolean => {
-            return editField.value === null;
+            return !showFieldAside.value && !showSectionAside.value;
+        });
+
+        /** True if the field editor aside should be currently displayed. */
+        const showFieldAside = computed((): boolean => {
+            return editField.value !== null;
+        });
+
+        /** True if the section editor aside should be currently displayed. */
+        const showSectionAside = computed((): boolean => {
+            return sectionAsideSettings.value !== null;
         });
 
         /** True if the form has a person entry section. */
@@ -448,6 +463,13 @@ export default defineComponent({
             closeAside();
 
             activeZone.value = section.guid;
+            sectionAsideSettings.value = {
+                guid: section.guid,
+                title: section.title,
+                description: section.description,
+                showHeadingSeparator: section.showHeadingSeparator,
+                type: section.type
+            };
         };
 
         /**
@@ -484,6 +506,7 @@ export default defineComponent({
 
             activeZone.value = "";
             editField.value = null;
+            sectionAsideSettings.value = null;
         };
 
         /**
@@ -495,13 +518,36 @@ export default defineComponent({
         const onEditFieldUpdate = (value: FormField): void => {
             editField.value = value;
 
-            // Find the original value that was just updated and replace it with
+            // Find the original field that was just updated and replace it with
             // the new value.
             for (const section of sections) {
                 const existingFieldIndex = section.fields.findIndex(f => areEqual(f.guid, value.guid));
 
                 if (existingFieldIndex !== -1) {
                     section.fields.splice(existingFieldIndex, 1, value);
+                    return;
+                }
+            }
+        };
+
+        /**
+         * Event handler for when a section's settings have been updated in the
+         * aside.
+         * 
+         * @param value The new section settings.
+         */
+        const onEditSectionUpdate = (value: SectionAsideSettings): void => {
+            sectionAsideSettings.value = value;
+
+            // Find the original section that was just updated and update its
+            // values.
+            for (const section of sections) {
+                if (areEqual(section.guid, value.guid)) {
+                    section.title = value.title;
+                    section.description = value.description;
+                    section.showHeadingSeparator = value.showHeadingSeparator;
+                    section.type = value.type;
+
                     return;
                 }
             }
@@ -541,7 +587,6 @@ export default defineComponent({
             fieldDragTargetId: fieldDragSourceOptions.id,
             fieldEditAsideComponentInstance,
             fieldReorderDragSourceOptions,
-            fieldReorderDragTargetId: fieldReorderDragSourceOptions.id,
             generalAsideComponentInstance,
             generalAsideSettings,
             hasPersonEntry,
@@ -555,11 +600,15 @@ export default defineComponent({
             onConfigurePersonEntry,
             onConfigureSection,
             onEditFieldUpdate,
+            onEditSectionUpdate,
             saveFormHeader,
+            sectionAsideSettings,
             sectionDragSourceOptions,
             sectionDragTargetId: sectionDragSourceOptions.id,
             sections,
+            showFieldAside,
             showGeneralAside,
+            showSectionAside,
             startSaveFormHeader,
             submitFormHeader
         };
@@ -706,7 +755,8 @@ export default defineComponent({
                 flex-wrap: wrap;
                 align-content: flex-start;
                 margin-right: calc(0px - var(--flex-col-gutter));
-                min-height: 100%;
+                min-height: 50px;
+                flex-grow: 1;
             }
 
             .form-builder-detail .form-section .form-template-item.form-template-item-field {
@@ -784,7 +834,7 @@ export default defineComponent({
             </div>
 
             <div class="d-flex" style="flex-grow: 1; overflow-y: hidden;">
-                <div class="d-flex flex-column" style="background-color: #f8f9fa; width: 320px; flex-shrink: 0; overflow-y: hidden;">
+                <div class="d-flex flex-column" style="background-color: #f8f9fa; min-width: 320px; max-width: 480px; flex: 1 0; overflow-y: hidden;">
                     <GeneralAside v-if="showGeneralAside"
                         v-model="generalAsideSettings"
                         ref="generalAsideComponentInstance"
@@ -792,15 +842,21 @@ export default defineComponent({
                         :sectionDragOptions="sectionDragSourceOptions"
                         :fieldDragOptions="fieldDragSourceOptions" />
 
-                    <FieldEditAside v-else-if="editField"
+                    <FieldEditAside v-else-if="showFieldAside"
                         :modelValue="editField"
                         ref="fieldEditAsideComponentInstance"
                         :fieldTypes="availableFieldTypes"
                         @update:modelValue="onEditFieldUpdate"
                         @close="onAsideClose" />
+
+                    <SectionEditAside v-else-if="showSectionAside"
+                        :modelValue="sectionAsideSettings"
+                        ref="sectionEditAsideComponentInstance"
+                        @update:modelValue="onEditSectionUpdate"
+                        @close="onAsideClose" />
                 </div>
 
-                <div class="p-3 d-flex flex-column" style="flex-grow: 1; overflow-y: auto;">
+                <div class="p-3 d-flex flex-column" style="flex: 3 1; overflow-y: auto;">
                     <ConfigurableZone :modelValue="isFormHeaderActive" iconCssClass="fa fa-pencil" @configure="onConfigureFormHeader">
                         <div class="zone-body">
                             <div class="text-center">Form Header</div>

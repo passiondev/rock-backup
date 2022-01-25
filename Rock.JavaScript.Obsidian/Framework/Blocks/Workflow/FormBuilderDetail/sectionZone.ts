@@ -16,13 +16,12 @@
 //
 
 import { computed, defineComponent, PropType, ref, watch } from "vue";
-import { useVModelPassthrough } from "../../../Util/component";
+import RockField from "../../../Controls/rockField";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../../Directives/dragDrop";
 import { Guid, newGuid } from "../../../Util/guid";
-import ConfigurableZone from "./configurableZone";
-import RockField from "../../../Controls/rockField";
-import { FormField, FormSection } from "./types";
 import { ClientEditableAttributeValue } from "../../../ViewModels";
+import ConfigurableZone from "./configurableZone";
+import { FormField, FormSection, SectionStyleType } from "./types";
 
 function getAttributeValueFromField(field: FormField): ClientEditableAttributeValue {
     return {
@@ -108,42 +107,115 @@ export default defineComponent({
     },
 
     emits: [
-        "update:modelValue",
         "configureField"
     ],
 
     setup(props, { emit }) {
-        const section = useVModelPassthrough(props, "modelValue", emit);
+        /** The unique identifier of the section being rendered. */
+        const sectionGuid = ref(props.modelValue.guid);
 
+        /** The title to display at the top of the section. */
+        const title = ref(props.modelValue.title);
+
+        /** The description to display at the top of the section. */
+        const description = ref(props.modelValue.description);
+
+        /** True if the header separator line should be displayed. */
+        const showSeparator = ref(props.modelValue.showHeadingSeparator);
+
+        /** The visual type of the section. */
+        const sectionType = ref(props.modelValue.type);
+
+        /** The fields that exist in this section. */
+        const fields = ref(props.modelValue.fields);
+
+        /** The CSS class name to apply to the section. */
+        const sectionTypeClass = computed((): string => {
+            if (sectionType.value === SectionStyleType.Well) {
+                return "well";
+            }
+
+            return "";
+        });
+
+        /** True if the section is active, that is highlighted. */
+        const isSectionActive = computed((): boolean => props.activeZone === sectionGuid.value);
+
+        /**
+         * Determines the column size CSS class to use for the given field.
+         * 
+         * @param field The field to be rendered.
+         *
+         * @returns The CSS classes to apply to the element.
+         */
         const getFieldColumnSize = (field: FormField): string => `flex-col flex-col-${field.size}`;
 
-        const isSectionActive = computed((): boolean => props.activeZone === section.value.guid);
-
+        /**
+         * Checks if the field is active, that is currently being edited.
+         * 
+         * @param field The field in question.
+         *
+         * @returns true if the field is active and should be highlighted.
+         */
         const isFieldActive = (field: FormField): boolean => {
             return field.guid === props.activeZone;
         };
 
+        /**
+         * Event handler for when a field is requesting edit mode.
+         * 
+         * @param field The field requesting to being edit mode.
+         */
         const onConfigureField = (field: FormField): void => {
             emit("configureField", field);
         };
 
+        // Watch for changes in the model properties. We don't do a deep watch
+        // on props.modelValue because we don't want to re-render everything
+        // if, for example, a field configuration value changes. That is handled
+        // by other components already.
+        watch(() => [props.modelValue.guid, props.modelValue.title, props.modelValue.description, props.modelValue.showHeadingSeparator, props.modelValue.type, props.modelValue.fields], () => {
+            console.log("section changed");
+            sectionGuid.value = props.modelValue.guid;
+            title.value = props.modelValue.title;
+            description.value = props.modelValue.description;
+            showSeparator.value = props.modelValue.showHeadingSeparator;
+            sectionType.value = props.modelValue.type;
+            fields.value = props.modelValue.fields;
+        });
+
         return {
+            description,
+            fields,
             getFieldColumnSize,
             isFieldActive,
             isSectionActive,
             onConfigureField,
-            section
+            sectionGuid,
+            sectionTypeClass,
+            showSeparator,
+            title
         };
     },
 
     template: `
 <ConfigurableZone class="field-zone" :modelValue="isSectionActive">
-    <div class="zone-body form-section" v-drag-source="reorderDragOptions" v-drag-target="reorderDragOptions.id" v-drag-target:2="dragTargetId" :data-section-id="section.guid">
-        <ConfigurableZone v-for="field in section.fields" :key="field.guid" :modelValue="isFieldActive(field)" :class="getFieldColumnSize(field)" :data-field-id="field.guid" @configure="onConfigureField(field)">
-            <div class="zone-body">
-                <FieldWrapper :modelValue="field" />
+    <div class="zone-body d-flex flex-column" style="min-height: 100%;">
+        <div class="d-flex flex-column" :class="sectionTypeClass" style="flex-grow: 1;">
+            <div>
+                <h1 v-if="title">{{ title }}</h1>
+                <div v-if="description" class="mb-2">{{ description }}</div>
+                <hr v-if="showSeparator" />
             </div>
-        </ConfigurableZone>
+
+            <div class="form-section" v-drag-source="reorderDragOptions" v-drag-target="reorderDragOptions.id" v-drag-target:2="dragTargetId" :data-section-id="sectionGuid">
+                <ConfigurableZone v-for="field in fields" :key="field.guid" :modelValue="isFieldActive(field)" :class="getFieldColumnSize(field)" :data-field-id="field.guid" @configure="onConfigureField(field)">
+                    <div class="zone-body">
+                        <FieldWrapper :modelValue="field" />
+                    </div>
+                </ConfigurableZone>
+            </div>
+        </div>
     </div>
 </ConfigurableZone>
 `

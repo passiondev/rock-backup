@@ -27,7 +27,7 @@ export type FormSection = {
 
     showHeadingSeparator: boolean;
 
-    type: string;
+    type: SectionStyleType;
 
     fields: FormField[];
 };
@@ -71,6 +71,24 @@ export type GeneralAsideSettings = {
 
     hasPersonEntry?: boolean;
 };
+
+export type SectionAsideSettings = {
+    guid: Guid;
+
+    title: string;
+
+    description: string;
+
+    showHeadingSeparator: boolean;
+
+    type: SectionStyleType;
+};
+
+export const enum SectionStyleType {
+    None = 0,
+
+    Well = 1
+}
 
 export interface IAsideProvider {
     isSafeToClose: () => boolean;
