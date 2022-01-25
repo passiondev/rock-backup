@@ -15,7 +15,7 @@
 // </copyright>
 //
 
-import { computed, defineComponent, PropType } from "vue";
+import { computed, defineComponent, PropType, ref, watch } from "vue";
 import { useVModelPassthrough } from "../../../Util/component";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../../Directives/dragDrop";
 import { Guid, newGuid } from "../../../Util/guid";
@@ -24,11 +24,60 @@ import RockField from "../../../Controls/rockField";
 import { FormField, FormSection } from "./types";
 import { ClientEditableAttributeValue } from "../../../ViewModels";
 
+function getAttributeValueFromField(field: FormField): ClientEditableAttributeValue {
+    return {
+        attributeGuid: newGuid(),
+        fieldTypeGuid: field.fieldTypeGuid,
+        name: !(field.isHideLabel ?? false) ? field.name : "",
+        key: field.key,
+        configurationValues: field.configurationValues,
+        value: field.defaultValue,
+        isRequired: field.isRequired ?? false,
+        description: field.description ?? "",
+        order: 0,
+        categories: []
+    };
+}
+
+const fieldWrapper = defineComponent({
+    name: "Workflow.FormBuilderDetail.SectionZone.FieldWrapper",
+
+    components: {
+        RockField
+    },
+
+    props: {
+        modelValue: {
+            type: Object as PropType<FormField>,
+            required: true
+        }
+    },
+
+    setup(props) {
+        const attributeValue = ref<ClientEditableAttributeValue>(getAttributeValueFromField(props.modelValue));
+
+        watch(() => props.modelValue, () => {
+            attributeValue.value = getAttributeValueFromField(props.modelValue);
+        }, {
+            deep: true
+        });
+
+        return {
+            attributeValue
+        };
+    },
+
+    template: `
+<RockField :attributeValue="attributeValue" isEditMode />
+`
+});
+
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.SectionZone",
     components: {
         ConfigurableZone,
-        RockField
+        RockField,
+        FieldWrapper: fieldWrapper
     },
 
     directives: {
@@ -68,19 +117,6 @@ export default defineComponent({
 
         const getFieldColumnSize = (field: FormField): string => `flex-col flex-col-${field.size}`;
 
-        const getAttributeValue = (field: FormField): ClientEditableAttributeValue => {
-            return {
-                attributeGuid: newGuid(),
-                fieldTypeGuid: field.fieldTypeGuid,
-                name: !(field.isHideLabel ?? false) ? field.label : "",
-                key: "SampleValue",
-                isRequired: field.isRequired ?? false,
-                description: "",
-                order: 0,
-                categories: []
-            };
-        };
-
         const isSectionActive = computed((): boolean => props.activeZone === section.value.guid);
 
         const isFieldActive = (field: FormField): boolean => {
@@ -92,7 +128,6 @@ export default defineComponent({
         };
 
         return {
-            getAttributeValue,
             getFieldColumnSize,
             isFieldActive,
             isSectionActive,
@@ -103,10 +138,10 @@ export default defineComponent({
 
     template: `
 <ConfigurableZone class="field-zone" :modelValue="isSectionActive">
-    <div class="form-section" style="padding: 20px;" v-drag-source="reorderDragOptions" v-drag-target="reorderDragOptions.id" v-drag-target:2="dragTargetId" :data-section-id="section.guid">
+    <div class="zone-body form-section" v-drag-source="reorderDragOptions" v-drag-target="reorderDragOptions.id" v-drag-target:2="dragTargetId" :data-section-id="section.guid">
         <ConfigurableZone v-for="field in section.fields" :key="field.guid" :modelValue="isFieldActive(field)" :class="getFieldColumnSize(field)" :data-field-id="field.guid" @configure="onConfigureField(field)">
-            <div style="padding: 20px;">
-                <RockField :attributeValue="getAttributeValue(field)" isEditMode />
+            <div class="zone-body">
+                <FieldWrapper :modelValue="field" />
             </div>
         </ConfigurableZone>
     </div>

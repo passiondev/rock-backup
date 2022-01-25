@@ -15,6 +15,7 @@
 // </copyright>
 //
 
+import { Component } from "vue";
 import { Guid } from "../../../Util/guid";
 
 export type FormSection = {
@@ -36,13 +37,23 @@ export type FormField = {
 
     fieldTypeGuid: Guid;
 
-    label: string;
+    name: string;
+
+    description?: string;
+
+    key: string;
 
     size: number;
 
     isRequired?: boolean;
 
     isHideLabel?: boolean;
+
+    isShowOnGrid?: boolean;
+
+    configurationValues?: Record<string, string>;
+
+    defaultValue?: string;
 };
 
 export type FormFieldType = {
@@ -61,3 +72,6 @@ export type GeneralAsideSettings = {
     hasPersonEntry?: boolean;
 };
 
+export interface IAsideProvider {
+    isSafeToClose: () => boolean;
+}

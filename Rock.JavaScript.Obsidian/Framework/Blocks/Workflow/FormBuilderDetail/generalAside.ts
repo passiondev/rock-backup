@@ -63,16 +63,35 @@ export default defineComponent({
         "update:modelValue"
     ],
 
+    methods: {
+        /**
+         * Checks if this aside is safe to close or if there are errors that
+         * must be corrected first.
+         */
+        isSafeToClose(): boolean {
+            return true;
+        }
+    },
+
     setup(props, { emit }) {
+        /**
+         * The value for the drop down that specifies where to set the campus
+         * context from for this form.
+         */
         const campusSetFrom = ref(props.modelValue.campusSetFrom?.toString() ?? "");
+
+        /** True if the form has a person entry section. */
         const hasPersonEntry = ref(props.modelValue.hasPersonEntry ?? false);
 
+        /** The field types to display in the common field types section. */
         const commonFieldTypes = computed((): FormFieldType[] => {
             return props.fieldTypes.filter(f => f.isCommon);
         });
 
+        /** Used to temporarily disable emitting the modelValue when something changes. */
         let autoSyncModelValue = true;
 
+        // Watch for changes in the model value and update our internal values.
         watch(() => props.modelValue, () => {
             autoSyncModelValue = false;
             campusSetFrom.value = props.modelValue.campusSetFrom?.toString() ?? "";
@@ -80,6 +99,7 @@ export default defineComponent({
             autoSyncModelValue = true;
         });
 
+        // Watch for changes in our internal values and update the modelValue.
         watch([campusSetFrom, hasPersonEntry], () => {
             if (!autoSyncModelValue) {
                 return;
