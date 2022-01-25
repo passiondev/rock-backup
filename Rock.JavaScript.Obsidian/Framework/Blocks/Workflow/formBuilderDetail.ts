@@ -245,6 +245,10 @@ const temporarySections: FormSection[] = [
     }
 ];
 
+const temporaryHeader = "<h1>My custom header</h1>";
+
+const temporaryFooter = "<ul><li>My</li><li>Custom</li><li>Footer</li></ul>";
+
 export default defineComponent({
     name: "Workflow.FormBuilderDetail",
 
@@ -307,13 +311,13 @@ export default defineComponent({
         const sections = reactive<FormSection[]>(temporarySections);
 
         /** The header HTML content that will appear above the form. */
-        const formHeaderContent = ref("");
+        const formHeaderContent = ref(temporaryHeader);
+
+        /** The footer HTML content that will appear below the form. */
+        const formFooterContent = ref(temporaryFooter);
 
         /** The header HTML content while it is being edited in the modal. */
         const formHeaderEditContent = ref("");
-
-        /** The footer HTML content that will appear below the form. */
-        const formFooterContent = ref("");
 
         /** The footer HTML content while it is being edited in the modal. */
         const formFooterEditContent = ref("");
@@ -888,7 +892,7 @@ export default defineComponent({
 
                     <ConfigurableZone v-if="hasPersonEntry" :modelValue="isPersonEntryActive" @configure="onConfigurePersonEntry">
                         <div class="zone-body">
-                            <div class="text-center">Person Entry Form</div>
+                            <div class="text-center text-muted">Person Entry Form</div>
                         </div>
                     </ConfigurableZone>
 
