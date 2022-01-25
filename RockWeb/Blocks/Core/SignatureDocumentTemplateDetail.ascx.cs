@@ -24,6 +24,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
+using Rock.ElectronicSignature;
 using Rock.Lava;
 using Rock.Model;
 using Rock.Pdf;
@@ -481,24 +482,23 @@ namespace RockWeb.Blocks.Core
         {
             if ( tglTemplatePreview.Checked )
             {
-                var signatureInformationHtml = SignatureDocumentTemplate.GetSignatureInformationHtml( new SignatureDocumentTemplate.GetSignatureInformationHtmlArgs
+                var mergeFields = LavaHelper.GetCommonMergeFields( null );
+                var signatureDocumentHtml = ElectronicSignatureHelper.GetSignatureDocumentHtml( ceESignatureLavaTemplate.Text, mergeFields );
+                var signatureInformationHtml = ElectronicSignatureHelper.GetSignatureInformationHtml( new GetSignatureInformationHtmlArgs
                 {
                     SignatureType = rblSignatureType.SelectedValueAsEnumOrNull<SignatureType>() ?? SignatureType.Typed,
-                    DrawnSignatureDataUrl = SignatureDocumentTemplate.SampleSignatureDataURL,
+                    DrawnSignatureDataUrl = ElectronicSignatureHelper.SampleSignatureDataURL,
                     SignedByPerson = this.CurrentPerson,
                     SignedDateTime = RockDateTime.Now,
-                    ClientIPAddress = this.GetClientIpAddress(),
-                    TypedSignature = this.CurrentPerson.FullName
+                    SignedClientIp = this.GetClientIpAddress(),
+                    TypedSignatureText = this.CurrentPerson.FullName,
+                    SignatureVerificationHash = Rock.Security.Encryption.GetSHA1Hash("##Preview##")
                 } );
-
-                var mergeFields = LavaHelper.GetCommonMergeFields( null );
-
-                mergeFields.Add( "SignatureInformation", signatureInformationHtml );
 
                 using ( var pdfGenerator = new PdfGenerator() )
                 {
-                    var html = SignatureDocumentTemplate.GetSignatureDocumentHtml( ceESignatureLavaTemplate.Text, mergeFields );
-                    var base64DataUrl = pdfGenerator.GetPDFDocumentFromHtmlAsBase64DataUrl( html );
+                    var signedDocumentHtml = ElectronicSignatureHelper.GetSignedDocumentHtml( signatureDocumentHtml, signatureInformationHtml );
+                    var base64DataUrl = pdfGenerator.GetPDFDocumentFromHtmlAsBase64DataUrl( signedDocumentHtml );
                     pdfSignatureDocumentPreview.SourceUrl = base64DataUrl;
                 }
 

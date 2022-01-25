@@ -139,6 +139,7 @@ namespace Rock.Model
 
         /// <summary>
         /// The resulting text/document using the Lava template from the <see cref="Rock.Model.SignatureDocumentTemplate"/> at the time the document was signed.
+        /// Does not include the signature data. It would be what they saw just prior to signing.
         /// </summary>
         /// <value>
         /// The signed document text.

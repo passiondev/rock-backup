@@ -854,6 +854,7 @@
     <Compile Include="Model\Communication\Notification\NotificationClassification.cs" />
     <Compile Include="Model\Core\SignatureDocumentTemplate\SignatureDocumentTemplate.Logic.cs" />
     <Compile Include="Model\Core\SignatureDocumentTemplate\SignatureType.cs" />
+    <Compile Include="Model\Core\SignatureDocument\SignatureDocument.Logic.cs" />
     <Compile Include="Model\Core\SignatureDocument\SignatureDocument.SaveHook.cs" />
     <Compile Include="Model\Core\SignatureDocument\SignatureDocumentStatus.cs" />
     <Compile Include="Model\Communication\SmsAction\SmsAction.Logic.cs" />
