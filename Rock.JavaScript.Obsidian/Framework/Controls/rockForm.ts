@@ -20,18 +20,12 @@ import RockValidation from "./rockValidation";
 
 export default defineComponent({
     name: "RockForm",
-    inheritAttrs: false,
 
     components: {
         RockValidation
     },
 
     props: {
-        modelValue: {
-            type: Object as PropType<Record<string, string>>,
-            default: {}
-        },
-
         submit: {
             type: Boolean as PropType<boolean>,
             default: false
@@ -40,12 +34,12 @@ export default defineComponent({
 
     emits: [
         "submit",
-        "update:modelValue",
+        "validationChanged",
         "update:submit"
     ],
 
     setup(props, { emit }) {
-        const errors = ref(props.modelValue);
+        const errors = ref<Record<string, string>>({});
         const submit = ref(props.submit);
 
         const onInternalSubmit = (): void => {
@@ -92,6 +86,10 @@ export default defineComponent({
             }
 
             emit("update:submit", submit.value);
+        });
+
+        watch(errors, () => {
+            emit("validationChanged", errors.value);
         });
 
         return {

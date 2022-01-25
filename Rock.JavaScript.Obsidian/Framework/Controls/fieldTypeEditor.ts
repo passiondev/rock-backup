@@ -22,6 +22,7 @@ import DropDownList from "../Elements/dropDownList";
 import StaticFormControl from "../Elements/staticFormControl";
 import { getFieldType } from "../Fields/index";
 import { get, post } from "../Util/http";
+import { areEqual } from "../Util/guid";
 import { ClientEditableAttributeValue, ListItem } from "../ViewModels";
 import { FieldTypeConfigurationPropertiesViewModel, FieldTypeConfigurationViewModel } from "../ViewModels/Controls/fieldTypeEditor";
 
@@ -46,6 +47,10 @@ export default defineComponent({
             default: false
         }
     },
+
+    emits: [
+        "update:modelValue"
+    ],
 
     setup(props, { emit }) {
         /** The selected field type in the drop down list. */
@@ -108,7 +113,7 @@ export default defineComponent({
 
         /** The name of the currently selected field type. */
         const fieldTypeName = computed((): string => {
-            const matches = fieldTypeOptions.value.filter(v => v.value === fieldTypeValue.value);
+            const matches = fieldTypeOptions.value.filter(v => areEqual(v.value, fieldTypeValue.value));
 
             return matches.length >= 1 ? matches[0].text : "";
         });
