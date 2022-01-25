@@ -27,6 +27,8 @@ import Switch from "../../Elements/switch";
 import TextBox from "../../Elements/textBox";
 import ConfigurableZone from "./FormBuilderDetail/configurableZone";
 import FieldEditAside from "./FormBuilderDetail/fieldEditAside";
+import FormContentModal from "./FormBuilderDetail/formContentModal";
+import FormContentZone from "./FormBuilderDetail/formContentZone";
 import GeneralAside from "./FormBuilderDetail/generalAside";
 import SectionEditAside from "./FormBuilderDetail/sectionEditAside";
 import SectionZone from "./FormBuilderDetail/sectionZone";
@@ -250,6 +252,8 @@ export default defineComponent({
         ConfigurableZone,
         DropDownList,
         FieldEditAside,
+        FormContentModal,
+        FormContentZone,
         GeneralAside,
         Modal,
         Panel,
@@ -302,6 +306,18 @@ export default defineComponent({
          */
         const sections = reactive<FormSection[]>(temporarySections);
 
+        /** The header HTML content that will appear above the form. */
+        const formHeaderContent = ref("");
+
+        /** The header HTML content while it is being edited in the modal. */
+        const formHeaderEditContent = ref("");
+
+        /** The footer HTML content that will appear below the form. */
+        const formFooterContent = ref("");
+
+        /** The footer HTML content while it is being edited in the modal. */
+        const formFooterEditContent = ref("");
+
         /** The settings object used by the general aside form settings. */
         const generalAsideSettings = ref<GeneralAsideSettings>({
             campusSetFrom: undefined,
@@ -310,6 +326,11 @@ export default defineComponent({
 
         /** The settings object used by the section aside. */
         const sectionAsideSettings = ref<SectionAsideSettings | null>(null);
+
+        // Generate all the drag options.
+        const sectionDragSourceOptions = getSectionDragSourceOptions(sections);
+        const fieldDragSourceOptions = getFieldDragSourceOptions(sections, availableFieldTypes);
+        const fieldReorderDragSourceOptions = getFieldReorderDragSourceOptions(sections);
 
         // #endregion
 
@@ -359,7 +380,7 @@ export default defineComponent({
             },
             set(value: boolean) {
                 if (!value && activeZone.value === formHeaderZoneGuid) {
-                    activeZone.value = "";
+                    closeAside();
                 }
             }
         });
@@ -371,7 +392,7 @@ export default defineComponent({
             },
             set(value: boolean) {
                 if (!value && activeZone.value === formFooterZoneGuid) {
-                    activeZone.value = "";
+                    closeAside();
                 }
             }
         });
@@ -420,7 +441,7 @@ export default defineComponent({
 
             closeAside();
 
-            formHeaderEditContent.value = "";
+            formHeaderEditContent.value = formHeaderContent.value;
             activeZone.value = formHeaderZoneGuid;
         };
 
@@ -434,6 +455,7 @@ export default defineComponent({
 
             closeAside();
 
+            formFooterEditContent.value = formFooterContent.value;
             activeZone.value = formFooterZoneGuid;
         };
 
@@ -553,18 +575,25 @@ export default defineComponent({
             }
         };
 
-        // #endregion
+        /**
+         * Event handler for when the form header content is saved.
+         */
+        const onFormHeaderSave = (): void => {
+            formHeaderContent.value = formHeaderEditContent.value;
 
-        // TODO: Move these to new component.
-        const submitFormHeader = ref(false);
-        const formHeaderEditContent = ref("");
-        const startSaveFormHeader = (): void => {
-            submitFormHeader.value = true;
+            closeAside();
         };
-        const saveFormHeader = (): void => {
-            // TODO: Store this somewhere.
-            activeZone.value = "";
+
+        /**
+         * Event handler for when the form footer content is saved.
+         */
+        const onFormFooterSave = (): void => {
+            formFooterContent.value = formFooterEditContent.value;
+
+            closeAside();
         };
+
+        // #endregion
 
         // Wait for the body element to load and then update the drag options.
         watch(bodyElement, () => {
@@ -572,11 +601,6 @@ export default defineComponent({
             fieldDragSourceOptions.mirrorContainer = bodyElement.value ?? undefined;
             fieldReorderDragSourceOptions.mirrorContainer = bodyElement.value ?? undefined;
         });
-
-        // Generate all the drag options.
-        const sectionDragSourceOptions = getSectionDragSourceOptions(sections);
-        const fieldDragSourceOptions = getFieldDragSourceOptions(sections, availableFieldTypes);
-        const fieldReorderDragSourceOptions = getFieldReorderDragSourceOptions(sections);
 
         return {
             activeZone,
@@ -587,6 +611,10 @@ export default defineComponent({
             fieldDragTargetId: fieldDragSourceOptions.id,
             fieldEditAsideComponentInstance,
             fieldReorderDragSourceOptions,
+            formFooterContent,
+            formFooterEditContent,
+            formHeaderContent,
+            formHeaderEditContent,
             generalAsideComponentInstance,
             generalAsideSettings,
             hasPersonEntry,
@@ -601,16 +629,15 @@ export default defineComponent({
             onConfigureSection,
             onEditFieldUpdate,
             onEditSectionUpdate,
-            saveFormHeader,
+            onFormFooterSave,
+            onFormHeaderSave,
             sectionAsideSettings,
             sectionDragSourceOptions,
             sectionDragTargetId: sectionDragSourceOptions.id,
             sections,
             showFieldAside,
             showGeneralAside,
-            showSectionAside,
-            startSaveFormHeader,
-            submitFormHeader
+            showSectionAside
         };
     },
 
@@ -857,11 +884,7 @@ export default defineComponent({
                 </div>
 
                 <div class="p-3 d-flex flex-column" style="flex: 3 1; overflow-y: auto;">
-                    <ConfigurableZone :modelValue="isFormHeaderActive" iconCssClass="fa fa-pencil" @configure="onConfigureFormHeader">
-                        <div class="zone-body">
-                            <div class="text-center">Form Header</div>
-                        </div>
-                    </ConfigurableZone>
+                    <FormContentZone :modelValue="formHeaderContent" :isActive="isFormHeaderActive" @configure="onConfigureFormHeader" placeholder="Form Header" />
 
                     <ConfigurableZone v-if="hasPersonEntry" :modelValue="isPersonEntryActive" @configure="onConfigurePersonEntry">
                         <div class="zone-body">
@@ -880,25 +903,15 @@ export default defineComponent({
                             @configureField="onConfigureField" />
                     </div>
 
-                    <ConfigurableZone :modelValue="isFormFooterActive" iconCssClass="fa fa-pencil" @configure="onConfigureFormFooter">
-                        <div class="zone-body">
-                            <div class="text-center">Form Footer</div>
-                        </div>
-                    </ConfigurableZone>
+                    <FormContentZone :modelValue="formFooterContent" :isActive="isFormFooterActive" @configure="onConfigureFormFooter" placeholder="Form Footer" />
                 </div>
             </div>
         </div>
     </template>
 </Panel>
 
-<Modal v-model="isFormHeaderActive" title="Form Header">
-    <RockForm v-model:submit="submitFormHeader" @submit="saveFormHeader">
-        <TextBox v-model="formHeaderEditContent" label="Content" textMode="multiline" />
-    </RockForm>
+<FormContentModal v-model="formHeaderEditContent" v-model:isVisible="isFormHeaderActive" title="Form Header" @save="onFormHeaderSave" />
 
-    <template #customButtons>
-        <RockButton btnType="primary" @click="startSaveFormHeader">Update</RockButton>
-    </template>
-</Modal>
+<FormContentModal v-model="formFooterEditContent" v-model:isVisible="isFormFooterActive" title="Form Footer" @save="onFormFooterSave" />
 `
 });
