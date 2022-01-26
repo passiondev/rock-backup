@@ -27,12 +27,14 @@ import Switch from "../../Elements/switch";
 import TextBox from "../../Elements/textBox";
 import ConfigurableZone from "./FormBuilderDetail/configurableZone";
 import FormBuilderTab from "./FormBuilderDetail/formBuilderTab";
+import CommunicationsTab from "./FormBuilderDetail/communicationsTab";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail",
 
     components: {
         ConfigurableZone,
+        CommunicationsTab,
         DropDownList,
         FormBuilderTab,
         Modal,
@@ -57,6 +59,12 @@ export default defineComponent({
             };
         });
 
+        const communicationsContainerStyle = computed((): Record<string, string> => {
+            return {
+                display: isCommunicationsTabSelected.value ? "flex" : "none"
+            };
+        });
+
         const onFormBuilderTab = (): void => {
             selectedTab.value = 0;
         };
@@ -66,6 +74,7 @@ export default defineComponent({
         };
 
         return {
+            communicationsContainerStyle,
             formBuilderContainerStyle,
             isCommunicationsTabSelected,
             isFormBuilderTabSelected,
@@ -296,6 +305,10 @@ export default defineComponent({
 
             <div style="flex-grow: 1; overflow-y: hidden;" :style="formBuilderContainerStyle">
                 <FormBuilderTab />
+            </div>
+
+            <div style="flex-grow: 1; overflow-y: hidden;" :style="communicationsContainerStyle">
+                <CommunicationsTab />
             </div>
         </div>
     </template>
