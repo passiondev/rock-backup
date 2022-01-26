@@ -22,14 +22,18 @@ namespace Rock.Migrations
     /// <summary>
     ///
     /// </summary>
-    public partial class SignatureDataEncrypted : Rock.Migrations.RockMigration
+    public partial class ElectronicSignatures : Rock.Migrations.RockMigration
     {
         /// <summary>
         /// Operations to be performed during the upgrade process.
         /// </summary>
         public override void Up()
         {
-            AddColumn("dbo.SignatureDocument", "SignatureDataEncrypted", c => c.String());
+            AddColumn("dbo.SignatureDocument", "SignatureVerificationHash", c => c.String(maxLength: 40));
+            Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureVerificationHash] = [SignatureVerficationHash]" );
+            DropColumn( "dbo.SignatureDocument", "SignatureVerficationHash" );
+
+            AddColumn( "dbo.SignatureDocument", "SignatureDataEncrypted", c => c.String() );
             Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureDataEncrypted] = [SignatureData]" );
             DropColumn("dbo.SignatureDocument", "SignatureData");
         }
@@ -39,7 +43,12 @@ namespace Rock.Migrations
         /// </summary>
         public override void Down()
         {
+            AddColumn("dbo.SignatureDocument", "SignatureVerficationHash", c => c.String(maxLength: 40));
+            Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureVerficationHash] = [SignatureVerificationHash]" );
+            DropColumn( "dbo.SignatureDocument", "SignatureVerificationHash" );
+
             AddColumn("dbo.SignatureDocument", "SignatureData", c => c.String());
+            Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureData] = [SignatureDataEncrypted]" );
             DropColumn("dbo.SignatureDocument", "SignatureDataEncrypted");
         }
     }
