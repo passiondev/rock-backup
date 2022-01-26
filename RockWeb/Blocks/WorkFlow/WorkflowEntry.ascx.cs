@@ -1898,10 +1898,14 @@ namespace RockWeb.Blocks.WorkFlow
             escElectronicSignatureControl.SignatureType = signatureDocumentTemplate.SignatureType;
             escElectronicSignatureControl.DocumentTerm = signatureDocumentTemplate.DocumentTerm;
 
-            var mergeFields = GetWorkflowEntryMergeFields();
-            var lavaTemplate = signatureDocumentTemplate.LavaTemplate;
-            this.SignatureDocumentHtml = lavaTemplate?.ResolveMergeFields( mergeFields );
-            iframeSignatureDocumentHTML.Attributes["srcdoc"] = this.SignatureDocumentHtml;
+
+            if ( setValues )
+            {
+                var mergeFields = GetWorkflowEntryMergeFields();
+                var lavaTemplate = signatureDocumentTemplate.LavaTemplate;
+                this.SignatureDocumentHtml = lavaTemplate?.ResolveMergeFields( mergeFields );
+                iframeSignatureDocumentHTML.Attributes["srcdoc"] = this.SignatureDocumentHtml;
+            }
         }
 
         /// <summary>
@@ -1956,7 +1960,7 @@ namespace RockWeb.Blocks.WorkFlow
             signatureDocument.LastStatusDate = RockDateTime.Now;
             signatureDocument.SignedDocumentText = this.SignatureDocumentHtml;
             signatureDocument.SignedDateTime = RockDateTime.Now;
-            signatureDocument.SignatureData = Rock.Security.Encryption.EncryptString( escElectronicSignatureControl.DrawnSignatureImageDataUrl );
+            signatureDocument.SignatureData = escElectronicSignatureControl.DrawnSignatureImageDataUrl;
             signatureDocument.SignedName = escElectronicSignatureControl.TypedSignatureText;
             signatureDocument.EntityTypeId = EntityTypeCache.GetId<Workflow>();
             signatureDocument.EntityId = _workflow?.Id;
@@ -1980,8 +1984,6 @@ namespace RockWeb.Blocks.WorkFlow
             };
 
             var signatureInformationHtml = ElectronicSignatureHelper.GetSignatureInformationHtml( signatureInformationHtmlArgs );
-
-            //mergeFields.Add( ElectronicSignatureHelper.SignatureInformationMergeKey, signatureInformationHtml );
 
             int pdfBinaryFileId = 0;
 

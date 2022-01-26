@@ -15,10 +15,6 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -49,9 +45,10 @@ namespace Rock.Web.UI.Controls
         private Panel _pnlSignatureEntryTyped;
         private RockTextBox _tbSignatureTyped;
         private Literal _lSignatureSignDisclaimer;
-        private Literal _lSignatureWarning;
         private BootstrapButton _btnSignSignature;
         private Literal _clearSignatureLink;
+        private CustomValidator _customValidator;
+        private ValidationSummary _customValidationSummary;
 
         #endregion Controls
 
@@ -170,20 +167,54 @@ namespace Rock.Web.UI.Controls
         {
             base.CreateChildControls();
 
+            // this is what will display validation message from _customValidator
+            _customValidationSummary = new ValidationSummary();
+            _customValidationSummary.ID = "_customValidationSummary";
+            _customValidationSummary.ValidationGroup = $"vsElectronicSignatureControl_{this.ID}";
+            //_customValidationSummary.HeaderText = "Please correct the following:";
+            _customValidationSummary.CssClass = "alert alert-validation";
+            Controls.Add( _customValidationSummary );
+
+            // Add custom validator that will check for blank drawn or typed signature
+            _customValidator = new CustomValidator();
+            _customValidator.ID = "_customValidator";
+            _customValidator.ClientValidationFunction = "Rock.controls.electronicSignatureControl.clientValidate";
+            _customValidator.ErrorMessage = "Please enter a signature";
+            _customValidator.Enabled = true;
+            _customValidator.Display = ValidatorDisplay.Dynamic;
+            _customValidator.ValidationGroup = _customValidationSummary.ValidationGroup;
+            Controls.Add( _customValidator );
+
             _hfSignatureImageDataUrl = new HiddenFieldWithClass();
             _hfSignatureImageDataUrl.ID = "_hfSignatureImageDataUrl";
             _hfSignatureImageDataUrl.CssClass = "js-signature-data";
             Controls.Add( _hfSignatureImageDataUrl );
 
+            /* Controls for Drawn Signature*/
             _pnlSignatureEntryDrawn = new Panel();
             _pnlSignatureEntryDrawn.ID = "_pnlSignatureEntryDrawn";
             _pnlSignatureEntryDrawn.CssClass = "signature-entry-drawn js-signature-entry-drawn";
             Controls.Add( _pnlSignatureEntryDrawn );
 
+            // drawing canvas
+            var pnlSignatureEntryDrawnCanvasDiv = new Panel() { CssClass = "todo" };
+            _pnlSignatureEntryDrawn.Controls.Add( pnlSignatureEntryDrawnCanvasDiv );
+
             _lSignaturePadCanvas = new Literal();
             _lSignaturePadCanvas.ID = "_lSignaturePadCanvas";
             _lSignaturePadCanvas.Text = "<canvas class='js-signature-pad-canvas e-signature-pad'></canvas>";
-            _pnlSignatureEntryDrawn.Controls.Add( _lSignaturePadCanvas );
+            pnlSignatureEntryDrawnCanvasDiv.Controls.Add( _lSignaturePadCanvas );
+
+            // clear signature button
+            var pnlSignatureEntryDrawnActionDiv = new Panel() { CssClass = "todo" };
+            _pnlSignatureEntryDrawn.Controls.Add( pnlSignatureEntryDrawnActionDiv );
+
+            _clearSignatureLink = new Literal();
+            _clearSignatureLink.ID = "_clearSignatureLink";
+            _clearSignatureLink.Text = $@"<a class='btn btn-default js-clear-signature'><i class='fa fa-undo'></i></a>";
+            pnlSignatureEntryDrawnActionDiv.Controls.Add( _clearSignatureLink );
+
+            /* Controls for Typed Signature*/
 
             _pnlSignatureEntryTyped = new Panel();
             _pnlSignatureEntryTyped.ID = "_pnlSignatureEntryTyped";
@@ -193,20 +224,14 @@ namespace Rock.Web.UI.Controls
             _tbSignatureTyped = new RockTextBox();
             _tbSignatureTyped.ID = "_tbSignatureTyped";
             _tbSignatureTyped.Placeholder = "Type Name";
+            _tbSignatureTyped.CssClass = "js-signature-typed";
             _pnlSignatureEntryTyped.Controls.Add( _tbSignatureTyped );
 
+            /* */
             _lSignatureSignDisclaimer = new Literal();
             _lSignatureSignDisclaimer.ID = "_lSignatureSignDisclaimer";
             SetSignatureSignDisclaimerText( _lSignatureSignDisclaimer, this.DocumentTerm );
             this.Controls.Add( _lSignatureSignDisclaimer );
-
-            _lSignatureWarning = new Literal();
-            _lSignatureWarning.ID = "_lSignatureWarning";
-            _lSignatureWarning.Text = @"
-<div class='alert alert-danger js-signature-empty-alert' style='display: none'>
-    Please enter a signature
-</div>";
-            this.Controls.Add( _lSignatureWarning );
 
             _btnSignSignature = new BootstrapButton();
             _btnSignSignature.ID = "_btnSignSignature";
@@ -214,11 +239,6 @@ namespace Rock.Web.UI.Controls
             _btnSignSignature.Text = "Sign";
             _btnSignSignature.Click += _btnSignSignature_Click;
             this.Controls.Add( _btnSignSignature );
-
-            _clearSignatureLink = new Literal();
-            _clearSignatureLink.ID = "_clearSignatureLink";
-            _clearSignatureLink.Text = $@"<a class='btn btn-default js-clear-signature'>Clear</a>";
-            this.Controls.Add( _clearSignatureLink );
 
             _pnlSignatureEntryDrawn.Visible = SignatureType == SignatureType.Drawn;
             _pnlSignatureEntryTyped.Visible = SignatureType == SignatureType.Typed;
@@ -230,6 +250,7 @@ namespace Rock.Web.UI.Controls
         /// <param name="writer">The <see cref="T:System.Web.UI.HtmlTextWriter" /> object that receives the control content.</param>
         public override void RenderControl( HtmlTextWriter writer )
         {
+            this.AddCssClass( "js-electronic-signature-control" );
             base.RenderControl( writer );
             RegisterJavaScript();
         }
@@ -244,14 +265,14 @@ namespace Rock.Web.UI.Controls
                 ScriptManager.RegisterClientScriptInclude( this.Page, this.Page.GetType(), "signature_pad-include", ResolveUrl( "~/Scripts/signature_pad/signature_pad.umd.min.js" ) );
             }
 
-            var electronicSignaturePadScript =
-$@"Rock.controls.electronicSignaturePad.initialize({{
-controlId: '{this.ClientID}',
-imageMimeType: '{this.DrawnSignatureImageMimeType}'
+            var electronicSignatureControlScript =
+$@"Rock.controls.electronicSignatureControl.initialize({{
+    controlId: '{this.ClientID}',
+    imageMimeType: '{this.DrawnSignatureImageMimeType}'
 }})
 ";
 
-            ScriptManager.RegisterStartupScript( this, this.GetType(), "electronicSignaturePad_script" + this.ClientID, electronicSignaturePadScript, true );
+            ScriptManager.RegisterStartupScript( this, this.GetType(), "electronicSignatureControl_script" + this.ClientID, electronicSignatureControlScript, true );
         }
 
         /// <summary>

@@ -206,12 +206,18 @@ namespace Rock.Model
 
         /// <summary>
         /// The encrypted data that was collected during a drawn signature type.
+        /// Use <see cref="SignatureData"/> to set this from the unencrypted drawn signature.
         /// </summary>
         /// <value>
         /// A <see cref="System.String"/> representing the signature data.
         /// </value>
         [DataMember]
-        public string SignatureData { get; set; }
+        [HideFromReporting]
+        public string SignatureDataEncrypted { get; set; }
+
+        /* 1/25/2022 MDP
+        See engineering note on SignatureData
+        */
 
         /// <summary>
         /// The computed SHA1 hash for the SignedDocumentText, SignedClientIP address, SignedClientUserAgent, SignedDateTime, SignedByPersonAliasId, SignatureData, and SignedName.

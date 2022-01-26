@@ -82,7 +82,9 @@
                         </asp:Panel>
 
                         <%-- eSignature UI --%>
-                        <asp:Panel ID="pnlWorkflowActionElectronicSignature" runat="server" Visible="false">
+                        <asp:Panel ID="pnlWorkflowActionElectronicSignature" runat="server" CssClass="js-validation-group" Visible="false">
+
+
                             <%-- Put the signature document html in an Iframe so it doesn't inherit styling from the page --%>
                             <asp:Panel ID="pnlIframeSignatureDocumentHTML" runat="server">
                                 <iframe id="iframeSignatureDocumentHTML" name="signature-document-html-iframe" class="signaturedocument-iframe js-signaturedocument-iframe" runat="server" src="javascript: window.frameElement.getAttribute('srcdoc');" frameborder="0" border="0" cellspacing="0" style="width: 100%; height: 100%"></iframe>

@@ -3,7 +3,7 @@
     window.Rock = window.Rock || {};
     Rock.controls = Rock.controls || {};
 
-    Rock.controls.electronicSignaturePad = (function () {
+    Rock.controls.electronicSignatureControl = (function () {
         var exports = {
             /**
              * 
@@ -16,12 +16,6 @@
 
                 var self = this;
 
-                /* These all work
-                    image/jpeg
-                    image/png
-                    image/svg+xml
-                */
-
                 self.ImageMimeType = options.imageMimeType ?? "image/png";
 
                 var $control = $('#' + options.controlId);
@@ -30,15 +24,32 @@
                     return;
                 }
 
-                self.$signaturePadCanvas = $('.js-signature-pad-canvas', $control);
+                self.$signatureControl = $control;
+                self.$signatureTyped = $('.js-signature-typed', $control);
+
                 self.$signatureEntryDrawn = $('.js-signature-entry-drawn', $control);
-                self.$signatureEmptyAlert = $('.js-signature-empty-alert', $control);
+                self.$signaturePadCanvas = $('.js-signature-pad-canvas', $control);
+                self.$signatureImageDataURL = $('.js-signature-data', $control);
+                
                 self.$clearSignature = $('.js-clear-signature', $control);
                 self.$saveSignature = $('.js-save-signature', $control);
 
-                self.$signatureImageDataURL = $('.js-signature-data', $control);
-
                 self.initializeSignaturePad();
+
+                self.$saveSignature.click(function () {
+                    if (!self.signatureIsValid(self.$signatureControl)) {
+                        return false;
+                    }
+
+                    if (self.$signaturePadCanvas.length) {
+                        var signaturePad = self.$signaturePadCanvas.data('signatureComponent');
+
+                        if (signaturePad) {
+                            var signatureImageDataUrl = signaturePad.toDataURL(self.ImageMimeType);
+                            self.$signatureImageDataURL.val(signatureImageDataUrl);
+                        }
+                    }
+                });
             },
 
             /** */
@@ -65,36 +76,28 @@
                     signaturePad.clear();
                 })
 
-                self.$saveSignature.click(function () {
-                    if (signaturePad.isEmpty()) {
-                        self.$signatureEmptyAlert.show();
-                        return false;
-                    }
-
-                    var signatureImageDataUrl = signaturePad.toDataURL(self.ImageMimeType);
-                    self.$signatureImageDataURL.val(signatureImageDataUrl);
-                });
-
-                window.addEventListener("resize", self.resizeSignatureCanvas);
+                window.addEventListener("resize", self.resizeSignatureCanvas(self));
 
                 signaturePad.addEventListener("beginStroke", () => {
                     // if there was an error showing, hide the error if they start signing again
                     self.$signatureEmptyAlert.show().hide();
                 }, { once: true });
 
-                self.resizeSignatureCanvas();
+                self.resizeSignatureCanvas(self);
             },
 
             /** */
-            resizeSignatureCanvas: function () {
-                var self = this;
+            resizeSignatureCanvas: function (signatureControl) {
+                if (!signatureControl.$signaturePadCanvas.length) {
+                    return;
+                }
 
                 // If the window is resized, that'll affect the drawing canvas
                 // also, if there is an existing signature, it'll get messed up, so clear it and
                 // make them sign it again. See additional details why 
                 // https://github.com/szimek/signature_pad
-                var signaturePadCanvas = self.$signaturePadCanvas[ 0 ];
-                var containerWidth = self.$signatureEntryDrawn.width();
+                var signaturePadCanvas = signatureControl.$signaturePadCanvas[ 0 ];
+                var containerWidth = signatureControl.$signatureEntryDrawn.width();
                 if (!containerWidth || containerWidth == 0) {
                     containerWidth = 400;
                 }
@@ -104,8 +107,47 @@
                 signaturePadCanvas.height = 100 * ratio;
                 signaturePadCanvas.getContext("2d").scale(ratio, ratio);
 
-                var signaturePad = self.$signaturePadCanvas.data('signatureComponent');
+                var signaturePad = signatureControl.$signaturePadCanvas.data('signatureComponent');
                 signaturePad.clear();
+            },
+
+            signatureIsValid: function ($signatureControl) {
+                var $signatureCanvas = $signatureControl.find('.js-signature-pad-canvas')
+                var $signatureTyped = $signatureControl.find('.js-signature-typed');
+
+                if ($signatureCanvas.length == 0 && $signatureTyped.length == 0) {
+                    return;
+                }
+
+                var isValid = true;
+
+                if ($signatureCanvas.length) {
+                    var signatureCanvas = $signatureCanvas.data('signatureComponent');
+
+                    if (signatureCanvas.isEmpty()) {
+                        isValid = false;
+                    }
+                }
+                else {
+                    if ($signatureTyped.val() == '') {
+                        isValid = false;
+                    }
+                }
+
+                return isValid;
+            },
+
+            /** */
+            clientValidate: function (validator, args) {
+                var $signatureControl = $(validator).closest('.js-electronic-signature-control');
+
+                var isValid = this.signatureIsValid($signatureControl);
+                
+                if (!isValid) {
+                    validator.errormessage = "Signature is required.";
+                }
+
+                args.IsValid = isValid;
             }
         };
 

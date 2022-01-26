@@ -7,13 +7,13 @@ namespace Rock.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class ESignature_SignatureVerificationHash : IMigrationMetadata
+    public sealed partial class SignatureDataEncrypted : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(ESignature_SignatureVerificationHash));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(SignatureDataEncrypted));
         
         string IMigrationMetadata.Id
         {
-            get { return "202201142157122_ESignature_SignatureVerificationHash"; }
+            get { return "202201260109097_SignatureDataEncrypted"; }
         }
         
         string IMigrationMetadata.Source
