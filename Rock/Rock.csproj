@@ -331,6 +331,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\RockWeb\Bin\Rock.Common.Mobile.dll</HintPath>
     </Reference>
+    <Reference Include="Rock.Common.Tv, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\libs\Rock.Common.Tv\Rock.Common.Tv.dll</HintPath>
+    </Reference>
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <HintPath>..\packages\Serilog.2.8.0\lib\net46\Serilog.dll</HintPath>
     </Reference>
@@ -486,6 +490,7 @@
     <Compile Include="Attribute\ComparisonFieldAttribute.cs" />
     <Compile Include="Attribute\ContentChannelsFieldAttribute.cs" />
     <Compile Include="Attribute\CheckinConfigurationTypeFieldAttribute.cs" />
+    <Compile Include="Attribute\FieldTypeUsageAttribute.cs" />
     <Compile Include="Attribute\FinancialStatementTemplateFieldAttribute.cs" />
     <Compile Include="Attribute\LocationListFieldAttribute.cs" />
     <Compile Include="Attribute\MobileNavigationActionFieldAttribute.cs" />
@@ -778,6 +783,7 @@
     <Compile Include="Data\RockContextReadOnly.cs" />
     <Compile Include="Data\RockGuidAttribute.cs" />
     <Compile Include="ElectronicSignature\ElectronicSignatureHelper.cs" />
+    <Compile Include="Field\FieldTypeUsage.cs" />
     <Compile Include="Field\Types\MediaWatchFieldType.cs" />
     <Compile Include="Field\Types\SignatureDocumentTemplateFieldType.cs" />
     <Compile Include="Financial\GivingJourneyHelper.cs" />
@@ -931,6 +937,7 @@
     <Compile Include="Model\Core\Schedule\ScheduleService.cs" />
     <Compile Include="Model\Core\Schedule\ScheduleType.cs" />
     <Compile Include="Model\Core\RemoteAuthenticationSession\RemoteAuthenticationSession.cs" />
+    <Compile Include="Model\Core\ServiceJobHistory\ServiceJobHistory.Logic.cs" />
     <Compile Include="Model\Core\TaggedItem\TaggedItem.Logic.cs" />
     <Compile Include="Model\CRM\Badge\Badge.Logic.cs" />
     <Compile Include="Model\Core\Campus\Campus.Logic.cs" />
@@ -1084,6 +1091,7 @@
     <Compile Include="Model\Finance\FinancialScheduledTransaction\FinancialScheduledTransaction.Logic.cs" />
     <Compile Include="Model\Finance\FinancialScheduledTransaction\FinancialScheduledTransaction.SaveHook.cs" />
     <Compile Include="Model\Finance\FinancialScheduledTransaction\FinancialScheduledTransactionStatus.cs" />
+    <Compile Include="Model\Finance\FinancialStatementTemplate\FinancialStatementTemplate.Logic.cs" />
     <Compile Include="Model\Finance\FinancialStatementTemplate\FinancialStatementTemplate.SaveHook.cs" />
     <Compile Include="Model\Finance\FinancialTransactionAlertType\AlertType.cs" />
     <Compile Include="Model\Finance\FinancialTransactionAlertType\FinancialTransactionAlertType.Logic.cs" />
@@ -1320,6 +1328,9 @@
     <Compile Include="Tasks\UpdateUserLastActivity.cs" />
     <Compile Include="Store\StoreApiResult.cs" />
     <Compile Include="Transactions\BenevolenceRequestChangeTransaction.cs" />
+    <Compile Include="Tv\Classes\AppleTvApplicationSettings.cs" />
+    <Compile Include="Tv\Classes\ApplicationSettings.cs" />
+    <Compile Include="Tv\TvHelper.cs" />
     <Compile Include="UniversalSearch\IndexModels\EventItemIndex.cs" />
     <Compile Include="Utility\CodeGenFeature.cs" />
     <Compile Include="Plugin\HotFixes\143_ServerCheckinPrinterCutter2.cs" />

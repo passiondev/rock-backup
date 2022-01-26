@@ -56,6 +56,9 @@ namespace RockWeb
         // cache callback object
         private static CacheItemRemovedCallback _onCacheRemove = null;
 
+        public static Thread CompileThemesThread = null;
+        public static Thread BlockTypeCompilationThread = null;
+
         #endregion
 
         #region Asp.Net Events
@@ -229,7 +232,7 @@ namespace RockWeb
         private static void StartCompileThemesThread()
         {
             // compile less files
-            new Thread( () =>
+            CompileThemesThread = new Thread( () =>
             {
                 /* Set to background thread so that this thread doesn't prevent Rock from shutting down. */
                 var stopwatchCompileLess = Stopwatch.StartNew();
@@ -250,7 +253,9 @@ namespace RockWeb
                         System.Diagnostics.Debug.WriteLine( "RockTheme.CompileAll messages: " + messages );
                     }
                 }
-            } ).Start();
+            } );
+
+            CompileThemesThread.Start();
         }
 
         private static void StartEnsureChromeEngineThread()
@@ -285,7 +290,7 @@ namespace RockWeb
         /// </summary>
         private static void StartBlockTypeCompilationThread()
         {
-            new Thread( () =>
+            BlockTypeCompilationThread = new Thread( () =>
             {
                 // Set to background thread so that this thread doesn't prevent Rock from shutting down.
                 Thread.CurrentThread.IsBackground = true;
@@ -305,7 +310,9 @@ namespace RockWeb
                 BlockTypeService.VerifyBlockTypeInstanceProperties( allUsedBlockTypeIds, _threadCancellationTokenSource.Token );
 
                 Debug.WriteLine( string.Format( "[{0,5:#} seconds] All block types Compiled", stopwatchCompileBlockTypes.Elapsed.TotalSeconds ) );
-            } ).Start();
+            } );
+
+            BlockTypeCompilationThread.Start();
         }
 
         /// <summary>
