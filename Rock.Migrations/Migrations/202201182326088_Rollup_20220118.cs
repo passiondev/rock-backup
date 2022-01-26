@@ -14,6 +14,7 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using Rock.Model;
 
 namespace Rock.Migrations
@@ -209,53 +210,55 @@ namespace Rock.Migrations
 
         private void UpdateBackgroundCheckWorkflowInjectCheckEmailActions()
         {
-            const string myMinistry_ActivityTypeGuid = "2950B120-7BB5-46B5-93D0-26D3936F1894";
-            const string checkr_ActivityTypeGuid = "9BC07356-3B2F-4BFF-9320-FA8F3A28FC39";
-            // Background check [Initial Request] activity types: First entry [0] is My Ministry Guid Type, the second [1] is Checkr
-            var backgroundCheck_WorkflowActivityTypeGuids = new[] { myMinistry_ActivityTypeGuid, checkr_ActivityTypeGuid };
-
-            foreach ( var activityTypeGuid in backgroundCheck_WorkflowActivityTypeGuids )
+            try
             {
-                var bgCheck_ActivityTypeIdSql = $"SELECT TOP 1 [Id] FROM WorkflowActivityType WHERE [Guid] = '{activityTypeGuid}'";
-                var bgCheck_ActivityTypeId = SqlScalar( bgCheck_ActivityTypeIdSql ).ToIntSafe();
+                const string myMinistry_ActivityTypeGuid = "2950B120-7BB5-46B5-93D0-26D3936F1894";
+                const string checkr_ActivityTypeGuid = "9BC07356-3B2F-4BFF-9320-FA8F3A28FC39";
+                // Background check [Initial Request] activity types: First entry [0] is My Ministry Guid Type, the second [1] is Checkr
+                var backgroundCheck_WorkflowActivityTypeGuids = new[] { myMinistry_ActivityTypeGuid };
 
-                if ( bgCheck_ActivityTypeId > 0 )
+                foreach ( var activityTypeGuid in backgroundCheck_WorkflowActivityTypeGuids )
                 {
-                    // Attribute Guids
-                    const string personEmailValid_AttributeGuid = "0C611ABB-C3AF-495E-8454-C12FBAFB8847";
+                    var bgCheck_ActivityTypeIdSql = $"SELECT TOP 1 [Id] FROM WorkflowActivityType WHERE [Guid] = '{activityTypeGuid}'";
+                    var bgCheck_ActivityTypeId = SqlScalar( bgCheck_ActivityTypeIdSql ).ToIntSafe();
 
-                    // Action EntityType Attributes
-                    const string workflowActionShowHtml_EntityTypeGuid = "FDDAE78D-B7B3-4DA2-9A92-CC129AAF15DE";
-                    const string workflowActionRunLava_EntityTypeGuid = "BC21E57A-1477-44B3-A7C2-61A806118945";
-                    const string workflowActionCompleteWorkflow_EntityTypeGuid = "EEDA4318-F014-4A46-9C76-4C052EF81AA1";
+                    if ( bgCheck_ActivityTypeId > 0 )
+                    {
+                        // Attribute Guids
+                        const string personEmailValid_AttributeGuid = "0C611ABB-C3AF-495E-8454-C12FBAFB8847";
 
-                    // WorkflowEventItemOccurrence EntityType 
-                    const string workflowEventItemOccurrence_EntityTypeGuid = "71632E1A-1E7F-42B9-A630-EC99F375303A";
-                    var workflowEventItemOccurrence_EntityTypeIdSql = $"SELECT TOP 1 [Id] FROM EntityType WHERE [Guid] = {workflowEventItemOccurrence_EntityTypeGuid}";
-                    var workflowEventItemOccurrence_EntityTypeId = SqlScalar( workflowEventItemOccurrence_EntityTypeIdSql ).ToIntSafe();
+                        // Action EntityType Attributes
+                        const string workflowActionShowHtml_EntityTypeGuid = "FDDAE78D-B7B3-4DA2-9A92-CC129AAF15DE";
+                        const string workflowActionRunLava_EntityTypeGuid = "BC21E57A-1477-44B3-A7C2-61A806118945";
+                        const string workflowActionCompleteWorkflow_EntityTypeGuid = "EEDA4318-F014-4A46-9C76-4C052EF81AA1";
 
-                    // WorkflowActionType EntityType 
-                    const string workflowActionType_EntityTypeGuid = "23E3273A-B137-48A3-9AFF-C8DC832DDCA6";
-                    var workflowActionType_EntityTypeIdSql = $"SELECT TOP 1 [Id] FROM EntityType WHERE [Guid] = {workflowActionType_EntityTypeGuid}";
-                    var workflowActionType_EntityTypeId = SqlScalar( workflowActionType_EntityTypeIdSql ).ToIntSafe();
+                        // WorkflowEventItemOccurrence EntityType 
+                        const string workflowEventItemOccurrence_EntityTypeGuid = "71632E1A-1E7F-42B9-A630-EC99F375303A";
+                        var workflowEventItemOccurrence_EntityTypeIdSql = $"SELECT TOP 1 [Id] FROM EntityType WHERE [Guid] = '{workflowEventItemOccurrence_EntityTypeGuid}'";
+                        var workflowEventItemOccurrence_EntityTypeId = SqlScalar( workflowEventItemOccurrence_EntityTypeIdSql ).ToIntSafe();
 
-                    // Add Activity PersonEmailValid Entity Attribute
-                    RockMigrationHelper.AddOrUpdateEntityAttribute( "Rock.Model.WorkflowActivity",
-                        "9C204CD0-1233-41C5-818A-C5DA439445AA", "ActivityTypeId",
-                        bgCheck_ActivityTypeId.ToString(),
-                        "PersonEmailValid",
-                        "PersonEmailValid",
-                        "Used to indicate if a person has a valid and active email before executing a background check.", 0, "No",
-                        personEmailValid_AttributeGuid, "PersonEmailValid" );
+                        // WorkflowActionType EntityType 
+                        const string workflowActionType_EntityTypeGuid = "23E3273A-B137-48A3-9AFF-C8DC832DDCA6";
+                        var workflowActionType_EntityTypeIdSql = $"SELECT TOP 1 [Id] FROM EntityType WHERE [Guid] = '{workflowActionType_EntityTypeGuid}'";
+                        var workflowActionType_EntityTypeId = SqlScalar( workflowActionType_EntityTypeIdSql ).ToIntSafe();
+
+                        // Add Activity PersonEmailValid Entity Attribute
+                        RockMigrationHelper.AddOrUpdateEntityAttribute( "Rock.Model.WorkflowActivity",
+                            "9C204CD0-1233-41C5-818A-C5DA439445AA", "ActivityTypeId",
+                            bgCheck_ActivityTypeId.ToString(),
+                            "PersonEmailValid",
+                            "PersonEmailValid",
+                            "Used to indicate if a person has a valid and active email before executing a background check.", 0, "No",
+                            personEmailValid_AttributeGuid, "PersonEmailValid" );
 
 
-                    // Action Entity Attribute Value
-                    const string lavaAttribute_AttributeGuid = "F1F6F9D6-FDC5-489C-8261-4B9F45B3EED4";
-                    const string htmlAttribute_AttributeGuid = "DCC5F049-8BDB-4DBF-B07A-081C0B772473";
+                        // Action Entity Attribute Value
+                        const string lavaAttribute_AttributeGuid = "F1F6F9D6-FDC5-489C-8261-4B9F45B3EED4";
+                        const string htmlAttribute_AttributeGuid = "DCC5F049-8BDB-4DBF-B07A-081C0B772473";
 
-                    #region Add [Set PersonEmailValid Attribute] Value
-                    // Add [Set PersonEmailValid Attribute] Value
-                    const string setPersonEmailValidLava = @"{% assign person = Workflow | Attribute:'Person','Object' %}
+                        #region Add [Set PersonEmailValid Attribute] Value
+                        // Add [Set PersonEmailValid Attribute] Value
+                        const string setPersonEmailValidLava = @"{% assign person = Workflow | Attribute:''Person'',''Object'' %}
 {% assign emailLength = person.Email | Size %}
 {% assign emailActive = person.IsEmailActive | AsBoolean %}
 {% if emailLength > 0 and emailActive %}
@@ -263,71 +266,79 @@ Yes
 {% else %}
 No
 {% endif %}";
-                    #endregion Add [Set PersonEmailValid Attribute] Value
+                        #endregion Add [Set PersonEmailValid Attribute] Value
 
-                    RockMigrationHelper.AddAttributeValue( lavaAttribute_AttributeGuid, workflowEventItemOccurrence_EntityTypeId,
-                        setPersonEmailValidLava, "6DC21662-3F1C-4118-9E2A-3D20AC9DE865" );
+                        RockMigrationHelper.AddAttributeValue( lavaAttribute_AttributeGuid, workflowEventItemOccurrence_EntityTypeId,
+                            setPersonEmailValidLava, "6DC21662-3F1C-4118-9E2A-3D20AC9DE865" );
 
-                    #region [Show Email Not Found Message] Value
-                    // [Show Email Not Found Message] Value
-                    const string setPersonEmailNotFoundMessage = @"{% assign person = Workflow | Attribute:'Person','Object' %}
-{% assign personProfilePage = '~/Person/' %}
+                        #region [Show Email Not Found Message] Value
+                        // [Show Email Not Found Message] Value
+                        const string setPersonEmailNotFoundMessage = @"{% assign person = Workflow | Attribute:''Person'',''Object'' %}
+{% assign personProfilePage = ''~/Person/'' %}
 {% assign personUrl = personProfilePage | ResolveRockUrl person.Id %}
 
-<div class='alert alert-danger margin - t - lg js - workflow - entry - message - notification - box'>
-    < strong > Error: Email Required</ strong >
-    <span class='js-notification-text'>
+<div class=''alert alert-danger margin-t-lg js-workflow-entry-message-notification-box''>
+    <strong> Error: Email Required</strong>
+    <span class=''js-notification-text''>
 	    <ul>
-	        <li><strong><a href = '{{ personProfilePage | ResolveRockUrl }}{{ person.Id }}' target='_blank '>{{Workflow | Attribute:'Person','FullName'}}</ a ></ strong > has an empty or inactive email address. A background check can not be run unless a valid email address is provided.</li>
-				        <ul><li>Enter a valid email address and\or set it to active for <strong></strong>{{ Workflow | Attribute:'Person','FullName'}}</ strong >.</ li >
-                        < li > Then run the background check again.</li></ul>
+	        <li><strong><a href=''{{ personProfilePage | ResolveRockUrl }}{{ person.Id }}'' target=''_blank''>{{ Workflow | Attribute:''Person'',''FullName'' }}</a></strong> has an empty or inactive email address. A background check can not be run unless a valid email address is provided.</li>
+				    <ul>
+                        <li>Enter a valid email address and\or set it to active for <strong></strong>{{ Workflow | Attribute:''Person'',''FullName'' }}</strong>.</li>
+                        <li>Then run the background check again.</li>
+                    </ul>
 	    </ul>
 	</span>
 </div>";
-                    #endregion [Show Email Not Found Message] Value
+                        #endregion [Show Email Not Found Message] Value
 
-                    RockMigrationHelper.AddAttributeValue( htmlAttribute_AttributeGuid, workflowActionType_EntityTypeId,
-                        setPersonEmailNotFoundMessage, "1F9C3491-C165-4307-881D-06B8716146C9" );
+                        RockMigrationHelper.AddAttributeValue( htmlAttribute_AttributeGuid, workflowActionType_EntityTypeId,
+                            setPersonEmailNotFoundMessage, "1F9C3491-C165-4307-881D-06B8716146C9" );
 
-                    // Reorder Action entries
-                    if ( activityTypeGuid == myMinistry_ActivityTypeGuid )
-                    {
-                        // Set Status
-                        Sql( "Update [WorkflowActionType] SET [Order] = 4 WHERE [Guid] = '10E8C6CB-A72C-4254-A1F5-E43B6C7B404B'" );
+                        // Reorder Action entries
+                        if ( activityTypeGuid == myMinistry_ActivityTypeGuid )
+                        {
+                            // Set Status
+                            Sql( "Update [WorkflowActionType] SET [Order] = 4 WHERE [Guid] = '10E8C6CB-A72C-4254-A1F5-E43B6C7B404B'" );
 
-                        // Set Requester
-                        Sql( "Update [WorkflowActionType] SET [Order] = 5 WHERE [Guid] = '3136A135-4836-4C09-BD81-326CA21C6AA5'" );
+                            // Set Requester
+                            Sql( "Update [WorkflowActionType] SET [Order] = 5 WHERE [Guid] = '3136A135-4836-4C09-BD81-326CA21C6AA5'" );
 
-                        // Set Name
-                        Sql( "Update [WorkflowActionType] SET [Order] = 6 WHERE [Guid] = '6A779AB3-3223-411B-9AEE-87A5EE1EDF12'" );
+                            // Set Name
+                            Sql( "Update [WorkflowActionType] SET [Order] = 6 WHERE [Guid] = '6A779AB3-3223-411B-9AEE-87A5EE1EDF12'" );
 
-                        // Set Warning
-                        Sql( "Update [WorkflowActionType] SET [Order] = 7 WHERE [Guid] = '81D1FB3E-5017-4A53-A4EF-F6618F782935'" );
+                            // Set Warning
+                            Sql( "Update [WorkflowActionType] SET [Order] = 7 WHERE [Guid] = '81D1FB3E-5017-4A53-A4EF-F6618F782935'" );
 
-                        // Get Details
-                        Sql( "Update [WorkflowActionType] SET [Order] = 8 WHERE [Guid] = 'A3EAF2A3-97FB-47A6-9844-F7F0755FC5BE'" );
+                            // Get Details
+                            Sql( "Update [WorkflowActionType] SET [Order] = 8 WHERE [Guid] = 'A3EAF2A3-97FB-47A6-9844-F7F0755FC5BE'" );
 
+                        }
+
+                        // Add [Set PersonEmailValid Attribute] Action - Order 1
+                        RockMigrationHelper.UpdateWorkflowActionType( activityTypeGuid, "Set PersonEmailValid Attribute", 1,
+                            workflowActionRunLava_EntityTypeGuid, true, false, "",
+                            "", ComparisonType.EqualTo.ConvertToInt(), "",
+                            "47352363-74CC-477C-B7A1-56939B18B1E2" );
+
+                        // Add [Show Email Not Found Message] Action - Order 2
+                        RockMigrationHelper.UpdateWorkflowActionType( activityTypeGuid, "Show Email Not Found Message", 2,
+                            workflowActionShowHtml_EntityTypeGuid, true, false, "",
+                            personEmailValid_AttributeGuid, ComparisonType.EqualTo.ConvertToInt(), "No",
+                            "F7706A78-A603-435E-8905-4FCF50AA2765" );
+
+                        // Add [Set Email Not Found Status] Action - Order 3
+                        RockMigrationHelper.UpdateWorkflowActionType( activityTypeGuid, "Set Email Not Found Status", 3,
+                            workflowActionCompleteWorkflow_EntityTypeGuid, true, true, "",
+                            personEmailValid_AttributeGuid, ComparisonType.EqualTo.ConvertToInt(), "No",
+                            "4FE1A541-123C-4F16-B0DE-EA90640CDE07" );
                     }
 
-                    // Add [Set PersonEmailValid Attribute] Action - Order 1
-                    RockMigrationHelper.UpdateWorkflowActionType( activityTypeGuid, "Set PersonEmailValid Attribute", 1,
-                        workflowActionRunLava_EntityTypeGuid, true, false, "NULL",
-                        "", ComparisonType.EqualTo.ConvertToInt(), "", "47352363-74CC-477C-B7A1-56939B18B1E2" );
-
-                    // Add [Show Email Not Found Message] Action - Order 2
-                    RockMigrationHelper.UpdateWorkflowActionType( activityTypeGuid, "Show Email Not Found Message", 2,
-                        workflowActionShowHtml_EntityTypeGuid, true, false, "NULL",
-                        personEmailValid_AttributeGuid, ComparisonType.EqualTo.ConvertToInt(), "No",
-                        "F7706A78-A603-435E-8905-4FCF50AA2765" );
-
-                    // Add [Set Email Not Found Status] Action - Order 3
-                    RockMigrationHelper.UpdateWorkflowActionType( activityTypeGuid, "Set Email Not Found Status", 3,
-                        workflowActionCompleteWorkflow_EntityTypeGuid, true, true, "NULL",
-                        personEmailValid_AttributeGuid, ComparisonType.EqualTo.ConvertToInt(), "No",
-                        "4FE1A541-123C-4F16-B0DE-EA90640CDE07" );
-                }
-
-            } //foreach
+                } //foreach
+            }
+            catch(Exception ex )
+            {
+                throw new Exception( $"Error in {nameof( UpdateBackgroundCheckWorkflowInjectCheckEmailActions )}\r\n{ex}", ex.InnerException );
+            }
         }
     }
 }
