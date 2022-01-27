@@ -73,8 +73,23 @@ export default defineComponent({
             selectedTab.value = 1;
         };
 
+        const communicationsViewModel = ref<unknown>({});
+
+        setTimeout(() => {
+            communicationsViewModel.value = {
+                confirmationEmail: {
+                    enabled: true
+                },
+
+                notificationEmail: {
+                    enabled: true
+                }
+            };
+        }, 2000);
+
         return {
             communicationsContainerStyle,
+            communicationsViewModel,
             formBuilderContainerStyle,
             isCommunicationsTabSelected,
             isFormBuilderTabSelected,
@@ -308,7 +323,7 @@ export default defineComponent({
             </div>
 
             <div style="flex-grow: 1; overflow-y: hidden;" :style="communicationsContainerStyle">
-                <CommunicationsTab />
+                <CommunicationsTab v-model="communicationsViewModel" />
             </div>
         </div>
     </template>
