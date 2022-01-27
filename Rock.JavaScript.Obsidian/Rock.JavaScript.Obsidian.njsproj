@@ -127,6 +127,7 @@
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\sectionEditAside.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\sectionZone.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\segmentedPicker.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\settingsWell.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\types.d.ts" />
     <TypeScriptCompile Include="Framework\Controls\addressControl.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeEditor.ts" />

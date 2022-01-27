@@ -21,6 +21,7 @@ import InlineSwitch from "../../../Elements/inlineSwitch";
 import TransitionVerticalCollapse from "../../../Elements/transitionVerticalCollapse";
 import { ListItem } from "../../../ViewModels";
 import EmailSource from "./emailSource";
+import SettingsWell from "./settingsWell";
 import { FormConfirmationEmail, FormEmailSource } from "./types";
 
 /**
@@ -34,6 +35,7 @@ export default defineComponent({
         DropDownList,
         EmailSource,
         InlineSwitch,
+        SettingsWell,
         TransitionVerticalCollapse
     },
 
@@ -90,40 +92,22 @@ export default defineComponent({
     },
 
     template: `
-<div class="well">
-    <div class="d-flex">
-        <div style="flex-grow: 1;">
-            <h3>Confirmation Email</h3>
-            <p>
-                The following settings will be used to send an email to the individual who submitted the form.
-            </p>
-        </div>
-
-        <div style="align-self: end;">
-            <InlineSwitch v-model="enabled" label="Enable" />
+<SettingsWell v-model="enabled"
+    hasEnable
+    title="Confirmation Email"
+    description="The following settings will be used to send an email to the individual who submitted the form.">
+    <div class="row">
+        <div class="col-md-4">
+            <DropDownList v-model="recipientAttributeGuid"
+                label="Recipient"
+                rules="required"
+                :options="recipientOptions" />
         </div>
     </div>
 
-    <TransitionVerticalCollapse>
-        <div v-if="enabled">
-            <hr />
-
-            <div style="margin: 12px;">
-                <div class="row">
-                    <div class="col-md-4">
-                        <DropDownList v-model="recipientAttributeGuid"
-                            label="Recipient"
-                            rules="required"
-                            :options="recipientOptions" />
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <EmailSource v-model="source" />
-                </div>
-            </div>
-        </div>
-    </TransitionVerticalCollapse>
-</div>
+    <div class="mt-3">
+        <EmailSource v-model="source" />
+    </div>
+</Settingswell>
 `
 });

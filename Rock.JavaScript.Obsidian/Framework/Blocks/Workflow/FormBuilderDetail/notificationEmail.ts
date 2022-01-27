@@ -19,13 +19,12 @@ import { computed, defineComponent, PropType, ref, watch } from "vue";
 import PersonPicker from "../../../Controls/personPicker";
 import DropDownList from "../../../Elements/dropDownList";
 import EmailBox from "../../../Elements/emailBox";
-import InlineSwitch from "../../../Elements/inlineSwitch";
 import TextBox from "../../../Elements/textBox";
-import TransitionVerticalCollapse from "../../../Elements/transitionVerticalCollapse";
 import { toNumberOrNull } from "../../../Services/number";
 import { ListItem } from "../../../ViewModels";
 import EmailSource from "./emailSource";
 import SegmentedPicker from "./segmentedPicker";
+import SettingsWell from "./settingsWell";
 import { FormNotificationEmail, NotificationEmailDestination } from "./types";
 
 const notificationDestinationOptions: ListItem[] = [
@@ -54,11 +53,10 @@ export default defineComponent({
         DropDownList,
         EmailBox,
         EmailSource,
-        InlineSwitch,
         PersonPicker,
         SegmentedPicker,
+        SettingsWell,
         TextBox,
-        TransitionVerticalCollapse
     },
 
     props: {
@@ -145,65 +143,47 @@ export default defineComponent({
     },
 
     template: `
-<div class="well">
-    <div class="d-flex">
-        <div style="flex-grow: 1;">
-            <h3>Notification Email</h3>
-            <p>
-                Notification emails can be sent to specified individuals when each form is completed.
-            </p>
-        </div>
+<SettingsWell v-model="enabled"
+    hasEnable
+    title="Notification Email"
+    description="Notification emails can be sent to specified individuals when each form is completed.">
+    <SegmentedPicker v-model="destination" :options="destinationOptions" />
 
-        <div style="align-self: end;">
-            <InlineSwitch v-model="enabled" label="Enable" />
+    <div v-if="isDestinationSpecificIndividual">
+        <div class="row">
+            <div class="col-md-4">
+                <PersonPicker v-model="recipient"
+                    label="Recipient"
+                    rules="required" />
+            </div>
         </div>
     </div>
 
-    <TransitionVerticalCollapse>
-        <div v-if="enabled">
-            <hr />
-
-            <div style="margin: 12px;">
-                <SegmentedPicker v-model="destination" :options="destinationOptions" />
-
-                <div v-if="isDestinationSpecificIndividual">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <PersonPicker v-model="recipient"
-                                label="Recipient"
-                                rules="required" />
-                        </div>
-                    </div>
-                </div>
-
-                <div v-else-if="isDestinationEmailAddress">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <EmailBox v-model="emailAddress"
-                                label="Recipient(s)"
-                                rules="required"
-                                allowMultiple />
-                        </div>
-                    </div>
-                </div>
-
-                <div v-else-if="isDestinationCampusTopic">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <DropDownList v-model="campusTopicGuid"
-                                label="Topic"
-                                rules="required"
-                                :options="campusTopicOptions" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <EmailSource v-model="source" />
-                </div>
+    <div v-else-if="isDestinationEmailAddress">
+        <div class="row">
+            <div class="col-md-4">
+                <EmailBox v-model="emailAddress"
+                    label="Recipient(s)"
+                    rules="required"
+                    allowMultiple />
             </div>
         </div>
-    </TransitionVerticalCollapse>
+    </div>
+
+    <div v-else-if="isDestinationCampusTopic">
+        <div class="row">
+            <div class="col-md-4">
+                <DropDownList v-model="campusTopicGuid"
+                    label="Topic"
+                    rules="required"
+                    :options="campusTopicOptions" />
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <EmailSource v-model="source" />
+    </div>
 </div>
 `
 });
