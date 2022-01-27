@@ -65,27 +65,19 @@ export default defineComponent({
             };
         });
 
-        const onFormBuilderTab = (): void => {
+        const onFormBuilderTabClick = (): void => {
             selectedTab.value = 0;
         };
 
-        const onCommunicationsTab = (): void => {
+        const onCommunicationsTabClick = (): void => {
             selectedTab.value = 1;
         };
 
+        const onSettingsTabClick = (): void => {
+            selectedTab.value = 2;
+        };
+
         const communicationsViewModel = ref<unknown>({});
-
-        setTimeout(() => {
-            communicationsViewModel.value = {
-                confirmationEmail: {
-                    enabled: true
-                },
-
-                notificationEmail: {
-                    enabled: true
-                }
-            };
-        }, 2000);
 
         return {
             communicationsContainerStyle,
@@ -94,8 +86,9 @@ export default defineComponent({
             isCommunicationsTabSelected,
             isFormBuilderTabSelected,
             isSettingsTabSelected,
-            onCommunicationsTab,
-            onFormBuilderTab
+            onCommunicationsTabClick,
+            onFormBuilderTabClick,
+            onSettingsTabClick
         };
     },
 
@@ -307,9 +300,9 @@ export default defineComponent({
             <div class="p-2 d-flex" style="border-bottom: 1px solid #dfe0e1;">
                 <ul class="nav nav-pills" style="flex-grow: 1;">
                     <li role="presentation"><a href="#">Submissions</a></li>
-                    <li :class="{ active: isFormBuilderTabSelected }" role="presentation"><a href="#" @click.prevent="onFormBuilderTab">Form Builder</a></li>
-                    <li :class="{ active: isCommunicationsTabSelected }" role="presentation"><a href="#" @click.prevent="onCommunicationsTab">Communications</a></li>
-                    <li :class="{ active: isSettingsTabSelected }" role="presentation"><a href="#">Settings</a></li>
+                    <li :class="{ active: isFormBuilderTabSelected }" role="presentation"><a href="#" @click.prevent="onFormBuilderTabClick">Form Builder</a></li>
+                    <li :class="{ active: isCommunicationsTabSelected }" role="presentation"><a href="#" @click.prevent="onCommunicationsTabClick">Communications</a></li>
+                    <li :class="{ active: isSettingsTabSelected }" role="presentation"><a href="#" @click.prevent="onSettingsTabClick">Settings</a></li>
                     <li role="presentation"><a href="#">Analytics</a></li>
                 </ul>
 
@@ -324,6 +317,9 @@ export default defineComponent({
 
             <div style="flex-grow: 1; overflow-y: hidden;" :style="communicationsContainerStyle">
                 <CommunicationsTab v-model="communicationsViewModel" />
+            </div>
+
+            <div style="flex-grow: 1; overflow-y: hidden;" :style="settingsContainerStyle">
             </div>
         </div>
     </template>

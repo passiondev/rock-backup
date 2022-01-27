@@ -116,13 +116,17 @@
     <TypeScriptCompile Include="Framework\Blocks\Utility\starkDetail.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\formBuilderDetail.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\communicationsTab.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\confirmationEmail.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\emailSource.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\fieldEditAside.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\formBuilderTab.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\formContentModal.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\formContentZone.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\generalAside.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\notificationEmail.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\sectionEditAside.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\sectionZone.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\segmentedPicker.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\types.d.ts" />
     <TypeScriptCompile Include="Framework\Controls\addressControl.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeEditor.ts" />

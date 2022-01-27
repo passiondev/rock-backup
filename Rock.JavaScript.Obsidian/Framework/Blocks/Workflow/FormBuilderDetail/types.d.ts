@@ -17,6 +17,7 @@
 
 import { Component } from "vue";
 import { Guid } from "../../../Util/guid";
+import { ListItem } from "../../../ViewModels";
 
 export type FormSection = {
     guid: Guid;
@@ -93,3 +94,59 @@ export const enum SectionStyleType {
 export interface IAsideProvider {
     isSafeToClose: () => boolean;
 }
+
+export const enum FormEmailSourceType {
+    UseTemplate = 0,
+
+    Custom = 1
+}
+
+export type FormConfirmationEmail = {
+    enabled?: boolean;
+
+    recipientAttributeGuid?: ListItem | null;
+
+    source?: FormEmailSource | null;
+};
+
+export type FormEmailSource = {
+    type?: FormEmailSourceType;
+
+    template?: ListItem | null;
+
+    subject?: string | null;
+
+    replyTo?: string | null;
+
+    body?: string | null;
+
+    appendOrgHeaderAndFooter?: boolean;
+};
+
+export const enum NotificationEmailDestination {
+    SpecificIndividual = 0,
+
+    EmailAddress = 1,
+
+    CampusTopic = 2
+}
+
+export type FormNotificationEmail = {
+    enabled?: boolean;
+
+    destination?: NotificationEmailDestination;
+
+    recipient?: ListItem | null;
+
+    emailAddress?: string | null;
+
+    campusTopicGuid?: Guid | null;
+
+    source?: FormEmailSource;
+};
+
+export type FormCommunication = {
+    confirmationEmail?: FormConfirmationEmail;
+
+    notificationEmail?: FormNotificationEmail;
+};
