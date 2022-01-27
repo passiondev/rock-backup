@@ -20,6 +20,7 @@ using System.IO;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 
+using Rock.Utility;
 using Rock.Web.Cache;
 
 namespace Rock.Pdf
@@ -61,7 +62,15 @@ namespace Rock.Pdf
         {
             _lastProgressPercentage = 0;
             browserFetcher.DownloadProgressChanged += BrowserFetcher_DownloadProgressChanged;
-            browserFetcher.DownloadAsync().Wait();
+
+            try
+            {
+                AsyncHelper.RunSync( () => browserFetcher.DownloadAsync() );
+            }
+            catch ( IOException ioException )
+            {
+                throw new PdfGeneratorException( "PDF Engine is not available. Please try again later.", ioException );
+            }
         }
 
         /// <summary>
@@ -273,7 +282,7 @@ namespace Rock.Pdf
 <div class='text right'>
     <span class='pageNumber'></span>/<span class='totalPages'></span>
 </div>;";
-          
+
             var pdfStream = _puppeteerPage.PdfStreamAsync( pdfOptions ).Result;
 
             return pdfStream;
@@ -286,6 +295,19 @@ namespace Rock.Pdf
         {
             _puppeteerPage.Dispose();
             _puppeteerBrowser.Dispose();
+        }
+    }
+
+    public class PdfGeneratorException : Exception
+    {
+        public PdfGeneratorException( string message ) : base( message )
+        {
+
+        }
+
+        public PdfGeneratorException( string message, Exception innerException ) : base( message, innerException )
+        {
+
         }
     }
 }
