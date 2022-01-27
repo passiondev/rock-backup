@@ -184,6 +184,6 @@ export default defineComponent({
     <div class="mt-3">
         <EmailSource v-model="source" />
     </div>
-</div>
+</SettingsWell>
 `
 });

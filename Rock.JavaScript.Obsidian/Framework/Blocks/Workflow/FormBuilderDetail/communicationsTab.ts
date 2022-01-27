@@ -18,7 +18,6 @@
 import { defineComponent, PropType, ref, watch } from "vue";
 import RockForm from "../../../Controls/rockForm";
 import Alert from "../../../Elements/alert";
-import RockButton from "../../../Elements/rockButton";
 import ConfirmationEmail from "./confirmationEmail";
 import NotificationEmail from "./notificationEmail";
 import { FormCommunication } from "./types";
@@ -30,8 +29,7 @@ export default defineComponent({
         Alert,
         ConfirmationEmail,
         NotificationEmail,
-        RockForm,
-        RockButton
+        RockForm
     },
 
     props: {
@@ -86,7 +84,6 @@ export default defineComponent({
 <div class="d-flex flex-column" style="flex-grow: 1; overflow-y: auto;">
     <div class="panel-body">
         <RockForm @submit="onSubmit">
-
             <ConfirmationEmail v-if="!confirmationEmailForced" v-model="confirmationEmail" />
             <Alert v-else alertType="info">
                 <h4 class="alert-heading">Confirmation Email</h4>
@@ -102,8 +99,6 @@ export default defineComponent({
                     The notification e-mail is defined on the template and cannot be changed.
                 </p>
             </Alert>
-
-            <RockButton type="submit" btnType="primary">Submit</RockButton>
         </RockForm>
     </div>
 </div>

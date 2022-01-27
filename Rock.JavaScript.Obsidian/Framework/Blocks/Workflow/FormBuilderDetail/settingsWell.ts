@@ -24,7 +24,7 @@ import TransitionVerticalCollapse from "../../../Elements/transitionVerticalColl
  * screen.
  */
 export default defineComponent({
-    name: "Workflow.FormBuilderDetail.ConfirmationEmail",
+    name: "Workflow.FormBuilderDetail.SettingsWell",
 
     components: {
         InlineSwitch,
