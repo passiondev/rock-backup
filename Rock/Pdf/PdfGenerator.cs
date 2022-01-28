@@ -20,6 +20,7 @@ using System.IO;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 
+using Rock.SystemKey;
 using Rock.Utility;
 using Rock.Web.Cache;
 
@@ -37,7 +38,17 @@ namespace Rock.Pdf
         /// </summary>
         public PdfGenerator()
         {
-            InitializeChromeEngine();
+            InitializeChromeEngine(false);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PdfGenerator"/> class.
+        /// With an option to use the local chromium engine, even if <see cref="SystemSetting.PDF_EXTERNAL_RENDER_ENDPOINT"/>  is specified.
+        /// </summary>
+        /// <param name="forceUseLocal">if set to <c>true</c> [force use local].</param>
+        public PdfGenerator( bool forceUseLocal )
+        {
+            InitializeChromeEngine( forceUseLocal);
         }
 
         private Browser _puppeteerBrowser = null;
@@ -53,13 +64,20 @@ namespace Rock.Pdf
         {
             using ( var browserFetcher = GetBrowserFetcher() )
             {
-                EnsureChromeEngineInstalled( browserFetcher );
+                EnsureChromeEngineInstalled( browserFetcher, false );
             }
         }
 
         /// <inheritdoc cref="PdfGenerator.EnsureChromeEngineInstalled()"/>
-        private static void EnsureChromeEngineInstalled( BrowserFetcher browserFetcher )
+        private static void EnsureChromeEngineInstalled( BrowserFetcher browserFetcher, bool forceUseLocal )
         {
+            var pdfExternalRenderEndpoint = Rock.Web.SystemSettings.GetValue( SystemSetting.PDF_EXTERNAL_RENDER_ENDPOINT );
+
+            if ( pdfExternalRenderEndpoint.IsNotNullOrWhiteSpace() && !forceUseLocal )
+            {
+                return;
+            }
+
             _lastProgressPercentage = 0;
             browserFetcher.DownloadProgressChanged += BrowserFetcher_DownloadProgressChanged;
 
@@ -118,9 +136,27 @@ namespace Rock.Pdf
         /// <summary>
         /// Initializes the chrome engine.
         /// </summary>
-        private void InitializeChromeEngine()
+        private void InitializeChromeEngine( bool forceUseLocal)
         {
-            if ( _puppeteerBrowser == null )
+            var pdfExternalRenderEndpoint = Rock.Web.SystemSettings.GetValue( SystemSetting.PDF_EXTERNAL_RENDER_ENDPOINT );
+
+            if ( !forceUseLocal && pdfExternalRenderEndpoint.IsNotNullOrWhiteSpace() )
+            {
+                var connectOptions = new ConnectOptions
+                {
+                    BrowserWSEndpoint = pdfExternalRenderEndpoint
+                };
+
+                try
+                {
+                    _puppeteerBrowser = Puppeteer.ConnectAsync( connectOptions ).Result;
+                }
+                catch ( Exception ex )
+                {
+                    throw new PdfGeneratorException( $"Unable to connect using '{pdfExternalRenderEndpoint}'", ex );
+                }
+            }
+            else
             {
                 var launchOptions = new LaunchOptions
                 {
@@ -131,7 +167,7 @@ namespace Rock.Pdf
                 using ( var browserFetcher = GetBrowserFetcher() )
                 {
                     // should have already been installed, but just in case it hasn't, download it now.
-                    EnsureChromeEngineInstalled( browserFetcher );
+                    EnsureChromeEngineInstalled( browserFetcher, forceUseLocal );
                     launchOptions.ExecutablePath = browserFetcher.RevisionInfo( BrowserFetcher.DefaultChromiumRevision ).ExecutablePath;
                 }
 
@@ -177,7 +213,8 @@ namespace Rock.Pdf
         }
 
         /// <summary>
-        /// Gets the PDF document from a URL as base64 Data URL
+        /// Gets the PDF document from a URL as base64 Data URL.
+        /// Note this might not work in all browsers if it is a big pdf (2MB+)
         /// For example:
         /// <br/>
         /// <c>data:application/pdf;base64,JVBERi0xLjMK...</c>
@@ -191,6 +228,7 @@ namespace Rock.Pdf
 
         /// <summary>
         /// Gets the PDF document from HTML as base64 Data URL. For example:
+        /// Note this might not work in all browsers if it is a big pdf (2MB+)
         /// <br/>
         /// <c>data:application/pdf;base64,JVBERi0xLjMK...</c>
         /// </summary>
@@ -295,19 +333,6 @@ namespace Rock.Pdf
         {
             _puppeteerPage.Dispose();
             _puppeteerBrowser.Dispose();
-        }
-    }
-
-    public class PdfGeneratorException : Exception
-    {
-        public PdfGeneratorException( string message ) : base( message )
-        {
-
-        }
-
-        public PdfGeneratorException( string message, Exception innerException ) : base( message, innerException )
-        {
-
         }
     }
 }

@@ -150,6 +150,7 @@ namespace RockWeb.Blocks.Administration
             // Save General
             Rock.Web.SystemSettings.SetValue( SystemSetting.ENABLE_MULTI_TIME_ZONE_SUPPORT, cbEnableMultipleTimeZone.Checked.ToString() );
             Rock.Web.SystemSettings.SetValue( SystemSetting.ALWAYS_SHOW_BUSINESS_IN_PERSONPICKER, cbIncludeBusinessInPersonPicker.Checked.ToString() );
+            Rock.Web.SystemSettings.SetValue( SystemSetting.PDF_EXTERNAL_RENDER_ENDPOINT, tbPDFExternalRenderEndpoint.Text );
 
             nbGeneralMessage.NotificationBoxType = NotificationBoxType.Success;
             nbGeneralMessage.Title = string.Empty;
@@ -217,6 +218,22 @@ namespace RockWeb.Blocks.Administration
         {
             cbEnableMultipleTimeZone.Checked = Rock.Web.SystemSettings.GetValue( SystemSetting.ENABLE_MULTI_TIME_ZONE_SUPPORT ).AsBoolean();
             cbIncludeBusinessInPersonPicker.Checked = Rock.Web.SystemSettings.GetValue( SystemSetting.ALWAYS_SHOW_BUSINESS_IN_PERSONPICKER ).AsBoolean();
+            tbPDFExternalRenderEndpoint.Text = Rock.Web.SystemSettings.GetValue( SystemSetting.PDF_EXTERNAL_RENDER_ENDPOINT );
+
+
+            /*
+
+Puppeteer Info
+
+We will add Puppeteer to Rock to use as a way to convert HTML to PDF in core. For v13 this will only be used for Digital Signatures. We will add it to other placed in upcoming releases.
+
+High-level Thoughts
+Add this as a utility class (static or instance)
+Class would have methods to convert HTML from a string or a URL
+The class would by default use Puppeteer.Launch() but could also use Puppeteer.Connect(). Connect allows us to use services like Browserless.io for instances running in Azure AppServices.
+Add a Configuration Setting under ‘System Configuration’ (in the General Configuration section) (https://prealpha.rocksolidchurchdemo.com/page/264) that allows one to provide the Connect string for #3. Setting name would be ‘PDF External Render Endpoint’. For more information see: https://docs.browserless.io/docs/works.html#via-browserwsendpoint
+
+            */
         }
 
         /// <summary>

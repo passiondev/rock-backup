@@ -492,14 +492,41 @@ namespace RockWeb.Blocks.Core
                     SignedDateTime = RockDateTime.Now,
                     SignedClientIp = this.GetClientIpAddress(),
                     TypedSignatureText = this.CurrentPerson.FullName,
-                    SignatureVerificationHash = Rock.Security.Encryption.GetSHA1Hash("##Preview##")
+                    SignatureVerificationHash = Rock.Security.Encryption.GetSHA1Hash( "##Preview##" )
                 } );
 
-                using ( var pdfGenerator = new PdfGenerator() )
+                bool forceUseLocal = false;
+                using ( var pdfGenerator = new PdfGenerator( forceUseLocal ) )
                 {
                     var signedDocumentHtml = ElectronicSignatureHelper.GetSignedDocumentHtml( signatureDocumentHtml, signatureInformationHtml );
-                    var base64DataUrl = pdfGenerator.GetPDFDocumentFromHtmlAsBase64DataUrl( signedDocumentHtml );
-                    pdfSignatureDocumentPreview.SourceUrl = base64DataUrl;
+
+                    var pdfDocument = pdfGenerator.GetPDFDocumentFromHtml( signedDocumentHtml );
+
+                    // put the pdf into a BinaryFile. We'll mark it IsTemporary so it'll eventually get cleaned up by RockCleanup
+                    // Note that we don't need to create a binary file if we use GetPDFDocumentFromUrlAsBase64DataUrl to get a DataUrl, but
+                    // that doesn't work in browsers if the PDF is over 2MB (Firefox supports very large dataurls, but Chromium based browsers seem to have a 2MB limit)
+                    var binaryFile = new BinaryFile();
+                    binaryFile.ContentStream = pdfDocument;
+                    binaryFile.IsTemporary = true;
+                    binaryFile.MimeType = "application/pdf";
+                    binaryFile.FileName = "preview.pdf";
+
+                    var binaryFileTypeId = bftpFileType.SelectedValueAsInt();
+                    if ( binaryFileTypeId < 1 )
+                    {
+                        binaryFileTypeId = BinaryFileTypeCache.GetId( Rock.SystemGuid.BinaryFiletype.DIGITALLY_SIGNED_DOCUMENTS.AsGuid() );
+                    }
+
+                    binaryFile.BinaryFileTypeId = binaryFileTypeId;
+
+                    using ( var rockContext = new RockContext() )
+                    {
+                        new BinaryFileService( rockContext ).Add( binaryFile );
+                        rockContext.SaveChanges();
+                    }
+
+                    var getFileUrl = string.Format( "{0}GetFile.ashx?guid={1}", System.Web.VirtualPathUtility.ToAbsolute( "~" ), binaryFile.Guid );
+                    pdfSignatureDocumentPreview.SourceUrl = getFileUrl;
                 }
 
                 // toggle to show PDF and hide Lava Template
