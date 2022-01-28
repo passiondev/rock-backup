@@ -32,7 +32,7 @@ namespace Rock.Web.UI.Controls
         #endregion Controls
 
         /// <summary>
-        /// Gets or sets the URL of the PDF File
+        /// Gets or sets the URL of the PDF File.
         /// </summary>
         /// <value>The source URL.</value>
         public string SourceUrl { get; set; }
@@ -122,11 +122,9 @@ namespace Rock.Web.UI.Controls
 (function($) {{
     var options = {{
         height: '{ViewerHeight}',
-        page: '1',
         pdfOpenParams: {{
             view: '{FitView}',
-            pagemode: '{PageMode}',
-            search: ''
+            pagemode: '{PageMode}'
         }}
     }};
 

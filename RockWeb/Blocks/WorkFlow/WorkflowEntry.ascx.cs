@@ -1898,6 +1898,9 @@ namespace RockWeb.Blocks.WorkFlow
             escElectronicSignatureControl.SignatureType = signatureDocumentTemplate.SignatureType;
             escElectronicSignatureControl.DocumentTerm = signatureDocumentTemplate.DocumentTerm;
 
+            escElectronicSignatureControl.EmailAddressPrompt = signatureDocumentTemplate.CompletionSystemCommunicationId.HasValue
+                ? ElectronicSignatureControl.EmailAddressPromptType.CompletionEmail
+                : ElectronicSignatureControl.EmailAddressPromptType.PersonEmail;
 
             if ( setValues )
             {
@@ -1961,7 +1964,7 @@ namespace RockWeb.Blocks.WorkFlow
             signatureDocument.SignedDocumentText = this.SignatureDocumentHtml;
             signatureDocument.SignedDateTime = RockDateTime.Now;
             signatureDocument.SignatureData = escElectronicSignatureControl.DrawnSignatureImageDataUrl;
-            signatureDocument.SignedName = escElectronicSignatureControl.TypedSignatureText;
+            signatureDocument.SignedName = escElectronicSignatureControl.SignedName;
             signatureDocument.EntityTypeId = EntityTypeCache.GetId<Workflow>();
             signatureDocument.EntityId = _workflow?.Id;
             signatureDocument.SignedByPersonAliasId = signedByPersonAliasId;
@@ -1970,12 +1973,12 @@ namespace RockWeb.Blocks.WorkFlow
             signatureDocument.SignedClientIp = this.GetClientIpAddress();
             signatureDocument.SignedClientUserAgent = this.RockPage?.BrowserInfo?.UserAgent?.ToString();
             signatureDocument.SignatureVerificationHash = signatureDocument.CalculateSignatureVerificationHash();
-            //signatureDocument.SignedByEmail;
+            signatureDocument.SignedByEmail = escElectronicSignatureControl.SignedByEmail;
 
             var signatureInformationHtmlArgs = new GetSignatureInformationHtmlArgs
             {
                 SignatureType = signatureDocumentTemplate.SignatureType,
-                TypedSignatureText = escElectronicSignatureControl.TypedSignatureText,
+                SignedName = escElectronicSignatureControl.SignedName,
                 DrawnSignatureDataUrl = escElectronicSignatureControl.DrawnSignatureImageDataUrl,
                 SignedByPerson = signedByPerson,
                 SignedDateTime = signatureDocument.SignedDateTime,

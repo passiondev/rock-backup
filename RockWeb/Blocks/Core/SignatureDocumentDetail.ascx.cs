@@ -13,24 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
 using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
+using System.Web.UI.WebControls;
 
 using Rock;
-using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
-
 using Rock.Model;
+using Rock.Security;
 using Rock.Web;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock.Security;
-using System.Data.Entity;
-using System.Web.UI.WebControls;
 
 namespace RockWeb.Blocks.Core
 {
@@ -347,6 +344,7 @@ namespace RockWeb.Blocks.Core
                 {
                     fuDocument.BinaryFileTypeGuid = signatureDocument.SignatureDocumentTemplate.BinaryFileType.Guid;
                 }
+
                 fuDocument.BinaryFileId = signatureDocument.BinaryFileId;
             }
 
@@ -429,9 +427,6 @@ namespace RockWeb.Blocks.Core
 
                 hfSignatureDocumentId.SetValue( signatureDocument.Id );
 
-                // render UI based on Authorized and IsSystem
-                bool readOnly = false;
-
                 nbEditModeMessage.Text = string.Empty;
                 bool canEdit = UserCanEdit || signatureDocument.IsAuthorized( Authorization.EDIT, CurrentPerson );
                 bool canView = canEdit || signatureDocument.IsAuthorized( Authorization.VIEW, CurrentPerson );
@@ -446,7 +441,6 @@ namespace RockWeb.Blocks.Core
 
                     if ( !canEdit )
                     {
-                        readOnly = true;
                         nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( SignatureDocument.FriendlyTypeName );
                     }
 
@@ -475,6 +469,5 @@ namespace RockWeb.Blocks.Core
         }
 
         #endregion
-
     }
 }

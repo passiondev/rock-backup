@@ -81,7 +81,7 @@
 
                         </asp:Panel>
 
-                        <%-- eSignature UI --%>
+                        <%-- Electronic Signature UI --%>
                         <asp:Panel ID="pnlWorkflowActionElectronicSignature" runat="server" CssClass="js-validation-group" Visible="false">
 
 
@@ -89,7 +89,7 @@
                             <asp:Panel ID="pnlIframeSignatureDocumentHTML" runat="server">
                                 <iframe id="iframeSignatureDocumentHTML" name="signature-document-html-iframe" class="signaturedocument-iframe js-signaturedocument-iframe" runat="server" src="javascript: window.frameElement.getAttribute('srcdoc');" frameborder="0" border="0" cellspacing="0" style="width: 100%; height: 100%"></iframe>
                             </asp:Panel>
-                            <Rock:ElectronicSignatureControl ID="escElectronicSignatureControl" runat="server" OnSignSignatureClicked="btnSignSignature_Click" CssClass="well" />
+                            <Rock:ElectronicSignatureControl ID="escElectronicSignatureControl" runat="server" OnCompleteSignatureClicked="btnSignSignature_Click" CssClass="well" />
                         </asp:Panel>
 
                         <%-- This needs a 'js-workflow-entry-message-notification-box' javascript hook so that Rock.Workflow.Action.ShowHtml can find it.--%>

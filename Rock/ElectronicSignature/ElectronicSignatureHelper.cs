@@ -68,7 +68,7 @@ namespace Rock.ElectronicSignature
             }
             else
             {
-                signatureHtml = $@"<span class='signature-typed'> {signatureInformationHtmlArgs.TypedSignatureText} <span>";
+                signatureHtml = $@"<span class='signature-typed'> {signatureInformationHtmlArgs.SignedName} <span>";
             }
 
 
@@ -146,10 +146,11 @@ namespace Rock.ElectronicSignature
         public SignatureType SignatureType { get; set; }
 
         /// <summary>
-        /// Gets or sets the typed signature.
+        /// Gets or sets the typed signature when SignatureType is <see cref="SignatureType.Typed"/>
+        /// or full legal name when SignatureType is <see cref="SignatureType.Drawn"/>
         /// </summary>
         /// <value>The typed signature.</value>
-        public string TypedSignatureText { get; set; }
+        public string SignedName { get; set; }
 
         /// <summary>
         /// Gets or sets the drawn signature data URL.

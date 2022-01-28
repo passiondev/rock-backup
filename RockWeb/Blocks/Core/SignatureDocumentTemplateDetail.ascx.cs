@@ -484,6 +484,8 @@ namespace RockWeb.Blocks.Core
             {
                 var mergeFields = LavaHelper.GetCommonMergeFields( null );
                 var signatureDocumentHtml = ElectronicSignatureHelper.GetSignatureDocumentHtml( ceESignatureLavaTemplate.Text, mergeFields );
+                var fakeRandomHash = Rock.Security.Encryption.GetSHA1Hash( Guid.NewGuid().ToString() );
+                ;
                 var signatureInformationHtml = ElectronicSignatureHelper.GetSignatureInformationHtml( new GetSignatureInformationHtmlArgs
                 {
                     SignatureType = rblSignatureType.SelectedValueAsEnumOrNull<SignatureType>() ?? SignatureType.Typed,
@@ -491,33 +493,18 @@ namespace RockWeb.Blocks.Core
                     SignedByPerson = this.CurrentPerson,
                     SignedDateTime = RockDateTime.Now,
                     SignedClientIp = this.GetClientIpAddress(),
-                    TypedSignatureText = this.CurrentPerson.FullName,
-                    SignatureVerificationHash = Rock.Security.Encryption.GetSHA1Hash( "##Preview##" )
+                    SignedName = this.CurrentPerson.FullName,
+                    SignatureVerificationHash = fakeRandomHash
                 } );
 
-                bool forceUseLocal = false;
-                using ( var pdfGenerator = new PdfGenerator( forceUseLocal ) )
+                using ( var pdfGenerator = new PdfGenerator() )
                 {
                     var signedDocumentHtml = ElectronicSignatureHelper.GetSignedDocumentHtml( signatureDocumentHtml, signatureInformationHtml );
-
-                    var pdfDocument = pdfGenerator.GetPDFDocumentFromHtml( signedDocumentHtml );
+                    var pdfDocument = pdfGenerator.GetPDFDocumentFromHtml( signatureDocumentHtml );
 
                     // put the pdf into a BinaryFile. We'll mark it IsTemporary so it'll eventually get cleaned up by RockCleanup
-                    // Note that we don't need to create a binary file if we use GetPDFDocumentFromUrlAsBase64DataUrl to get a DataUrl, but
-                    // that doesn't work in browsers if the PDF is over 2MB (Firefox supports very large dataurls, but Chromium based browsers seem to have a 2MB limit)
-                    var binaryFile = new BinaryFile();
-                    binaryFile.ContentStream = pdfDocument;
-                    binaryFile.IsTemporary = true;
-                    binaryFile.MimeType = "application/pdf";
+                    BinaryFile binaryFile = pdfGenerator.GetAsBinaryFile( pdfDocument, bftpFileType.SelectedValueAsInt() ?? 0, true );
                     binaryFile.FileName = "preview.pdf";
-
-                    var binaryFileTypeId = bftpFileType.SelectedValueAsInt();
-                    if ( binaryFileTypeId < 1 )
-                    {
-                        binaryFileTypeId = BinaryFileTypeCache.GetId( Rock.SystemGuid.BinaryFiletype.DIGITALLY_SIGNED_DOCUMENTS.AsGuid() );
-                    }
-
-                    binaryFile.BinaryFileTypeId = binaryFileTypeId;
 
                     using ( var rockContext = new RockContext() )
                     {

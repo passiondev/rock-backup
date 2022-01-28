@@ -23,7 +23,6 @@ namespace Rock.Model
         public const string DefaultLavaTemplate = @"
 <p>## Insert your legal disclaimer here ##</p>
 <br>
-{{ SignatureInformation }}
 ";
     }
 }

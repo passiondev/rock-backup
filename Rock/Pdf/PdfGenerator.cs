@@ -38,18 +38,18 @@ namespace Rock.Pdf
         /// </summary>
         public PdfGenerator()
         {
-            InitializeChromeEngine(false);
+            InitializeChromeEngine( false );
         }
-
-        /// <summary>
+        
+        /*/// <summary>
         /// Initializes a new instance of the <see cref="PdfGenerator"/> class.
         /// With an option to use the local chromium engine, even if <see cref="SystemSetting.PDF_EXTERNAL_RENDER_ENDPOINT"/>  is specified.
         /// </summary>
         /// <param name="forceUseLocal">if set to <c>true</c> [force use local].</param>
         public PdfGenerator( bool forceUseLocal )
         {
-            InitializeChromeEngine( forceUseLocal);
-        }
+            InitializeChromeEngine( forceUseLocal );
+        }*/
 
         private Browser _puppeteerBrowser = null;
         private Page _puppeteerPage;
@@ -75,6 +75,7 @@ namespace Rock.Pdf
 
             if ( pdfExternalRenderEndpoint.IsNotNullOrWhiteSpace() && !forceUseLocal )
             {
+                // using a External Render Endpoint, so we don't need to install a chrome engine on this server.
                 return;
             }
 
@@ -84,10 +85,16 @@ namespace Rock.Pdf
             try
             {
                 AsyncHelper.RunSync( () => browserFetcher.DownloadAsync() );
+                System.Diagnostics.Debug.WriteLine( $"PdfGenerator ChromeEngine downloaded successfully." );
             }
             catch ( IOException ioException )
             {
+                // could still be downloading and eventually work, so make exception a little friendlier
                 throw new PdfGeneratorException( "PDF Engine is not available. Please try again later.", ioException );
+            }
+            catch ( Exception ex )
+            {
+                throw new PdfGeneratorException( "Error downloading PDF Chrome Engine.", ex );
             }
         }
 
@@ -136,7 +143,7 @@ namespace Rock.Pdf
         /// <summary>
         /// Initializes the chrome engine.
         /// </summary>
-        private void InitializeChromeEngine( bool forceUseLocal)
+        private void InitializeChromeEngine( bool forceUseLocal )
         {
             var pdfExternalRenderEndpoint = Rock.Web.SystemSettings.GetValue( SystemSetting.PDF_EXTERNAL_RENDER_ENDPOINT );
 
@@ -213,56 +220,22 @@ namespace Rock.Pdf
         }
 
         /// <summary>
-        /// Gets the PDF document from a URL as base64 Data URL.
-        /// Note this might not work in all browsers if it is a big pdf (2MB+)
-        /// For example:
-        /// <br/>
-        /// <c>data:application/pdf;base64,JVBERi0xLjMK...</c>
+        /// Creates a new <see cref="Rock.Model.BinaryFile" /> from the pdfDocument stream.
         /// </summary>
-        /// <param name="url">The URL.</param>
-        /// <returns>System.String.</returns>
-        public string GetPDFDocumentFromUrlAsBase64DataUrl( string url )
+        /// <param name="pdfDocument">The PDF document.</param>
+        /// <param name="binaryFileTypeId">The binary file type identifier.</param>
+        /// <param name="isTemporary">if set to <c>true</c> [is temporary].</param>
+        /// <returns>BinaryFile.</returns>
+        public Rock.Model.BinaryFile GetAsBinaryFile( System.IO.Stream pdfDocument, int binaryFileTypeId, bool isTemporary )
         {
-            return GetPDFDocumentAsBase64DataUrl( null, url );
-        }
+            var binaryFile = new Rock.Model.BinaryFile();
+            binaryFile.ContentStream = pdfDocument;
+            binaryFile.IsTemporary = isTemporary;
+            binaryFile.MimeType = "application/pdf";
+            binaryFile.FileName = "document.pdf";
+            binaryFile.BinaryFileTypeId = binaryFileTypeId;
 
-        /// <summary>
-        /// Gets the PDF document from HTML as base64 Data URL. For example:
-        /// Note this might not work in all browsers if it is a big pdf (2MB+)
-        /// <br/>
-        /// <c>data:application/pdf;base64,JVBERi0xLjMK...</c>
-        /// </summary>
-        /// <param name="html">The HTML.</param>
-        /// <returns>System.String.</returns>
-        public string GetPDFDocumentFromHtmlAsBase64DataUrl( string html )
-        {
-            return GetPDFDocumentAsBase64DataUrl( html, null );
-        }
-
-        /// <summary>
-        /// Gets the PDF document in the form of
-        /// <br/>
-        /// <c>data:application/pdf;base64,JVBERi0xLjMK...</c>
-        /// </summary>
-        /// <param name="html">The HTML.</param>
-        /// <param name="url">The URL.</param>
-        /// <returns>System.String.</returns>
-        private string GetPDFDocumentAsBase64DataUrl( string html, string url )
-        {
-            using ( var pdfStream = GetPDFDocument( html, url ) )
-            {
-                byte[] bytes;
-                using ( var memoryStream = new MemoryStream() )
-                {
-                    pdfStream.CopyTo( memoryStream );
-                    bytes = memoryStream.ToArray();
-                }
-
-                string base64 = Convert.ToBase64String( bytes );
-
-                var base64Url = $"data:application/pdf;base64,{base64}";
-                return base64Url;
-            }
+            return binaryFile;
         }
 
         /// <summary>
@@ -304,6 +277,16 @@ namespace Rock.Pdf
             if ( this.MarginOptions != null )
             {
                 pdfOptions.MarginOptions = this.MarginOptions;
+            }
+            else
+            {
+                pdfOptions.MarginOptions = new MarginOptions
+                {
+                    Top = "10mm",
+                    Right = "10mm",
+                    Left = "10mm",
+                    Bottom = "15mm",
+                };
             }
 
             pdfOptions.PrintBackground = this.PrintBackground;

@@ -34,12 +34,15 @@ namespace Rock.Web.UI.Controls
             public const string DocumentTerm = "DocumentTerm";
             public const string SignatureType = "SignatureType";
             public const string DrawnSignatureImageMimeType = "DrawnSignatureImageMimeType";
+            public const string PromptForEmailAddress = "PromptForEmailAddress";
         }
 
         #endregion ViewState Keys
+
         #region Controls
 
         private HiddenFieldWithClass _hfSignatureImageDataUrl;
+        private Panel _pnlSignatureEntry;
         private Panel _pnlSignatureEntryDrawn;
         private Literal _lSignaturePadCanvas;
         private Panel _pnlSignatureEntryTyped;
@@ -47,8 +50,14 @@ namespace Rock.Web.UI.Controls
         private Literal _lSignatureSignDisclaimer;
         private BootstrapButton _btnSignSignature;
         private Literal _clearSignatureLink;
-        private CustomValidator _customValidator;
-        private ValidationSummary _customValidationSummary;
+        private CustomValidator _signatureValidator;
+        private ValidationSummary _signatureValidationSummary;
+
+        private Panel _pnlSignatureComplete;
+        private RockTextBox _tbLegalName;
+        private EmailBox _ebEmailAddress;
+        private BootstrapButton _btnCompleteSignature;
+        private ValidationSummary _completionValidationSummary;
 
         #endregion Controls
 
@@ -62,11 +71,9 @@ namespace Rock.Web.UI.Controls
 
             set
             {
-                EnsureChildControls();
-
                 this.ViewState[ViewStateKey.SignatureType] = value;
-                _pnlSignatureEntryDrawn.Visible = value == SignatureType.Drawn;
-                _pnlSignatureEntryTyped.Visible = value == SignatureType.Typed;
+                EnsureChildControls();
+                UpdateUIControls();
             }
         }
 
@@ -77,11 +84,42 @@ namespace Rock.Web.UI.Controls
 
             set
             {
-                EnsureChildControls();
                 this.ViewState[ViewStateKey.DocumentTerm] = value;
-
-                SetSignatureSignDisclaimerText( _lSignatureSignDisclaimer, value );
+                EnsureChildControls();
+                UpdateUIControls();
             }
+        }
+
+        /// <summary>
+        /// Gets or sets the <see cref="EmailAddressPromptType" />.
+        /// You'll probably want to set this to <see cref="EmailAddressPromptType.CompletionEmail" /> if <see cref="SignatureDocumentTemplate.CompletionSystemCommunicationId" /> is set.
+        /// </summary>
+        /// <value><c>true</c> if [prompt for email address]; otherwise, <c>false</c>.</value>
+        public EmailAddressPromptType EmailAddressPrompt
+        {
+            get => this.ViewState[ViewStateKey.PromptForEmailAddress] as EmailAddressPromptType? ?? EmailAddressPromptType.CompletionEmail;
+            set
+            {
+                this.ViewState[ViewStateKey.PromptForEmailAddress] = value;
+                EnsureChildControls();
+                UpdateUIControls();
+            }
+        }
+
+        /// <summary>
+        /// Enum EmailAddressPromptType
+        /// </summary>
+        public enum EmailAddressPromptType
+        {
+            /// <summary>
+            /// Email label will say that it'll be used to send a copy of the signed document to.
+            /// </summary>
+            CompletionEmail,
+
+            /// <summary>
+            /// Email label will just say "Please enter an email address"
+            /// </summary>
+            PersonEmail
         }
 
         /// <summary>
@@ -117,25 +155,61 @@ namespace Rock.Web.UI.Controls
 
         /// <summary>
         /// Gets the typed signature text when in <see cref="SignatureType.Typed" /> mode.
+        /// Or the typed Legal Name when in in <see cref="SignatureType.Drawn" /> mode.
         /// </summary>
         /// <value>The typed signature text.</value>
-        public string TypedSignatureText
+        public string SignedName
         {
             get
             {
                 EnsureChildControls();
-                return _tbSignatureTyped.Text;
+                if ( SignatureType == SignatureType.Typed )
+                {
+                    return _tbSignatureTyped.Text;
+                }
+                else
+                {
+                    return _tbLegalName.Text;
+                }
             }
         }
 
         /// <summary>
-        /// Sets the signature sign disclaimer text.
+        /// Gets the email address that the person entered when signing
         /// </summary>
-        /// <param name="lSignatureSignDisclaimer">The l signature sign disclaimer.</param>
-        /// <param name="documentTerm">The document term.</param>
-        private void SetSignatureSignDisclaimerText(Literal lSignatureSignDisclaimer, string documentTerm )
+        /// <value>The email address.</value>
+        public string SignedByEmail
         {
-            lSignatureSignDisclaimer.Text = $"By clicking the sign button below, I agree to the above {documentTerm} and understand this is a legal representation of my signature.";
+            get
+            {
+                EnsureChildControls();
+                return _ebEmailAddress.Text;
+            }
+        }
+
+        /// <summary>
+        /// Updates the UI controls based on configuration options
+        /// </summary>
+        private void UpdateUIControls()
+        {
+            _lSignatureSignDisclaimer.Text = $"By clicking the sign button below, I agree to the above {DocumentTerm} and understand this is a legal representation of my signature.";
+
+            _ebEmailAddress.Label = $"Please enter an email address below where we can send a copy of the {DocumentTerm} to.";
+
+            _pnlSignatureEntryDrawn.Visible = SignatureType == SignatureType.Drawn;
+            _pnlSignatureEntryTyped.Visible = SignatureType == SignatureType.Typed;
+
+            // only show the LegalName prompt when Drawn mode. When in Typed mode, we'll use the Typed Name (on _pnlSignatureEntryTyped panel)
+            _tbLegalName.Visible = SignatureType == SignatureType.Drawn;
+
+            if ( EmailAddressPrompt == EmailAddressPromptType.CompletionEmail )
+            {
+                _ebEmailAddress.Label = $"Please enter an email address below where we can send a copy of the {DocumentTerm} to.";
+            }
+            else if ( EmailAddressPrompt == EmailAddressPromptType.PersonEmail )
+            {
+                _ebEmailAddress.Label = "Please enter an email address below";
+            }
         }
 
         #region Base Control Methods
@@ -167,37 +241,44 @@ namespace Rock.Web.UI.Controls
         {
             base.CreateChildControls();
 
-            // this is what will display validation message from _customValidator
-            _customValidationSummary = new ValidationSummary();
-            _customValidationSummary.ID = "_customValidationSummary";
-            _customValidationSummary.ValidationGroup = $"vsElectronicSignatureControl_{this.ID}";
-            //_customValidationSummary.HeaderText = "Please correct the following:";
-            _customValidationSummary.CssClass = "alert alert-validation";
-            Controls.Add( _customValidationSummary );
-
-            // Add custom validator that will check for blank drawn or typed signature
-            _customValidator = new CustomValidator();
-            _customValidator.ID = "_customValidator";
-            _customValidator.ClientValidationFunction = "Rock.controls.electronicSignatureControl.clientValidate";
-            _customValidator.ErrorMessage = "Please enter a signature";
-            _customValidator.Enabled = true;
-            _customValidator.Display = ValidatorDisplay.Dynamic;
-            _customValidator.ValidationGroup = _customValidationSummary.ValidationGroup;
-            Controls.Add( _customValidator );
+            var validationGroup = $"vgElectronicSignatureControl_{this.ID}";
 
             _hfSignatureImageDataUrl = new HiddenFieldWithClass();
             _hfSignatureImageDataUrl.ID = "_hfSignatureImageDataUrl";
             _hfSignatureImageDataUrl.CssClass = "js-signature-data";
             Controls.Add( _hfSignatureImageDataUrl );
 
+            _pnlSignatureEntry = new Panel();
+            _pnlSignatureEntry.ID = "_pnlSignatureEntry";
+            _pnlSignatureEntry.CssClass = "signature-entry";
+
+            Controls.Add( _pnlSignatureEntry );
+
+            // this is what will display validation message from _signatureValidator for the signing step
+            _signatureValidationSummary = new ValidationSummary();
+            _signatureValidationSummary.ID = "_signatureValidationSummary";
+            _signatureValidationSummary.ValidationGroup = validationGroup;
+            _signatureValidationSummary.CssClass = "alert alert-validation";
+            _pnlSignatureEntry.Controls.Add( _signatureValidationSummary );
+
+            // Add custom validator that will check for blank drawn or typed signature
+            _signatureValidator = new CustomValidator();
+            _signatureValidator.ID = "_customValidator";
+            _signatureValidator.ClientValidationFunction = "Rock.controls.electronicSignatureControl.clientValidate";
+            _signatureValidator.ErrorMessage = "Please enter a signature";
+            _signatureValidator.Enabled = true;
+            _signatureValidator.Display = ValidatorDisplay.Dynamic;
+            _signatureValidator.ValidationGroup = validationGroup;
+            _pnlSignatureEntry.Controls.Add( _signatureValidator );
+
             /* Controls for Drawn Signature*/
             _pnlSignatureEntryDrawn = new Panel();
             _pnlSignatureEntryDrawn.ID = "_pnlSignatureEntryDrawn";
             _pnlSignatureEntryDrawn.CssClass = "signature-entry-drawn js-signature-entry-drawn";
-            Controls.Add( _pnlSignatureEntryDrawn );
+            _pnlSignatureEntry.Controls.Add( _pnlSignatureEntryDrawn );
 
             // drawing canvas
-            var pnlSignatureEntryDrawnCanvasDiv = new Panel() { CssClass = "todo" };
+            var pnlSignatureEntryDrawnCanvasDiv = new Panel() { CssClass = "signature-entry-drawn-canvas-container" };
             _pnlSignatureEntryDrawn.Controls.Add( pnlSignatureEntryDrawnCanvasDiv );
 
             _lSignaturePadCanvas = new Literal();
@@ -206,7 +287,7 @@ namespace Rock.Web.UI.Controls
             pnlSignatureEntryDrawnCanvasDiv.Controls.Add( _lSignaturePadCanvas );
 
             // clear signature button
-            var pnlSignatureEntryDrawnActionDiv = new Panel() { CssClass = "todo" };
+            var pnlSignatureEntryDrawnActionDiv = new Panel() { CssClass = "signature-entry-drawn-actions" };
             _pnlSignatureEntryDrawn.Controls.Add( pnlSignatureEntryDrawnActionDiv );
 
             _clearSignatureLink = new Literal();
@@ -215,33 +296,73 @@ namespace Rock.Web.UI.Controls
             pnlSignatureEntryDrawnActionDiv.Controls.Add( _clearSignatureLink );
 
             /* Controls for Typed Signature*/
-
             _pnlSignatureEntryTyped = new Panel();
             _pnlSignatureEntryTyped.ID = "_pnlSignatureEntryTyped";
             _pnlSignatureEntryTyped.CssClass = "signature-entry-typed";
-            Controls.Add( _pnlSignatureEntryTyped );
+            _pnlSignatureEntry.Controls.Add( _pnlSignatureEntryTyped );
 
             _tbSignatureTyped = new RockTextBox();
             _tbSignatureTyped.ID = "_tbSignatureTyped";
             _tbSignatureTyped.Placeholder = "Type Name";
             _tbSignatureTyped.CssClass = "js-signature-typed";
+            _tbSignatureTyped.ValidationGroup = validationGroup;
             _pnlSignatureEntryTyped.Controls.Add( _tbSignatureTyped );
 
-            /* */
+            /* Signing step actions */
             _lSignatureSignDisclaimer = new Literal();
             _lSignatureSignDisclaimer.ID = "_lSignatureSignDisclaimer";
-            SetSignatureSignDisclaimerText( _lSignatureSignDisclaimer, this.DocumentTerm );
-            this.Controls.Add( _lSignatureSignDisclaimer );
+
+            _pnlSignatureEntry.Controls.Add( _lSignatureSignDisclaimer );
 
             _btnSignSignature = new BootstrapButton();
             _btnSignSignature.ID = "_btnSignSignature";
             _btnSignSignature.CssClass = "btn btn-default js-save-signature";
             _btnSignSignature.Text = "Sign";
+            _btnSignSignature.ValidationGroup = validationGroup;
             _btnSignSignature.Click += _btnSignSignature_Click;
-            this.Controls.Add( _btnSignSignature );
+
+            _pnlSignatureEntry.Controls.Add( _btnSignSignature );
 
             _pnlSignatureEntryDrawn.Visible = SignatureType == SignatureType.Drawn;
             _pnlSignatureEntryTyped.Visible = SignatureType == SignatureType.Typed;
+
+            /* Controls for signature completion */
+            _pnlSignatureComplete = new Panel();
+            _pnlSignatureComplete.ID = "_pnlSignatureComplete";
+            _pnlSignatureComplete.CssClass = "signature-entry-complete";
+            this.Controls.Add( _pnlSignatureComplete );
+
+            _completionValidationSummary = new ValidationSummary();
+            _completionValidationSummary.ValidationGroup = validationGroup;
+            _completionValidationSummary.CssClass = "alert alert-validation";
+            _pnlSignatureComplete.Controls.Add( _completionValidationSummary );
+
+            _tbLegalName = new RockTextBox();
+            _tbLegalName.ID = "_tbLegalName";
+            _tbLegalName.Label = "Please enter your legal name";
+            _tbLegalName.Required = true;
+            _tbLegalName.ValidationGroup = validationGroup;
+            _pnlSignatureComplete.Controls.Add( _tbLegalName );
+
+            _ebEmailAddress = new EmailBox();
+            _ebEmailAddress.ID = "_ebEmailAddress";
+
+            _ebEmailAddress.Required = true;
+            _ebEmailAddress.ValidationGroup = validationGroup;
+            _pnlSignatureComplete.Controls.Add( _ebEmailAddress );
+
+            _btnCompleteSignature = new BootstrapButton();
+            _btnCompleteSignature.ID = "_btnCompleteSignature";
+            _btnCompleteSignature.CssClass = "btn btn-primary";
+            _btnCompleteSignature.Text = "Complete";
+            _btnCompleteSignature.ValidationGroup = validationGroup;
+            _btnCompleteSignature.Click += _btnCompleteSignature_Click;
+            _pnlSignatureComplete.Controls.Add( _btnCompleteSignature );
+
+            UpdateUIControls();
+
+            _pnlSignatureEntry.Visible = true;
+            _pnlSignatureComplete.Visible = false;
         }
 
         /// <summary>
@@ -282,13 +403,25 @@ $@"Rock.controls.electronicSignatureControl.initialize({{
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void _btnSignSignature_Click( object sender, EventArgs e )
         {
-            SignSignatureClicked?.Invoke( sender, e );
+            EnsureChildControls();
+            _pnlSignatureEntry.Visible = false;
+            _pnlSignatureComplete.Visible = true;
         }
 
         /// <summary>
-        /// Occurs when the 'Sign' button under the typed or drawn signature is clicked
+        /// Handles the Click event of the _btnCompleteSignature control.
         /// </summary>
-        public event EventHandler SignSignatureClicked;
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void _btnCompleteSignature_Click( object sender, EventArgs e )
+        {
+            CompleteSignatureClicked?.Invoke( sender, e );
+        }
+
+        /// <summary>
+        /// Occurs when the 'Complete' button is clicked on the completion step when the completion step is complete.
+        /// </summary>
+        public event EventHandler CompleteSignatureClicked;
 
         #endregion Base Control Methods
     }
