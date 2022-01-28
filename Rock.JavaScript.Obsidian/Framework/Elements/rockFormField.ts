@@ -102,11 +102,11 @@ export default defineComponent({
 
             if (errors.length > 0) {
                 currentError.value = errors[0];
-                formState?.setError(fieldLabel.value, currentError.value);
+                formState?.setError(uniqueId, fieldLabel.value, currentError.value);
             }
             else {
                 currentError.value = "";
-                formState?.setError(fieldLabel.value, "");
+                formState?.setError(uniqueId, fieldLabel.value, "");
             }
         }, {
             immediate: true
@@ -115,7 +115,7 @@ export default defineComponent({
         // If we are removed from the DOM completely, clear the error before we go.
         onBeforeUnmount(() => {
             currentError.value = "";
-            formState?.setError(fieldLabel.value, "");
+            formState?.setError(uniqueId, fieldLabel.value, "");
         });
 
         return {
