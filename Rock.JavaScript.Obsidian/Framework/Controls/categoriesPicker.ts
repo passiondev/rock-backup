@@ -18,7 +18,6 @@
 import { defineComponent, PropType, ref, watch } from "vue";
 import { Guid } from "../Util/guid";
 import { CategoryTreeItemProvider } from "../Util/treeItemProviders";
-import { updateRefValue } from "../Util/util";
 import { ListItem } from "../ViewModels";
 import TreeItemPicker from "./treeItemPicker";
 
@@ -31,7 +30,8 @@ export default defineComponent({
 
     props: {
         modelValue: {
-            type: Object as PropType<ListItem | null>
+            type: Array as PropType<ListItem[]>,
+            default: [],
         },
 
         rootCategoryGuid: {
@@ -51,8 +51,12 @@ export default defineComponent({
         }
     },
 
+    emits: [
+        "update:modelValue"
+    ],
+
     setup(props, { emit }) {
-        const internalValue = ref(props.modelValue ? [props.modelValue] : []);
+        const internalValue = ref(props.modelValue);
 
         // Configure the item provider with our settings. These are not reactive
         // since we don't do lazy loading so there is no point.
@@ -63,12 +67,10 @@ export default defineComponent({
         itemProvider.entityTypeQualifierValue = props.entityTypeQualifierValue;
 
         watch(internalValue, () => {
-            emit("update:modelValue", internalValue.value.length > 0 ? internalValue.value[0] : undefined);
+            emit("update:modelValue", internalValue.value);
         });
 
-        watch(() => props.modelValue, () => {
-            updateRefValue(internalValue, props.modelValue ? [props.modelValue] : []);
-        });
+        watch(() => props.modelValue, () => internalValue.value = props.modelValue);
 
         return {
             internalValue,
@@ -81,6 +83,7 @@ export default defineComponent({
     formGroupClasses="category-picker"
     iconCssClass="fa fa-folder-open"
     :provider="itemProvider"
+    allowMultiple
 />
 `
 });

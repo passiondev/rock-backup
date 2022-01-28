@@ -15,7 +15,7 @@
 // </copyright>
 //
 import { computed, defineComponent, PropType, reactive, ref, watch } from "vue";
-import { FormState, provideFormState } from "../Util/form";
+import { FormError, FormState, provideFormState } from "../Util/form";
 import RockValidation from "./rockValidation";
 
 export default defineComponent({
@@ -39,7 +39,7 @@ export default defineComponent({
     ],
 
     setup(props, { emit }) {
-        const errors = ref<Record<string, string>>({});
+        const errors = ref<Record<string, FormError>>({});
         const submit = ref(props.submit);
 
         const onInternalSubmit = (): void => {
@@ -48,16 +48,19 @@ export default defineComponent({
 
         const formState = reactive<FormState>({
             submitCount: 0,
-            setError: (name: string, error: string): void => {
+            setError: (id: string, name: string, error: string): void => {
                 const newErrors = {
                     ...errors.value
                 };
 
                 if (error) {
-                    newErrors[name] = error;
+                    newErrors[id] = {
+                        name,
+                        text: error
+                    };
                 }
                 else {
-                    delete newErrors[name];
+                    delete newErrors[id];
                 }
 
                 errors.value = newErrors;
