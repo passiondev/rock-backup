@@ -28,6 +28,7 @@ import TextBox from "../../Elements/textBox";
 import ConfigurableZone from "./FormBuilderDetail/configurableZone";
 import FormBuilderTab from "./FormBuilderDetail/formBuilderTab";
 import CommunicationsTab from "./FormBuilderDetail/communicationsTab";
+import SettingsTab from "./FormBuilderDetail/settingsTab";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail",
@@ -42,6 +43,7 @@ export default defineComponent({
         RockButton,
         RockForm,
         RockLabel,
+        SettingsTab,
         Switch,
         TextBox
     },
@@ -65,6 +67,12 @@ export default defineComponent({
             };
         });
 
+        const settingsContainerStyle = computed((): Record<string, string> => {
+            return {
+                display: isSettingsTabSelected.value ? "flex" : "none"
+            };
+        });
+
         const onFormBuilderTabClick = (): void => {
             selectedTab.value = 0;
         };
@@ -78,6 +86,7 @@ export default defineComponent({
         };
 
         const communicationsViewModel = ref<unknown>({});
+        const settingsViewModel = ref<unknown>({});
 
         return {
             communicationsContainerStyle,
@@ -86,6 +95,8 @@ export default defineComponent({
             isCommunicationsTabSelected,
             isFormBuilderTabSelected,
             isSettingsTabSelected,
+            settingsContainerStyle,
+            settingsViewModel,
             onCommunicationsTabClick,
             onFormBuilderTabClick,
             onSettingsTabClick
@@ -297,7 +308,7 @@ export default defineComponent({
         </v-style>
 
         <div ref="bodyElement" class="form-builder-detail d-flex flex-column panel-flex-fill-body" style="overflow-y: hidden;">
-            <div class="p-2 d-flex" style="border-bottom: 1px solid #dfe0e1;">
+            <div class="p-2 d-flex" style="border-bottom: 1px solid #dfe0e1; box-shadow: rgba(0,0,0,0.15) 0 0 4px; z-index: 1;">
                 <ul class="nav nav-pills" style="flex-grow: 1;">
                     <li role="presentation"><a href="#">Submissions</a></li>
                     <li :class="{ active: isFormBuilderTabSelected }" role="presentation"><a href="#" @click.prevent="onFormBuilderTabClick">Form Builder</a></li>
@@ -320,6 +331,7 @@ export default defineComponent({
             </div>
 
             <div style="flex-grow: 1; overflow-y: hidden;" :style="settingsContainerStyle">
+                <SettingsTab v-model="settingsViewModel" />
             </div>
         </div>
     </template>

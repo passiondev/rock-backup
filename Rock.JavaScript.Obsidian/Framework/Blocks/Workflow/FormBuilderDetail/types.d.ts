@@ -150,3 +150,37 @@ export type FormCommunication = {
 
     notificationEmail?: FormNotificationEmail;
 };
+
+export type FormGeneralSettings = {
+    name?: string | null;
+
+    description?: string | null;
+
+    template?: string | null;
+
+    category?: ListItem | null;
+
+    entryStarts?: string | null;
+
+    entryEnds?: string | null;
+};
+
+export type FormCompletionSettings = {
+    type?: CompletionResponseType;
+
+    message?: string | null;
+
+    redirectUrl?: string | null;
+};
+
+export const enum CompletionResponseType {
+    DisplayMessage = 0,
+
+    Redirect = 1
+}
+
+export type FormSettings = {
+    general?: FormGeneralSettings | null;
+
+    completion?: FormCompletionSettings | null;
+};
