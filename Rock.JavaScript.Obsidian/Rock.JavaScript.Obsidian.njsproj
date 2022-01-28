@@ -113,6 +113,7 @@
     <TypeScriptCompile Include="Framework\Blocks\Utility\starkDetail.ts" />
     <TypeScriptCompile Include="Framework\Controls\addressControl.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeEditor.ts" />
+    <TypeScriptCompile Include="Framework\Controls\categoriesPicker.ts" />
     <TypeScriptCompile Include="Framework\Controls\categoryPicker.ts" />
     <TypeScriptCompile Include="Framework\Controls\fieldTypeEditor.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeValuesContainer.ts" />
@@ -304,6 +305,7 @@
     <TypeScriptCompile Include="Framework\Util\component.ts" />
     <TypeScriptCompile Include="Framework\Util\dialogs.ts" />
     <TypeScriptCompile Include="Framework\Util\form.ts" />
+    <TypeScriptCompile Include="Framework\Util\util.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\fieldTypeEditor.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\Controls\treeList.d.ts" />
     <TypeScriptCompile Include="Framework\ViewModels\publicEditableAttribute.d.ts" />
