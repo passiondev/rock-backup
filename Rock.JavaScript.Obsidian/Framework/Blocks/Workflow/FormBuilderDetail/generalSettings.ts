@@ -200,7 +200,7 @@ export default defineComponent({
         });
 
         // Watch for changes on any of our internal values and then update the modelValue.
-        watch([name, description, template, category, entryStarts, entryEnds], (a, b) => {
+        watch([name, description, template, category, entryStarts, entryEnds], () => {
             const newValue: FormGeneralSettings = {
                 ...props.modelValue,
                 name: name.value,
