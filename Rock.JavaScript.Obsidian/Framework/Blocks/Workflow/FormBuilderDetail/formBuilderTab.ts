@@ -16,7 +16,6 @@
 //
 
 import { computed, defineComponent, reactive, Ref, ref, watch } from "vue";
-import { useConfigurationValues } from "../../../Util/block";
 import DropDownList from "../../../Elements/dropDownList";
 import Modal from "../../../Controls/modal";
 import Panel from "../../../Controls/panel";
@@ -30,12 +29,13 @@ import FieldEditAside from "./fieldEditAside";
 import FormContentModal from "./formContentModal";
 import FormContentZone from "./formContentZone";
 import GeneralAside from "./generalAside";
+import PersonEntryEditAside from "./personEntryEditAside";
 import SectionEditAside from "./sectionEditAside";
 import SectionZone from "./sectionZone";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../../Directives/dragDrop";
 import { areEqual, newGuid } from "../../../Util/guid";
 import { List } from "../../../Util/linq";
-import { FormField, FormFieldType, FormSection, GeneralAsideSettings, IAsideProvider, SectionAsideSettings, SectionStyleType } from "./types";
+import { FormField, FormFieldType, FormPersonEntrySettings, FormSection, GeneralAsideSettings, IAsideProvider, SectionAsideSettings, SectionStyleType } from "./types";
 import { FieldType } from "../../../SystemGuids";
 
 /**
@@ -264,6 +264,7 @@ export default defineComponent({
         RockButton,
         RockForm,
         RockLabel,
+        PersonEntryEditAside,
         SectionEditAside,
         SectionZone,
         Switch,
@@ -292,6 +293,9 @@ export default defineComponent({
 
         /** The component instance that is displaying the field editor. */
         const fieldEditAsideComponentInstance = ref<IAsideProvider | null>(null);
+
+        /** The component instance that is displaying the person entry editor. */
+        const personEntryEditAsideComponentInstance = ref<IAsideProvider | null>(null);
 
         /** All the field types that are available for use when designing a form. */
         const availableFieldTypes = ref<FormFieldType[]>(temporaryFieldTypes);
@@ -329,6 +333,9 @@ export default defineComponent({
         /** The settings object used by the section aside. */
         const sectionAsideSettings = ref<SectionAsideSettings | null>(null);
 
+        /** The settings object used by the person entry aside. */
+        const personEntryAsideSettings = ref<FormPersonEntrySettings | null>(null);
+
         // Generate all the drag options.
         const sectionDragSourceOptions = getSectionDragSourceOptions(sections);
         const fieldDragSourceOptions = getFieldDragSourceOptions(sections, availableFieldTypes);
@@ -352,6 +359,9 @@ export default defineComponent({
             else if (fieldEditAsideComponentInstance.value) {
                 return fieldEditAsideComponentInstance.value;
             }
+            else if (personEntryEditAsideComponentInstance.value) {
+                return personEntryEditAsideComponentInstance.value;
+            }
             else {
                 return null;
             }
@@ -359,7 +369,7 @@ export default defineComponent({
 
         /** True if the general aside should be currently displayed. */
         const showGeneralAside = computed((): boolean => {
-            return !showFieldAside.value && !showSectionAside.value;
+            return !showFieldAside.value && !showSectionAside.value && !showPersonEntryAside.value;
         });
 
         /** True if the field editor aside should be currently displayed. */
@@ -371,6 +381,9 @@ export default defineComponent({
         const showSectionAside = computed((): boolean => {
             return sectionAsideSettings.value !== null;
         });
+
+        /** True if the person entry editor aside should be currently displayed. */
+        const showPersonEntryAside = computed((): boolean => personEntryAsideSettings.value !== null);
 
         /** True if the form has a person entry section. */
         const hasPersonEntry = computed((): boolean => generalAsideSettings.value.hasPersonEntry ?? false);
@@ -472,6 +485,7 @@ export default defineComponent({
             closeAside();
 
             activeZone.value = personEntryZoneGuid;
+            personEntryAsideSettings.value = {};
         };
 
         /**
@@ -578,6 +592,16 @@ export default defineComponent({
         };
 
         /**
+         * Event handler for when the person entry settings have been updated
+         * in the aside.
+         * 
+         * @param value The new person entry settings.
+         */
+        const onEditPersonEntryUpdate = (value: FormPersonEntrySettings): void => {
+            personEntryAsideSettings.value = value;
+        };
+
+        /**
          * Event handler for when the form header content is saved.
          */
         const onFormHeaderSave = (): void => {
@@ -630,15 +654,19 @@ export default defineComponent({
             onConfigurePersonEntry,
             onConfigureSection,
             onEditFieldUpdate,
+            onEditPersonEntryUpdate,
             onEditSectionUpdate,
             onFormFooterSave,
             onFormHeaderSave,
+            personEntryAsideSettings,
+            personEntryEditAsideComponentInstance,
             sectionAsideSettings,
             sectionDragSourceOptions,
             sectionDragTargetId: sectionDragSourceOptions.id,
             sections,
             showFieldAside,
             showGeneralAside,
+            showPersonEntryAside,
             showSectionAside
         };
     },
@@ -664,6 +692,12 @@ export default defineComponent({
             :modelValue="sectionAsideSettings"
             ref="sectionEditAsideComponentInstance"
             @update:modelValue="onEditSectionUpdate"
+            @close="onAsideClose" />
+
+        <PersonEntryEditAside v-else-if="showPersonEntryAside"
+            :modelValue="personEntryAsideSettings"
+            ref="personEntryEditAsideComponentInstance"
+            @update:modelValue="onEditPersonEntryUpdate"
             @close="onAsideClose" />
     </div>
 

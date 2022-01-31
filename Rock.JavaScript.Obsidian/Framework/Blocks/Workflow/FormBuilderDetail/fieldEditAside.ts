@@ -24,7 +24,6 @@ import TextBox from "../../../Elements/textBox";
 import Slider from "../../../Elements/slider";
 import RockForm from "../../../Controls/rockForm";
 import { List } from "../../../Util/linq";
-import ConfigurableZone from "./configurableZone";
 import { FormField, FormFieldType } from "./types";
 import { FieldTypeConfigurationViewModel } from "../../../ViewModels/Controls/fieldTypeEditor";
 
@@ -64,7 +63,6 @@ function shallowStrictEqual(a: Record<string, string>, b: Record<string, string>
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.FieldEditAside",
     components: {
-        ConfigurableZone,
         Panel,
         FieldTypeEditor,
         InlineSwitch,

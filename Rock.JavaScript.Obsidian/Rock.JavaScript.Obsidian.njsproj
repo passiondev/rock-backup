@@ -126,6 +126,8 @@
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\generalAside.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\generalSettings.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\notificationEmail.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\personEntryEditAside.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\personEntrySettings.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\sectionEditAside.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\sectionZone.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilderDetail\segmentedPicker.ts" />

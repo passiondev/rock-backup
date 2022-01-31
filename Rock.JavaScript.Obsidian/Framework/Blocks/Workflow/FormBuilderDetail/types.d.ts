@@ -184,3 +184,48 @@ export type FormSettings = {
 
     completion?: FormCompletionSettings | null;
 };
+
+export const enum WorkflowActionFormPersonEntryOption {
+    /** Don't show the control. */
+    Hidden = 0,
+
+    /** Control is visible, but a value is not required. */
+    Optional = 1,
+
+    /** Control is visible, and a value is required. */
+    Required = 2
+}
+
+export type FormPersonEntrySettings = {
+    autofillCurrentPerson?: boolean;
+
+    hideIfCurrentPersonKnown?: boolean;
+
+    recordStatus?: string | null;
+
+    connectionStatus?: string | null;
+
+    showCampus?: boolean;
+
+    campusType?: string | null;
+
+    campusState?: string | null;
+
+    gender?: WorkflowActionFormPersonEntryOption;
+
+    email?: WorkflowActionFormPersonEntryOption;
+
+    mobilePhone?: WorkflowActionFormPersonEntryOption;
+
+    birthdate?: WorkflowActionFormPersonEntryOption;
+
+    address?: WorkflowActionFormPersonEntryOption;
+
+    addressType?: string | null;
+
+    maritalStatus?: WorkflowActionFormPersonEntryOption;
+
+    spouseEntry?: WorkflowActionFormPersonEntryOption;
+
+    spouseLabel?: string | null;
+};
