@@ -100,9 +100,7 @@ export default defineComponent({
         <div v-if="showContent">
             <hr />
 
-            <div style="margin: 12px;">
-                <slot />
-            </div>
+            <slot />
         </div>
     </TransitionVerticalCollapse>
 </div>
