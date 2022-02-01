@@ -21,7 +21,7 @@ import RockForm from "../../../Controls/rockForm";
 import { ListItem } from "../../../ViewModels";
 import { useVModelPassthrough } from "../../../Util/component";
 import PersonEntrySettings from "./personEntrySettings";
-import { FormPersonEntrySettings } from "./types";
+import { FormPersonEntry } from "./types";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.PersonEntryEditAside",
@@ -33,7 +33,7 @@ export default defineComponent({
 
     props: {
         modelValue: {
-            type: Object as PropType<FormPersonEntrySettings>,
+            type: Object as PropType<FormPersonEntry>,
             default: {}
         },
 

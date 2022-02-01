@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -15,24 +15,13 @@
 // </copyright>
 //
 
-using System.ComponentModel;
+export const enum FieldVisibilityRule {
+    /** Don't show the control. */
+    Hidden = 0,
 
-using Rock.Attribute;
-using Rock.Model;
+    /** Control is visible, but a value is not required. */
+    Optional = 1,
 
-namespace Rock.Blocks.Workflow
-{
-    /// <summary>
-    /// Edits the details of a workflow Form Builder action.
-    /// </summary>
-    /// <seealso cref="Rock.Blocks.RockObsidianBlockType" />
-
-    [DisplayName( "Form Builder Detail" )]
-    [Category( "Obsidian > Workflow > Form Builder" )]
-    [Description( "Edits the details of a workflow Form Builder action." )]
-    [IconCssClass( "fa fa-hammer" )]
-
-    public class FormBuilderDetail : RockObsidianBlockType
-    {
-    }
+    /** Control is visible, and a value is required. */
+    Required = 2
 }

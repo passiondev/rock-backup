@@ -20,7 +20,6 @@ import DropDownList from "../../../Elements/dropDownList";
 import InlineCheckbox from "../../../Elements/inlineCheckBox";
 import TextBox from "../../../Elements/textBox";
 import { toNumberOrNull } from "../../../Services/number";
-import { List } from "../../../Util/linq";
 import { ListItem } from "../../../ViewModels";
 import SegmentedPicker from "./segmentedPicker";
 import { FormEmailSource, FormEmailSourceType } from "./types";

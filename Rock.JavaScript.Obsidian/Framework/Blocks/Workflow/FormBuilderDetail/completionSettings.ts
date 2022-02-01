@@ -22,15 +22,15 @@ import { toNumberOrNull } from "../../../Services/number";
 import { ListItem } from "../../../ViewModels";
 import SegmentedPicker from "./segmentedPicker";
 import SettingsWell from "./settingsWell";
-import { CompletionResponseType, FormCompletionSettings } from "./types";
+import { FormCompletionActionType, FormCompletionAction } from "./types";
 
 const typeOptions: ListItem[] = [
     {
-        value: CompletionResponseType.DisplayMessage.toString(),
+        value: FormCompletionActionType.DisplayMessage.toString(),
         text: "Display Message"
     },
     {
-        value: CompletionResponseType.Redirect.toString(),
+        value: FormCompletionActionType.Redirect.toString(),
         text: "Redirect to New Page"
     }
 ];
@@ -50,7 +50,7 @@ export default defineComponent({
 
     props: {
         modelValue: {
-            type: Object as PropType<FormCompletionSettings>,
+            type: Object as PropType<FormCompletionAction>,
             required: true
         }
     },
@@ -61,7 +61,7 @@ export default defineComponent({
 
     setup(props, { emit }) {
         /** The type of completion logic to use when the form has been completed. */
-        const type = ref(props.modelValue.type?.toString() ?? CompletionResponseType.DisplayMessage.toString());
+        const type = ref(props.modelValue.type?.toString() ?? FormCompletionActionType.DisplayMessage.toString());
 
         /** The message to display to the user. */
         const message = ref(props.modelValue.message ?? "");
@@ -70,23 +70,23 @@ export default defineComponent({
         const redirectUrl = ref(props.modelValue.redirectUrl ?? "");
 
         /** True if the type is DisplayMessage. */
-        const isTypeDisplayMessage = computed((): boolean => type.value === CompletionResponseType.DisplayMessage.toString());
+        const isTypeDisplayMessage = computed((): boolean => type.value === FormCompletionActionType.DisplayMessage.toString());
 
         /** True if the type is Redirect */
-        const isTypeRedirect = computed((): boolean => type.value === CompletionResponseType.Redirect.toString());
+        const isTypeRedirect = computed((): boolean => type.value === FormCompletionActionType.Redirect.toString());
 
         // Watch for changes in our modelValue and then update all our internal values.
         watch(() => props.modelValue, () => {
-            type.value = props.modelValue.type?.toString() ?? CompletionResponseType.DisplayMessage.toString();
+            type.value = props.modelValue.type?.toString() ?? FormCompletionActionType.DisplayMessage.toString();
             message.value = props.modelValue.message ?? "";
             redirectUrl.value = props.modelValue.redirectUrl ?? "";
         });
 
         // Watch for changes on any of our internal values and then update the modelValue.
         watch([type, message, redirectUrl], () => {
-            const newValue: FormCompletionSettings = {
+            const newValue: FormCompletionAction = {
                 ...props.modelValue,
-                type: toNumberOrNull(type.value) ?? CompletionResponseType.DisplayMessage,
+                type: toNumberOrNull(type.value) ?? FormCompletionActionType.DisplayMessage,
                 message: message.value,
                 redirectUrl: redirectUrl.value
             };

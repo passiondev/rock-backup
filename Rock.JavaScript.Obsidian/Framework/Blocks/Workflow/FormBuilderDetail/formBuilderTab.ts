@@ -35,7 +35,7 @@ import SectionZone from "./sectionZone";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../../Directives/dragDrop";
 import { areEqual, newGuid } from "../../../Util/guid";
 import { List } from "../../../Util/linq";
-import { FormField, FormFieldType, FormPersonEntrySettings, FormSection, GeneralAsideSettings, IAsideProvider, SectionAsideSettings, SectionStyleType } from "./types";
+import { FormField, FormFieldType, FormPersonEntry, FormSection, GeneralAsideSettings, IAsideProvider, SectionAsideSettings } from "./types";
 import { FieldType } from "../../../SystemGuids";
 
 /**
@@ -59,7 +59,7 @@ function getSectionDragSourceOptions(sections: FormSection[]): IDragSourceOption
                     title: "",
                     description: "",
                     showHeadingSeparator: false,
-                    type: SectionStyleType.None,
+                    type: null,
                     fields: []
                 });
             }
@@ -105,6 +105,10 @@ function getFieldDragSourceOptions(sections: FormSection[], availableFieldTypes:
             const fieldType = new List(availableFieldTypes.value).firstOrUndefined(f => f.guid === fieldTypeGuid);
 
             if (section && fieldType && operation.targetIndex !== undefined) {
+                if (!section.fields) {
+                    section.fields = [];
+                }
+
                 section.fields.splice(operation.targetIndex, 0, {
                     guid: newGuid(),
                     fieldTypeGuid: fieldType.guid,
@@ -138,7 +142,7 @@ function getFieldReorderDragSourceOptions(sections: FormSection[]): IDragSourceO
             const targetSectionGuid = (operation.targetContainer as HTMLElement).dataset.sectionId;
             const targetSection = new List(sections).firstOrUndefined(s => s.guid === targetSectionGuid);
 
-            if (sourceSection && targetSection && operation.targetIndex !== undefined) {
+            if (sourceSection?.fields && targetSection?.fields && operation.targetIndex !== undefined) {
                 const field = sourceSection.fields[operation.sourceIndex];
 
                 sourceSection.fields.splice(operation.sourceIndex, 1);
@@ -218,7 +222,7 @@ const temporarySections: FormSection[] = [
         title: "My Favorite Things",
         description: "Below is a form that helps us get to know you a bit more. Please complete it and we'll keep it on record.",
         showHeadingSeparator: true,
-        type: SectionStyleType.None,
+        type: null,
         fields: [
             {
                 guid: newGuid(),
@@ -310,7 +314,7 @@ export default defineComponent({
         const sectionAsideSettings = ref<SectionAsideSettings | null>(null);
 
         /** The settings object used by the person entry aside. */
-        const personEntryAsideSettings = ref<FormPersonEntrySettings | null>(null);
+        const personEntryAsideSettings = ref<FormPersonEntry | null>(null);
 
         // Generate all the drag options.
         const sectionDragSourceOptions = getSectionDragSourceOptions(sections);
@@ -503,10 +507,10 @@ export default defineComponent({
             activeZone.value = section.guid;
             sectionAsideSettings.value = {
                 guid: section.guid,
-                title: section.title,
-                description: section.description,
-                showHeadingSeparator: section.showHeadingSeparator,
-                type: section.type
+                title: section.title ?? "",
+                description: section.description ?? "",
+                showHeadingSeparator: section.showHeadingSeparator ?? false,
+                type: section.type ?? null
             };
         };
 
@@ -523,7 +527,7 @@ export default defineComponent({
             closeAside();
 
             for (const section of sections) {
-                for (const existingField of section.fields) {
+                for (const existingField of (section.fields ?? [])) {
                     if (areEqual(existingField.guid, field.guid)) {
                         activeZone.value = existingField.guid;
                         editField.value = existingField;
@@ -559,11 +563,13 @@ export default defineComponent({
             // Find the original field that was just updated and replace it with
             // the new value.
             for (const section of sections) {
-                const existingFieldIndex = section.fields.findIndex(f => areEqual(f.guid, value.guid));
+                if (section.fields) {
+                    const existingFieldIndex = section.fields.findIndex(f => areEqual(f.guid, value.guid));
 
-                if (existingFieldIndex !== -1) {
-                    section.fields.splice(existingFieldIndex, 1, value);
-                    return;
+                    if (existingFieldIndex !== -1) {
+                        section.fields.splice(existingFieldIndex, 1, value);
+                        return;
+                    }
                 }
             }
         };
@@ -597,7 +603,7 @@ export default defineComponent({
          * 
          * @param value The new person entry settings.
          */
-        const onEditPersonEntryUpdate = (value: FormPersonEntrySettings): void => {
+        const onEditPersonEntryUpdate = (value: FormPersonEntry): void => {
             personEntryAsideSettings.value = value;
         };
 

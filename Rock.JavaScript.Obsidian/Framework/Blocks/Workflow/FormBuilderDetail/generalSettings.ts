@@ -15,127 +15,20 @@
 // </copyright>
 //
 
-import { defineComponent, PropType, Ref, ref, watch } from "vue";
+import { defineComponent, PropType, ref, watch } from "vue";
 import CategoryPicker from "../../../Controls/categoryPicker";
+import CheckBox from "../../../Elements/checkBox";
 import DateTimePicker from "../../../Elements/dateTimePicker";
 import DropDownList from "../../../Elements/dropDownList";
 import InlineSwitch from "../../../Elements/inlineSwitch";
 import TextBox from "../../../Elements/textBox";
 import TransitionVerticalCollapse from "../../../Elements/transitionVerticalCollapse";
 import { EntityType } from "../../../SystemGuids";
+import { updateRefValue } from "../../../Util/util";
 import { ListItem } from "../../../ViewModels";
 import EmailSource from "./emailSource";
 import SettingsWell from "./settingsWell";
-import { FormGeneralSettings } from "./types";
-
-/**
- * Compares two values for equality by performing deep nested comparisons
- * if the values are objects or arrays.
- *
- * This function should be moved to the util namespace eventually.
- * 
- * @param a The first value to compare.
- * @param b The second value to compare.
- * @param strict True if strict comparision is required (meaning 1 would not equal "1").
- *
- * @returns True if the two values are equal to each other.
- */
-function deepEqual(a: unknown, b: unknown, strict: boolean): boolean {
-    // Catches everything but objects.
-    if (strict && a === b) {
-        return true;
-    }
-    else if (!strict && a == b) {
-        return true;
-    }
-
-    // NaN never equals another NaN, but functionally they are the same.
-    if (typeof a === "number" && typeof b === "number" && isNaN(a) && isNaN(b)) {
-        return true;
-    }
-
-    // Remaining value types must both be of type object
-    if (a && b && typeof a === "object" && typeof b === "object") {
-        // Array status must match.
-        if (Array.isArray(a) !== Array.isArray(b)) {
-            return false;
-        }
-
-        if (Array.isArray(a) && Array.isArray(b)) {
-            // Array lengths must match.
-            if (a.length !== b.length) {
-                return false;
-            }
-
-            // Each element in the array must match.
-            for (let i = 0; i < a.length; i++) {
-                if (!deepEqual(a[i], b[i], strict)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-        else {
-            // NOTE: There are a few edge cases not accounted for here, but they
-            // are rare and unusual:
-            // Map, Set, ArrayBuffer, RegExp
-
-            // The objects must be of the same "object type".
-            if (a.constructor !== b.constructor) {
-                return false;
-            }
-
-            // Get all the key/value pairs of each object and sort them so they
-            // are in the same order as each other.
-            const aEntries = Object.entries(a).sort((a, b) => a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0));
-            const bEntries = Object.entries(b).sort((a, b) => a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0));
-
-            // Key/value count must be identical.
-            if (aEntries.length !== bEntries.length) {
-                return false;
-            }
-
-            for (let i = 0; i < aEntries.length; i++) {
-                const aEntry = aEntries[i];
-                const bEntry = bEntries[i];
-
-                // Ensure the keys are equal, must always be strict.
-                if (!deepEqual(aEntry[0], bEntry[0], true)) {
-                    return false;
-                }
-
-                // Ensure the values are equal.
-                if (!deepEqual(aEntry[1], bEntry[1], strict)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/**
- * Updates the Ref value, but only if the new value is actually different than
- * the current value. A strict comparison is performed.
- * 
- * @param target The target Ref object to be updated.
- * @param value The new value to be assigned to the target.
- *
- * @returns True if the target was updated, otherwise false.
- */
-function updateRefValue<T>(target: Ref<T>, value: T): boolean {
-    if (deepEqual(target.value, value, true)) {
-        return false;
-    }
-
-    target.value = value;
-
-    return true;
-}
+import { FormGeneral } from "./types";
 
 /**
  * Displays the UI for the General Settings section of the Settings screen.
@@ -145,6 +38,7 @@ export default defineComponent({
 
     components: {
         CategoryPicker,
+        CheckBox,
         DateTimePicker,
         DropDownList,
         EmailSource,
@@ -156,7 +50,7 @@ export default defineComponent({
 
     props: {
         modelValue: {
-            type: Object as PropType<FormGeneralSettings>,
+            type: Object as PropType<FormGeneral>,
             required: true
         },
 
@@ -189,6 +83,9 @@ export default defineComponent({
         /** The date and time after which the form no longer allows entries. */
         const entryEnds = ref(props.modelValue.entryEnds ?? "");
 
+        /** True if the user is required to login before they can view the form. */
+        const isLoginRequired = ref(props.modelValue.isLoginRequired ?? false);
+
         // Watch for changes in our modelValue and then update all our internal values.
         watch(() => props.modelValue, () => {
             updateRefValue(name, props.modelValue.name ?? "");
@@ -201,7 +98,7 @@ export default defineComponent({
 
         // Watch for changes on any of our internal values and then update the modelValue.
         watch([name, description, template, category, entryStarts, entryEnds], () => {
-            const newValue: FormGeneralSettings = {
+            const newValue: FormGeneral = {
                 ...props.modelValue,
                 name: name.value,
                 description: description.value,
@@ -219,6 +116,7 @@ export default defineComponent({
             description,
             entryStarts,
             entryEnds,
+            isLoginRequired,
             name,
             template,
             workflowTypeEntityTypeGuid: EntityType.WorkflowType
@@ -251,6 +149,10 @@ export default defineComponent({
             </div>
         </div>
     </div>
+
+    <CheckBox v-model="isLoginRequired"
+        label="Is Login Required"
+        help="Determines if a person needs to be logged in to complete the form." />
 
     <div class="row">
         <div class="col-md-6">

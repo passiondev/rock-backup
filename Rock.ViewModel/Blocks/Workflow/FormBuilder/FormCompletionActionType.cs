@@ -15,24 +15,12 @@
 // </copyright>
 //
 
-using System.ComponentModel;
-
-using Rock.Attribute;
-using Rock.Model;
-
-namespace Rock.Blocks.Workflow
+namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
-    /// <summary>
-    /// Edits the details of a workflow Form Builder action.
-    /// </summary>
-    /// <seealso cref="Rock.Blocks.RockObsidianBlockType" />
-
-    [DisplayName( "Form Builder Detail" )]
-    [Category( "Obsidian > Workflow > Form Builder" )]
-    [Description( "Edits the details of a workflow Form Builder action." )]
-    [IconCssClass( "fa fa-hammer" )]
-
-    public class FormBuilderDetail : RockObsidianBlockType
+    public enum FormCompletionActionType
     {
+        DisplayMessage = 0,
+
+        Redirect = 1
     }
 }

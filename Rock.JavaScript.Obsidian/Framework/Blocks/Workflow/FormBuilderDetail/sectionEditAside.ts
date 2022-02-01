@@ -23,21 +23,9 @@ import Panel from "../../../Controls/panel";
 import RockForm from "../../../Controls/rockForm";
 import Switch from "../../../Elements/switch";
 import TextBox from "../../../Elements/textBox";
-import { SectionAsideSettings, SectionStyleType } from "./types";
+import { SectionAsideSettings } from "./types";
 import { toNumber } from "../../../Services/number";
 import { ListItem } from "../../../ViewModels";
-
-/** The types of sections that can be picked from. */
-const sectionTypeOptions: ListItem[] = [
-    {
-        value: SectionStyleType.None.toString(),
-        text: ""
-    },
-    {
-        value: SectionStyleType.Well.toString(),
-        text: "Well"
-    }
-];
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.SectionEditAside",
@@ -56,6 +44,11 @@ export default defineComponent({
         modelValue: {
             type: Object as PropType<SectionAsideSettings>,
             required: true
+        },
+
+        sectionTypeOptions: {
+            type: Array as PropType<ListItem[]>,
+            default: []
         }
     },
 
@@ -87,7 +80,7 @@ export default defineComponent({
         const showHeadingSeparator = ref(props.modelValue.showHeadingSeparator);
 
         /** The style of the UI to render for the section. */
-        const sectionType = ref(props.modelValue.type.toString());
+        const sectionType = ref(props.modelValue.type ?? "");
 
         /** The validation errors for the form. */
         const validationErrors = ref<Record<string, string>>({});
@@ -109,7 +102,7 @@ export default defineComponent({
             title.value = props.modelValue.title;
             description.value = props.modelValue.description;
             showHeadingSeparator.value = props.modelValue.showHeadingSeparator;
-            sectionType.value = props.modelValue.type.toString();
+            sectionType.value = props.modelValue.type ?? "";
             autoSyncModelValue = true;
         });
 
@@ -124,7 +117,7 @@ export default defineComponent({
                 title: title.value,
                 description: description.value,
                 showHeadingSeparator: showHeadingSeparator.value,
-                type: toNumber(sectionType.value)
+                type: sectionType.value === "" ? null : sectionType.value
             };
 
             emit("update:modelValue", value);
@@ -136,7 +129,6 @@ export default defineComponent({
             onBackClick,
             title,
             sectionType,
-            sectionTypeOptions,
             showHeadingSeparator,
             validationErrors
         };
@@ -169,8 +161,7 @@ export default defineComponent({
 
                 <DropDownList v-model="sectionType"
                     label="Type"
-                    :options="sectionTypeOptions"
-                    :showBlankItem="false" />
+                    :options="sectionTypeOptions" />
             </Panel>
 
             <Panel title="Conditionals" hasCollapse>

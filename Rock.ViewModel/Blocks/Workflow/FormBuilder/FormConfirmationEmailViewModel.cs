@@ -15,24 +15,16 @@
 // </copyright>
 //
 
-using System.ComponentModel;
+using System;
 
-using Rock.Attribute;
-using Rock.Model;
-
-namespace Rock.Blocks.Workflow
+namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
-    /// <summary>
-    /// Edits the details of a workflow Form Builder action.
-    /// </summary>
-    /// <seealso cref="Rock.Blocks.RockObsidianBlockType" />
-
-    [DisplayName( "Form Builder Detail" )]
-    [Category( "Obsidian > Workflow > Form Builder" )]
-    [Description( "Edits the details of a workflow Form Builder action." )]
-    [IconCssClass( "fa fa-hammer" )]
-
-    public class FormBuilderDetail : RockObsidianBlockType
+    public class FormConfirmationEmailViewModel
     {
+        public bool Enabled { get; set; }
+
+        public Guid? RecipientAttributeGuid { get; set; }
+
+        public FormEmailSourceViewModel Source { get; set; }
     }
 }

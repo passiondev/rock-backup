@@ -18,10 +18,10 @@
 import { computed, defineComponent, PropType, ref, watch } from "vue";
 import RockField from "../../../Controls/rockField";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../../Directives/dragDrop";
-import { Guid, newGuid } from "../../../Util/guid";
-import { ClientEditableAttributeValue } from "../../../ViewModels";
+import { areEqual, Guid, newGuid } from "../../../Util/guid";
+import { ClientEditableAttributeValue, ListItem } from "../../../ViewModels";
 import ConfigurableZone from "./configurableZone";
-import { FormField, FormSection, SectionStyleType } from "./types";
+import { FormField, FormSection } from "./types";
 
 function getAttributeValueFromField(field: FormField): ClientEditableAttributeValue {
     return {
@@ -103,6 +103,11 @@ export default defineComponent({
         activeZone: {
             type: String as PropType<string>,
             required: false
+        },
+
+        sectionTypes: {
+            type: Array as PropType<ListItem[]>,
+            default: []
         }
     },
 
@@ -131,8 +136,13 @@ export default defineComponent({
 
         /** The CSS class name to apply to the section. */
         const sectionTypeClass = computed((): string => {
-            if (sectionType.value === SectionStyleType.Well) {
-                return "well";
+            if (sectionType.value) {
+                const sectionTypeValue = sectionType.value;
+                const matches = props.sectionTypes.filter(t => areEqual(sectionTypeValue, t.value));
+
+                if (matches.length > 0) {
+                    return matches[0].category ?? "";
+                }
             }
 
             return "";

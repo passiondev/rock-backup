@@ -25,19 +25,19 @@ import { ListItem } from "../../../ViewModels";
 import EmailSource from "./emailSource";
 import SegmentedPicker from "./segmentedPicker";
 import SettingsWell from "./settingsWell";
-import { FormNotificationEmail, NotificationEmailDestination } from "./types";
+import { FormNotificationEmail, FormNotificationEmailDestination } from "./types";
 
 const notificationDestinationOptions: ListItem[] = [
     {
-        value: NotificationEmailDestination.SpecificIndividual.toString(),
+        value: FormNotificationEmailDestination.SpecificIndividual.toString(),
         text: "Specific Individual"
     },
     {
-        value: NotificationEmailDestination.EmailAddress.toString(),
+        value: FormNotificationEmailDestination.EmailAddress.toString(),
         text: "Email Address"
     },
     {
-        value: NotificationEmailDestination.CampusTopic.toString(),
+        value: FormNotificationEmailDestination.CampusTopic.toString(),
         text: "Campus Topic Address"
     }
 ];
@@ -80,7 +80,7 @@ export default defineComponent({
         const enabled = ref(props.modelValue.enabled ?? false);
 
         /** The currently selected destination option for where the e-mail will be sent. */
-        const destination = ref(props.modelValue.destination?.toString() ?? NotificationEmailDestination.SpecificIndividual.toString());
+        const destination = ref(props.modelValue.destination?.toString() ?? FormNotificationEmailDestination.SpecificIndividual.toString());
 
         /** The recipient when destination is set to specific individual. */
         const recipient = ref(props.modelValue.recipient ?? null);
@@ -95,18 +95,18 @@ export default defineComponent({
         const source = ref(props.modelValue.source ?? {});
 
         /** True if the selected destination is Specific Individual. */
-        const isDestinationSpecificIndividual = computed((): boolean => destination.value === NotificationEmailDestination.SpecificIndividual.toString());
+        const isDestinationSpecificIndividual = computed((): boolean => destination.value === FormNotificationEmailDestination.SpecificIndividual.toString());
 
         /** True if the selected destination is Email Address. */
-        const isDestinationEmailAddress = computed((): boolean => destination.value === NotificationEmailDestination.EmailAddress.toString());
+        const isDestinationEmailAddress = computed((): boolean => destination.value === FormNotificationEmailDestination.EmailAddress.toString());
 
         /** True if the selected destination is Campus Topic. */
-        const isDestinationCampusTopic = computed((): boolean => destination.value === NotificationEmailDestination.CampusTopic.toString());
+        const isDestinationCampusTopic = computed((): boolean => destination.value === FormNotificationEmailDestination.CampusTopic.toString());
 
         // Watch for changes in the modelValue and update all our internal values.
         watch(() => props.modelValue, () => {
             enabled.value = props.modelValue.enabled ?? false;
-            destination.value = props.modelValue.destination?.toString() ?? NotificationEmailDestination.SpecificIndividual.toString();
+            destination.value = props.modelValue.destination?.toString() ?? FormNotificationEmailDestination.SpecificIndividual.toString();
             recipient.value = props.modelValue.recipient ?? null;
             emailAddress.value = props.modelValue.emailAddress ?? "";
             campusTopicGuid.value = props.modelValue.campusTopicGuid ?? "";
@@ -118,7 +118,7 @@ export default defineComponent({
             const newValue: FormNotificationEmail = {
                 ...props.modelValue,
                 enabled: enabled.value,
-                destination: toNumberOrNull(destination.value) ?? NotificationEmailDestination.SpecificIndividual,
+                destination: toNumberOrNull(destination.value) ?? FormNotificationEmailDestination.SpecificIndividual,
                 recipient: props.modelValue.recipient,
                 emailAddress: props.modelValue.emailAddress,
                 campusTopicGuid: props.modelValue.campusTopicGuid,

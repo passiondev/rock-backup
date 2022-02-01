@@ -15,24 +15,27 @@
 // </copyright>
 //
 
-using System.ComponentModel;
-
-using Rock.Attribute;
-using Rock.Model;
-
-namespace Rock.Blocks.Workflow
+namespace Rock.ViewModel.NonEntities
 {
     /// <summary>
-    /// Edits the details of a workflow Form Builder action.
+    /// The rule for if a field should be shown on the page and if it should
+    /// be required.
     /// </summary>
-    /// <seealso cref="Rock.Blocks.RockObsidianBlockType" />
-
-    [DisplayName( "Form Builder Detail" )]
-    [Category( "Obsidian > Workflow > Form Builder" )]
-    [Description( "Edits the details of a workflow Form Builder action." )]
-    [IconCssClass( "fa fa-hammer" )]
-
-    public class FormBuilderDetail : RockObsidianBlockType
+    public enum FieldVisibilityRule
     {
+        /// <summary>
+        /// Don't show the field.
+        /// </summary>
+        Hidden = 0,
+
+        /// <summary>
+        /// Field is visible, but a value is not required. */
+        /// </summary>
+        Optional = 1,
+
+        /// <summary>
+        /// Field is visible, and a value is required.
+        /// </summary>
+        Required = 2
     }
 }

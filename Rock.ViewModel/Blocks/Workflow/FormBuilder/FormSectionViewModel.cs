@@ -15,24 +15,23 @@
 // </copyright>
 //
 
-using System.ComponentModel;
+using System;
+using System.Collections.Generic;
 
-using Rock.Attribute;
-using Rock.Model;
-
-namespace Rock.Blocks.Workflow
+namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
-    /// <summary>
-    /// Edits the details of a workflow Form Builder action.
-    /// </summary>
-    /// <seealso cref="Rock.Blocks.RockObsidianBlockType" />
-
-    [DisplayName( "Form Builder Detail" )]
-    [Category( "Obsidian > Workflow > Form Builder" )]
-    [Description( "Edits the details of a workflow Form Builder action." )]
-    [IconCssClass( "fa fa-hammer" )]
-
-    public class FormBuilderDetail : RockObsidianBlockType
+    public class FormSectionViewModel
     {
+        public Guid Guid { get; set; }
+
+        public string Title { get; set; }
+
+        public string Description { get; set; }
+
+        public bool ShowHeadingSeparator { get; set; }
+
+        public Guid? Type { get; set; }
+
+        public List<FormFieldViewModel> Fields { get; set; }
     }
 }

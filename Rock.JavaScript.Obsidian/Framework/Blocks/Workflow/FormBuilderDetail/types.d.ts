@@ -17,14 +17,9 @@
 
 import { Guid } from "../../../Util/guid";
 import { ListItem } from "../../../ViewModels";
+import { FieldVisibilityRule } from "../../../ViewModels/fieldVisibilityRule";
 
 // #region Enums
-
-export const enum SectionStyleType {
-    None = 0,
-
-    Well = 1
-}
 
 export const enum FormEmailSourceType {
     UseTemplate = 0,
@@ -32,7 +27,7 @@ export const enum FormEmailSourceType {
     Custom = 1
 }
 
-export const enum NotificationEmailDestination {
+export const enum FormNotificationEmailDestination {
     SpecificIndividual = 0,
 
     EmailAddress = 1,
@@ -40,21 +35,10 @@ export const enum NotificationEmailDestination {
     CampusTopic = 2
 }
 
-export const enum CompletionResponseType {
+export const enum FormCompletionActionType {
     DisplayMessage = 0,
 
     Redirect = 1
-}
-
-export const enum WorkflowActionFormPersonEntryOption {
-    /** Don't show the control. */
-    Hidden = 0,
-
-    /** Control is visible, but a value is not required. */
-    Optional = 1,
-
-    /** Control is visible, and a value is required. */
-    Required = 2
 }
 
 // #endregion
@@ -72,15 +56,15 @@ export interface IAsideProvider {
 export type FormSection = {
     guid: Guid;
 
-    title: string;
+    title?: string | null;
 
-    description: string;
+    description?: string | null;
 
-    showHeadingSeparator: boolean;
+    showHeadingSeparator?: boolean;
 
-    type: SectionStyleType;
+    type?: string | null;
 
-    fields: FormField[];
+    fields?: FormField[] | null;
 };
 
 export type FormField = {
@@ -90,7 +74,7 @@ export type FormField = {
 
     name: string;
 
-    description?: string;
+    description?: string | null;
 
     key: string;
 
@@ -102,9 +86,9 @@ export type FormField = {
 
     isShowOnGrid?: boolean;
 
-    configurationValues?: Record<string, string>;
+    configurationValues?: Record<string, string> | null;
 
-    defaultValue?: string;
+    defaultValue?: string | null;
 };
 
 export type FormFieldType = {
@@ -132,7 +116,7 @@ export type SectionAsideSettings = {
 
     showHeadingSeparator: boolean;
 
-    type: SectionStyleType;
+    type: Guid | null;
 };
 
 export type FormConfirmationEmail = {
@@ -160,7 +144,7 @@ export type FormEmailSource = {
 export type FormNotificationEmail = {
     enabled?: boolean;
 
-    destination?: NotificationEmailDestination;
+    destination?: FormNotificationEmailDestination;
 
     recipient?: ListItem | null;
 
@@ -171,13 +155,13 @@ export type FormNotificationEmail = {
     source?: FormEmailSource;
 };
 
-export type FormCommunicationSettings = {
+export type FormCommunication = {
     confirmationEmail?: FormConfirmationEmail;
 
     notificationEmail?: FormNotificationEmail;
 };
 
-export type FormGeneralSettings = {
+export type FormGeneral = {
     name?: string | null;
 
     description?: string | null;
@@ -189,10 +173,12 @@ export type FormGeneralSettings = {
     entryStarts?: string | null;
 
     entryEnds?: string | null;
+
+    isLoginRequired?: boolean;
 };
 
-export type FormCompletionSettings = {
-    type?: CompletionResponseType;
+export type FormCompletionAction = {
+    type?: FormCompletionActionType;
 
     message?: string | null;
 
@@ -200,34 +186,24 @@ export type FormCompletionSettings = {
 };
 
 export type FormSettings = {
-    name?: string | null;
-
-    description?: string | null;
-
-    template?: string | null;
-
-    category?: ListItem | null;
-
-    entryStarts?: string | null;
-
-    entryEnds?: string | null;
-
     headerContent?: string | null;
 
     footerContent?: string | null;
 
     sections?: FormSection[] | null;
 
+    general?: FormGeneral | null;
+
     confirmationEmail?: FormConfirmationEmail | null;
 
     notificationEmail?: FormNotificationEmail | null;
 
-    completion?: FormCompletionSettings | null;
+    completion?: FormCompletionAction | null;
 
-    personEntry?: FormPersonEntrySettings | null;
+    personEntry?: FormPersonEntry | null;
 };
 
-export type FormPersonEntrySettings = {
+export type FormPersonEntry = {
     autofillCurrentPerson?: boolean;
 
     hideIfCurrentPersonKnown?: boolean;
@@ -240,23 +216,23 @@ export type FormPersonEntrySettings = {
 
     campusType?: string | null;
 
-    campusState?: string | null;
+    campusStatus?: string | null;
 
-    gender?: WorkflowActionFormPersonEntryOption;
+    gender?: FieldVisibilityRule;
 
-    email?: WorkflowActionFormPersonEntryOption;
+    email?: FieldVisibilityRule;
 
-    mobilePhone?: WorkflowActionFormPersonEntryOption;
+    mobilePhone?: FieldVisibilityRule;
 
-    birthdate?: WorkflowActionFormPersonEntryOption;
+    birthdate?: FieldVisibilityRule;
 
-    address?: WorkflowActionFormPersonEntryOption;
+    address?: FieldVisibilityRule;
 
     addressType?: string | null;
 
-    maritalStatus?: WorkflowActionFormPersonEntryOption;
+    maritalStatus?: FieldVisibilityRule;
 
-    spouseEntry?: WorkflowActionFormPersonEntryOption;
+    spouseEntry?: FieldVisibilityRule;
 
     spouseLabel?: string | null;
 };
