@@ -16,15 +16,15 @@
 //
 
 import { computed, defineComponent, PropType, ref, watch } from "vue";
-import Panel from "../../../Controls/panel";
-import CheckBox from "../../../Elements/checkBox";
-import DropDownList from "../../../Elements/dropDownList";
-import TextBox from "../../../Elements/textBox";
-import RockForm from "../../../Controls/rockForm";
-import { ListItem } from "../../../ViewModels";
-import { toNumberOrNull } from "../../../Services/number";
+import Panel from "../../../../Controls/panel";
+import CheckBox from "../../../../Elements/checkBox";
+import DropDownList from "../../../../Elements/dropDownList";
+import TextBox from "../../../../Elements/textBox";
+import RockForm from "../../../../Controls/rockForm";
+import { ListItem } from "../../../../ViewModels";
+import { toNumberOrNull } from "../../../../Services/number";
 import { FormPersonEntry } from "./types";
-import { FieldVisibilityRule } from "../../../ViewModels/fieldVisibilityRule";
+import { FieldVisibilityRule } from "../../../../ViewModels/fieldVisibilityRule";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.PersonEntrySettings",

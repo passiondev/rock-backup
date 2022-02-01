@@ -16,16 +16,16 @@
 //
 
 import { computed, defineComponent, PropType, ref, watch } from "vue";
-import Panel from "../../../Controls/panel";
-import FieldTypeEditor from "../../../Controls/fieldTypeEditor";
-import InlineSwitch from "../../../Elements/switch";
-import NumberBox from "../../../Elements/numberBox";
-import TextBox from "../../../Elements/textBox";
-import Slider from "../../../Elements/slider";
-import RockForm from "../../../Controls/rockForm";
-import { List } from "../../../Util/linq";
+import Panel from "../../../../Controls/panel";
+import FieldTypeEditor from "../../../../Controls/fieldTypeEditor";
+import InlineSwitch from "../../../../Elements/switch";
+import NumberBox from "../../../../Elements/numberBox";
+import TextBox from "../../../../Elements/textBox";
+import Slider from "../../../../Elements/slider";
+import RockForm from "../../../../Controls/rockForm";
+import { List } from "../../../../Util/linq";
 import { FormField, FormFieldType } from "./types";
-import { FieldTypeConfigurationViewModel } from "../../../ViewModels/Controls/fieldTypeEditor";
+import { FieldTypeConfigurationViewModel } from "../../../../ViewModels/Controls/fieldTypeEditor";
 
 /**
  * Check if the two records are equal. This makes sure all the key names match

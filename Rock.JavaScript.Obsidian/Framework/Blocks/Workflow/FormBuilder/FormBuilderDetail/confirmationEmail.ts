@@ -16,10 +16,10 @@
 //
 
 import { defineComponent, PropType, ref, watch } from "vue";
-import DropDownList from "../../../Elements/dropDownList";
-import InlineSwitch from "../../../Elements/inlineSwitch";
-import TransitionVerticalCollapse from "../../../Elements/transitionVerticalCollapse";
-import { ListItem } from "../../../ViewModels";
+import DropDownList from "../../../../Elements/dropDownList";
+import InlineSwitch from "../../../../Elements/inlineSwitch";
+import TransitionVerticalCollapse from "../../../../Elements/transitionVerticalCollapse";
+import { ListItem } from "../../../../ViewModels";
 import EmailSource from "./emailSource";
 import SettingsWell from "./settingsWell";
 import { FormConfirmationEmail, FormEmailSource } from "./types";

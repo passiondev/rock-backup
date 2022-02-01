@@ -16,7 +16,7 @@
 //
 
 import { defineComponent, PropType, ref, watch } from "vue";
-import RockForm from "../../../Controls/rockForm";
+import RockForm from "../../../../Controls/rockForm";
 import CompletionSettings from "./completionSettings";
 import GeneralSettings from "./generalSettings";
 

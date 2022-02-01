@@ -16,16 +16,16 @@
 //
 
 import { defineComponent, PropType, ref, watch } from "vue";
-import CategoryPicker from "../../../Controls/categoryPicker";
-import CheckBox from "../../../Elements/checkBox";
-import DateTimePicker from "../../../Elements/dateTimePicker";
-import DropDownList from "../../../Elements/dropDownList";
-import InlineSwitch from "../../../Elements/inlineSwitch";
-import TextBox from "../../../Elements/textBox";
-import TransitionVerticalCollapse from "../../../Elements/transitionVerticalCollapse";
-import { EntityType } from "../../../SystemGuids";
-import { updateRefValue } from "../../../Util/util";
-import { ListItem } from "../../../ViewModels";
+import CategoryPicker from "../../../../Controls/categoryPicker";
+import CheckBox from "../../../../Elements/checkBox";
+import DateTimePicker from "../../../../Elements/dateTimePicker";
+import DropDownList from "../../../../Elements/dropDownList";
+import InlineSwitch from "../../../../Elements/inlineSwitch";
+import TextBox from "../../../../Elements/textBox";
+import TransitionVerticalCollapse from "../../../../Elements/transitionVerticalCollapse";
+import { EntityType } from "../../../../SystemGuids";
+import { updateRefValue } from "../../../../Util/util";
+import { ListItem } from "../../../../ViewModels";
 import EmailSource from "./emailSource";
 import SettingsWell from "./settingsWell";
 import { FormGeneral } from "./types";

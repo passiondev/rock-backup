@@ -16,15 +16,15 @@
 //
 
 import { computed, defineComponent, reactive, Ref, ref, watch } from "vue";
-import { useConfigurationValues } from "../../Util/block";
-import DropDownList from "../../Elements/dropDownList";
-import Modal from "../../Controls/modal";
-import Panel from "../../Controls/panel";
-import RockButton from "../../Elements/rockButton";
-import RockLabel from "../../Elements/rockLabel";
-import RockForm from "../../Controls/rockForm";
-import Switch from "../../Elements/switch";
-import TextBox from "../../Elements/textBox";
+import { useConfigurationValues } from "../../../Util/block";
+import DropDownList from "../../../Elements/dropDownList";
+import Modal from "../../../Controls/modal";
+import Panel from "../../../Controls/panel";
+import RockButton from "../../../Elements/rockButton";
+import RockLabel from "../../../Elements/rockLabel";
+import RockForm from "../../../Controls/rockForm";
+import Switch from "../../../Elements/switch";
+import TextBox from "../../../Elements/textBox";
 import ConfigurableZone from "./FormBuilderDetail/configurableZone";
 import FormBuilderTab from "./FormBuilderDetail/formBuilderTab";
 import CommunicationsTab from "./FormBuilderDetail/communicationsTab";

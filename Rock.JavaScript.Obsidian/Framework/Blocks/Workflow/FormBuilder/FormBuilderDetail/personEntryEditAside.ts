@@ -16,10 +16,10 @@
 //
 
 import { defineComponent, PropType, ref } from "vue";
-import Panel from "../../../Controls/panel";
-import RockForm from "../../../Controls/rockForm";
-import { ListItem } from "../../../ViewModels";
-import { useVModelPassthrough } from "../../../Util/component";
+import Panel from "../../../../Controls/panel";
+import RockForm from "../../../../Controls/rockForm";
+import { ListItem } from "../../../../ViewModels";
+import { useVModelPassthrough } from "../../../../Util/component";
 import PersonEntrySettings from "./personEntrySettings";
 import { FormPersonEntry } from "./types";
 

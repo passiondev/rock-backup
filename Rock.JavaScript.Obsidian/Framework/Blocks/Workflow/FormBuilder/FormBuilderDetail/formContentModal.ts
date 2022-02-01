@@ -16,11 +16,11 @@
 //
 
 import { defineComponent, nextTick, PropType, ref, watch } from "vue";
-import Modal from "../../../Controls/modal";
-import RockForm from "../../../Controls/rockForm";
-import RockButton from "../../../Elements/rockButton";
-import TextBox from "../../../Elements/textBox";
-import { useVModelPassthrough } from "../../../Util/component";
+import Modal from "../../../../Controls/modal";
+import RockForm from "../../../../Controls/rockForm";
+import RockButton from "../../../../Elements/rockButton";
+import TextBox from "../../../../Elements/textBox";
+import { useVModelPassthrough } from "../../../../Util/component";
 import ConfigurableZone from "./configurableZone";
 
 export default defineComponent({

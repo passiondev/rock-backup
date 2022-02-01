@@ -16,11 +16,11 @@
 //
 
 import { computed, defineComponent, PropType, ref, watch } from "vue";
-import RockField from "../../../Controls/rockField";
-import { DragSource, IDragSourceOptions } from "../../../Directives/dragDrop";
-import DropDownList from "../../../Elements/dropDownList";
-import Switch from "../../../Elements/switch";
-import { toNumberOrNull } from "../../../Services/number";
+import RockField from "../../../../Controls/rockField";
+import { DragSource, IDragSourceOptions } from "../../../../Directives/dragDrop";
+import DropDownList from "../../../../Elements/dropDownList";
+import Switch from "../../../../Elements/switch";
+import { toNumberOrNull } from "../../../../Services/number";
 import ConfigurableZone from "./configurableZone";
 import { FormFieldType, GeneralAsideSettings } from "./types";
 

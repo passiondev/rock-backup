@@ -17,15 +17,14 @@
 
 import { defineComponent, PropType, ref, watch } from "vue";
 import ConfigurableZone from "./configurableZone";
-import RockField from "../../../Controls/rockField";
-import DropDownList from "../../../Elements/dropDownList";
-import Panel from "../../../Controls/panel";
-import RockForm from "../../../Controls/rockForm";
-import Switch from "../../../Elements/switch";
-import TextBox from "../../../Elements/textBox";
+import RockField from "../../../../Controls/rockField";
+import DropDownList from "../../../../Elements/dropDownList";
+import Panel from "../../../../Controls/panel";
+import RockForm from "../../../../Controls/rockForm";
+import Switch from "../../../../Elements/switch";
+import TextBox from "../../../../Elements/textBox";
 import { SectionAsideSettings } from "./types";
-import { toNumber } from "../../../Services/number";
-import { ListItem } from "../../../ViewModels";
+import { ListItem } from "../../../../ViewModels";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.SectionEditAside",

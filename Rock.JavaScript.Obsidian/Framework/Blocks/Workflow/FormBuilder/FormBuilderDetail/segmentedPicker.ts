@@ -16,8 +16,8 @@
 //
 
 import { defineComponent, PropType } from "vue";
-import { useVModelPassthrough } from "../../../Util/component";
-import { ListItem } from "../../../ViewModels";
+import { useVModelPassthrough } from "../../../../Util/component";
+import { ListItem } from "../../../../ViewModels";
 
 export default defineComponent({
     name: "SegmentedPicker",

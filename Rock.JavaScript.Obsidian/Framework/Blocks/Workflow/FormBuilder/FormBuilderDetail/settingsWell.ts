@@ -16,8 +16,8 @@
 //
 
 import { computed, defineComponent, PropType, ref, watch } from "vue";
-import InlineSwitch from "../../../Elements/inlineSwitch";
-import TransitionVerticalCollapse from "../../../Elements/transitionVerticalCollapse";
+import InlineSwitch from "../../../../Elements/inlineSwitch";
+import TransitionVerticalCollapse from "../../../../Elements/transitionVerticalCollapse";
 
 /**
  * Displays the UI for the Confirmation Email component in the Communications

@@ -15,9 +15,9 @@
 // </copyright>
 //
 
-import { Guid } from "../../../Util/guid";
-import { ListItem } from "../../../ViewModels";
-import { FieldVisibilityRule } from "../../../ViewModels/fieldVisibilityRule";
+import { Guid } from "../../../../Util/guid";
+import { ListItem } from "../../../../ViewModels";
+import { FieldVisibilityRule } from "../../../../ViewModels/fieldVisibilityRule";
 
 // #region Enums
 

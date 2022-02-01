@@ -16,14 +16,14 @@
 //
 
 import { computed, defineComponent, reactive, Ref, ref, watch } from "vue";
-import DropDownList from "../../../Elements/dropDownList";
-import Modal from "../../../Controls/modal";
-import Panel from "../../../Controls/panel";
-import RockButton from "../../../Elements/rockButton";
-import RockLabel from "../../../Elements/rockLabel";
-import RockForm from "../../../Controls/rockForm";
-import Switch from "../../../Elements/switch";
-import TextBox from "../../../Elements/textBox";
+import DropDownList from "../../../../Elements/dropDownList";
+import Modal from "../../../../Controls/modal";
+import Panel from "../../../../Controls/panel";
+import RockButton from "../../../../Elements/rockButton";
+import RockLabel from "../../../../Elements/rockLabel";
+import RockForm from "../../../../Controls/rockForm";
+import Switch from "../../../../Elements/switch";
+import TextBox from "../../../../Elements/textBox";
 import ConfigurableZone from "./configurableZone";
 import FieldEditAside from "./fieldEditAside";
 import FormContentModal from "./formContentModal";
@@ -32,11 +32,11 @@ import GeneralAside from "./generalAside";
 import PersonEntryEditAside from "./personEntryEditAside";
 import SectionEditAside from "./sectionEditAside";
 import SectionZone from "./sectionZone";
-import { DragSource, DragTarget, IDragSourceOptions } from "../../../Directives/dragDrop";
-import { areEqual, newGuid } from "../../../Util/guid";
-import { List } from "../../../Util/linq";
+import { DragSource, DragTarget, IDragSourceOptions } from "../../../../Directives/dragDrop";
+import { areEqual, newGuid } from "../../../../Util/guid";
+import { List } from "../../../../Util/linq";
 import { FormField, FormFieldType, FormPersonEntry, FormSection, GeneralAsideSettings, IAsideProvider, SectionAsideSettings } from "./types";
-import { FieldType } from "../../../SystemGuids";
+import { FieldType } from "../../../../SystemGuids";
 
 /**
  * Get the drag source options for the section zones. This allows the user to

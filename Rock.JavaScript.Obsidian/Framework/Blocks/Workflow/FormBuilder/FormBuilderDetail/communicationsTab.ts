@@ -16,8 +16,8 @@
 //
 
 import { defineComponent, PropType, ref, watch } from "vue";
-import RockForm from "../../../Controls/rockForm";
-import Alert from "../../../Elements/alert";
+import RockForm from "../../../../Controls/rockForm";
+import Alert from "../../../../Elements/alert";
 import ConfirmationEmail from "./confirmationEmail";
 import NotificationEmail from "./notificationEmail";
 import { FormCommunication } from "./types";

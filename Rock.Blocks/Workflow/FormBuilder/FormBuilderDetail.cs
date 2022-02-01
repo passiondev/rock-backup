@@ -20,7 +20,7 @@ using System.ComponentModel;
 using Rock.Attribute;
 using Rock.Model;
 
-namespace Rock.Blocks.Workflow
+namespace Rock.Blocks.Workflow.FormBuilder
 {
     /// <summary>
     /// Edits the details of a workflow Form Builder action.

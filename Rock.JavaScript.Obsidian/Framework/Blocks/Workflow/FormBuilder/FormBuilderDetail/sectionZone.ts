@@ -16,10 +16,10 @@
 //
 
 import { computed, defineComponent, PropType, ref, watch } from "vue";
-import RockField from "../../../Controls/rockField";
-import { DragSource, DragTarget, IDragSourceOptions } from "../../../Directives/dragDrop";
-import { areEqual, Guid, newGuid } from "../../../Util/guid";
-import { ClientEditableAttributeValue, ListItem } from "../../../ViewModels";
+import RockField from "../../../../Controls/rockField";
+import { DragSource, DragTarget, IDragSourceOptions } from "../../../../Directives/dragDrop";
+import { areEqual, Guid, newGuid } from "../../../../Util/guid";
+import { ClientEditableAttributeValue, ListItem } from "../../../../ViewModels";
 import ConfigurableZone from "./configurableZone";
 import { FormField, FormSection } from "./types";
 

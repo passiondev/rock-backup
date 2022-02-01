@@ -16,12 +16,12 @@
 //
 
 import { computed, defineComponent, PropType, ref, watch } from "vue";
-import PersonPicker from "../../../Controls/personPicker";
-import DropDownList from "../../../Elements/dropDownList";
-import EmailBox from "../../../Elements/emailBox";
-import TextBox from "../../../Elements/textBox";
-import { toNumberOrNull } from "../../../Services/number";
-import { ListItem } from "../../../ViewModels";
+import PersonPicker from "../../../../Controls/personPicker";
+import DropDownList from "../../../../Elements/dropDownList";
+import EmailBox from "../../../../Elements/emailBox";
+import TextBox from "../../../../Elements/textBox";
+import { toNumberOrNull } from "../../../../Services/number";
+import { ListItem } from "../../../../ViewModels";
 import EmailSource from "./emailSource";
 import SegmentedPicker from "./segmentedPicker";
 import SettingsWell from "./settingsWell";
