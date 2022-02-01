@@ -279,33 +279,6 @@ export default defineComponent({
     setup() {
         // #region Values
 
-        /** The body element that will be used for drag and drop operations. */
-        const bodyElement = ref<HTMLElement | null>(null);
-
-        /** The component instance that is displaying the general form settings. */
-        const generalAsideComponentInstance = ref<IAsideProvider | null>(null);
-
-        /** The component instance that is displaying the person entry editor. */
-        const personEntryAsideComponentInstance = ref<IAsideProvider | null>(null);
-
-        /** The component instance that is displaying the section editor. */
-        const sectionEditAsideComponentInstance = ref<IAsideProvider | null>(null);
-
-        /** The component instance that is displaying the field editor. */
-        const fieldEditAsideComponentInstance = ref<IAsideProvider | null>(null);
-
-        /** The component instance that is displaying the person entry editor. */
-        const personEntryEditAsideComponentInstance = ref<IAsideProvider | null>(null);
-
-        /** All the field types that are available for use when designing a form. */
-        const availableFieldTypes = ref<FormFieldType[]>(temporaryFieldTypes);
-
-        /** The identifier of the zone currently being edited. */
-        const activeZone = ref("");
-
-        /** The form field that is currently being edited in the aside. */
-        const editField = ref<FormField | null>(null);
-
         /**
          * The section that are currently displayed on the form. This is reactive
          * since we make live updates to it in various places.
@@ -324,6 +297,9 @@ export default defineComponent({
         /** The footer HTML content while it is being edited in the modal. */
         const formFooterEditContent = ref("");
 
+        /** All the field types that are available for use when designing a form. */
+        const availableFieldTypes = ref<FormFieldType[]>(temporaryFieldTypes);
+
         /** The settings object used by the general aside form settings. */
         const generalAsideSettings = ref<GeneralAsideSettings>({
             campusSetFrom: undefined,
@@ -340,6 +316,30 @@ export default defineComponent({
         const sectionDragSourceOptions = getSectionDragSourceOptions(sections);
         const fieldDragSourceOptions = getFieldDragSourceOptions(sections, availableFieldTypes);
         const fieldReorderDragSourceOptions = getFieldReorderDragSourceOptions(sections);
+
+        /** The body element that will be used for drag and drop operations. */
+        const bodyElement = ref<HTMLElement | null>(null);
+
+        /** The component instance that is displaying the general form settings. */
+        const generalAsideComponentInstance = ref<IAsideProvider | null>(null);
+
+        /** The component instance that is displaying the person entry editor. */
+        const personEntryAsideComponentInstance = ref<IAsideProvider | null>(null);
+
+        /** The component instance that is displaying the section editor. */
+        const sectionEditAsideComponentInstance = ref<IAsideProvider | null>(null);
+
+        /** The component instance that is displaying the field editor. */
+        const fieldEditAsideComponentInstance = ref<IAsideProvider | null>(null);
+
+        /** The component instance that is displaying the person entry editor. */
+        const personEntryEditAsideComponentInstance = ref<IAsideProvider | null>(null);
+
+        /** The identifier of the zone currently being edited. */
+        const activeZone = ref("");
+
+        /** The form field that is currently being edited in the aside. */
+        const editField = ref<FormField | null>(null);
 
         // #endregion
 

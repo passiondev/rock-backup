@@ -163,7 +163,7 @@ export default defineComponent({
         <div class="row">
             <div class="col-md-4">
                 <EmailBox v-model="emailAddress"
-                    label="Recipient(s)"
+                    label="Recipients"
                     rules="required"
                     allowMultiple />
             </div>

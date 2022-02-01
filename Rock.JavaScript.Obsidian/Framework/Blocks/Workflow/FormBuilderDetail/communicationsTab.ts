@@ -20,7 +20,7 @@ import RockForm from "../../../Controls/rockForm";
 import Alert from "../../../Elements/alert";
 import ConfirmationEmail from "./confirmationEmail";
 import NotificationEmail from "./notificationEmail";
-import { FormCommunication } from "./types";
+import { FormCommunicationSettings } from "./types";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.CommunicationsTab",
@@ -34,7 +34,7 @@ export default defineComponent({
 
     props: {
         modelValue: {
-            type: Object as PropType<FormCommunication>,
+            type: Object as PropType<FormCommunicationSettings>,
             required: true
         },
 
@@ -64,7 +64,7 @@ export default defineComponent({
         });
 
         watch([confirmationEmail, notificationEmail], () => {
-            const newValue: FormCommunication = {
+            const newValue: FormCommunicationSettings = {
                 ...props.modelValue,
                 confirmationEmail: confirmationEmail.value,
                 notificationEmail: notificationEmail.value

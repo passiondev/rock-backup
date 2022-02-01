@@ -15,9 +15,59 @@
 // </copyright>
 //
 
-import { Component } from "vue";
 import { Guid } from "../../../Util/guid";
 import { ListItem } from "../../../ViewModels";
+
+// #region Enums
+
+export const enum SectionStyleType {
+    None = 0,
+
+    Well = 1
+}
+
+export const enum FormEmailSourceType {
+    UseTemplate = 0,
+
+    Custom = 1
+}
+
+export const enum NotificationEmailDestination {
+    SpecificIndividual = 0,
+
+    EmailAddress = 1,
+
+    CampusTopic = 2
+}
+
+export const enum CompletionResponseType {
+    DisplayMessage = 0,
+
+    Redirect = 1
+}
+
+export const enum WorkflowActionFormPersonEntryOption {
+    /** Don't show the control. */
+    Hidden = 0,
+
+    /** Control is visible, but a value is not required. */
+    Optional = 1,
+
+    /** Control is visible, and a value is required. */
+    Required = 2
+}
+
+// #endregion
+
+// #region Interfaces
+
+export interface IAsideProvider {
+    isSafeToClose: () => boolean;
+}
+
+// #endregion
+
+// #region Types
 
 export type FormSection = {
     guid: Guid;
@@ -68,7 +118,7 @@ export type FormFieldType = {
 }
 
 export type GeneralAsideSettings = {
-    campusSetFrom?: number;
+    campusSetFrom?: number; // TODO: Enum
 
     hasPersonEntry?: boolean;
 };
@@ -85,26 +135,10 @@ export type SectionAsideSettings = {
     type: SectionStyleType;
 };
 
-export const enum SectionStyleType {
-    None = 0,
-
-    Well = 1
-}
-
-export interface IAsideProvider {
-    isSafeToClose: () => boolean;
-}
-
-export const enum FormEmailSourceType {
-    UseTemplate = 0,
-
-    Custom = 1
-}
-
 export type FormConfirmationEmail = {
     enabled?: boolean;
 
-    recipientAttributeGuid?: ListItem | null;
+    recipientAttributeGuid?: string | null;
 
     source?: FormEmailSource | null;
 };
@@ -112,7 +146,7 @@ export type FormConfirmationEmail = {
 export type FormEmailSource = {
     type?: FormEmailSourceType;
 
-    template?: ListItem | null;
+    template?: string | null;
 
     subject?: string | null;
 
@@ -122,14 +156,6 @@ export type FormEmailSource = {
 
     appendOrgHeaderAndFooter?: boolean;
 };
-
-export const enum NotificationEmailDestination {
-    SpecificIndividual = 0,
-
-    EmailAddress = 1,
-
-    CampusTopic = 2
-}
 
 export type FormNotificationEmail = {
     enabled?: boolean;
@@ -145,7 +171,7 @@ export type FormNotificationEmail = {
     source?: FormEmailSource;
 };
 
-export type FormCommunication = {
+export type FormCommunicationSettings = {
     confirmationEmail?: FormConfirmationEmail;
 
     notificationEmail?: FormNotificationEmail;
@@ -173,28 +199,33 @@ export type FormCompletionSettings = {
     redirectUrl?: string | null;
 };
 
-export const enum CompletionResponseType {
-    DisplayMessage = 0,
-
-    Redirect = 1
-}
-
 export type FormSettings = {
-    general?: FormGeneralSettings | null;
+    name?: string | null;
+
+    description?: string | null;
+
+    template?: string | null;
+
+    category?: ListItem | null;
+
+    entryStarts?: string | null;
+
+    entryEnds?: string | null;
+
+    headerContent?: string | null;
+
+    footerContent?: string | null;
+
+    sections?: FormSection[] | null;
+
+    confirmationEmail?: FormConfirmationEmail | null;
+
+    notificationEmail?: FormNotificationEmail | null;
 
     completion?: FormCompletionSettings | null;
+
+    personEntry?: FormPersonEntrySettings | null;
 };
-
-export const enum WorkflowActionFormPersonEntryOption {
-    /** Don't show the control. */
-    Hidden = 0,
-
-    /** Control is visible, but a value is not required. */
-    Optional = 1,
-
-    /** Control is visible, and a value is required. */
-    Required = 2
-}
 
 export type FormPersonEntrySettings = {
     autofillCurrentPerson?: boolean;
@@ -229,3 +260,5 @@ export type FormPersonEntrySettings = {
 
     spouseLabel?: string | null;
 };
+
+// #endregion

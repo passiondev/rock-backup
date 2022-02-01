@@ -103,12 +103,10 @@ export default defineComponent({
 
         // Watch for changes to any of our internal values and update the modelValue.
         watch([type, template, subject, replyTo, body], () => {
-            const templateItem = new List(props.templateOptions).firstOrUndefined(t => t.value === template.value) ?? null;
-
             const newValue: FormEmailSource = {
                 ...props.modelValue,
                 type: toNumberOrNull(type.value) ?? FormEmailSourceType.UseTemplate,
-                template: templateItem,
+                template: template.value,
                 subject: subject.value,
                 replyTo: replyTo.value,
                 body: body.value,

@@ -22,7 +22,7 @@ import { toNumberOrNull } from "../../../Services/number";
 import { ListItem } from "../../../ViewModels";
 import SegmentedPicker from "./segmentedPicker";
 import SettingsWell from "./settingsWell";
-import { CompletionResponseType, FormCompletionSettings, FormSettings } from "./types";
+import { CompletionResponseType, FormCompletionSettings } from "./types";
 
 const typeOptions: ListItem[] = [
     {
