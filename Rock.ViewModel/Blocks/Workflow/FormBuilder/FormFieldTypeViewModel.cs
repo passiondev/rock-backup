@@ -15,16 +15,18 @@
 // </copyright>
 //
 
+using System;
+
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
-    public class FormBuilderDetailViewModel
+    public class FormFieldTypeViewModel
     {
-        public string SubmissionsPageUrl { get; set; }
+        public Guid Guid { get; set; }
 
-        public string AnalyticsPageUrl { get; set; }
+        public string Text { get; set; }
 
-        public FormValueSourcesViewModel Sources { get; set; }
+        public string Icon { get; set; }
 
-        public FormSettingsViewModel Form { get; set; }
+        public bool IsCommon { get; set; }
     }
 }

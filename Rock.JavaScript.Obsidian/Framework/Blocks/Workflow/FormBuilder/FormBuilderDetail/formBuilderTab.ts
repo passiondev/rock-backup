@@ -35,8 +35,9 @@ import SectionZone from "./sectionZone";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../../../Directives/dragDrop";
 import { areEqual, newGuid } from "../../../../Util/guid";
 import { List } from "../../../../Util/linq";
-import { FormField, FormFieldType, FormPersonEntry, FormSection, GeneralAsideSettings, IAsideProvider, SectionAsideSettings } from "./types";
-import { FieldType } from "../../../../SystemGuids";
+import { FormBuilderSettings, FormField, FormFieldType, FormPersonEntry, FormSection, GeneralAsideSettings, IAsideProvider, SectionAsideSettings } from "./types";
+import { PropType } from "vue";
+import { useFormSources } from "./utils";
 
 /**
  * Get the drag source options for the section zones. This allows the user to
@@ -99,10 +100,10 @@ function getFieldDragSourceOptions(sections: FormSection[], availableFieldTypes:
         dragDrop(operation) {
             operation.element.remove();
 
-            const fieldTypeGuid = (operation.element as HTMLElement).dataset.fieldType;
-            const sectionGuid = (operation.targetContainer as HTMLElement).dataset.sectionId;
-            const section = new List(sections).firstOrUndefined(s => s.guid === sectionGuid);
-            const fieldType = new List(availableFieldTypes.value).firstOrUndefined(f => f.guid === fieldTypeGuid);
+            const fieldTypeGuid = (operation.element as HTMLElement).dataset.fieldType ?? "";
+            const sectionGuid = (operation.targetContainer as HTMLElement).dataset.sectionId ?? "";
+            const section = new List(sections).firstOrUndefined(s => areEqual(s.guid, sectionGuid));
+            const fieldType = new List(availableFieldTypes.value).firstOrUndefined(f => areEqual(f.guid, fieldTypeGuid));
 
             if (section && fieldType && operation.targetIndex !== undefined) {
                 if (!section.fields) {
@@ -137,10 +138,10 @@ function getFieldReorderDragSourceOptions(sections: FormSection[]): IDragSourceO
         copyElement: false,
         handleSelector: ".zone-actions",
         dragDrop(operation) {
-            const sourceSectionGuid = (operation.sourceContainer as HTMLElement).dataset.sectionId;
-            const sourceSection = new List(sections).firstOrUndefined(s => s.guid === sourceSectionGuid);
-            const targetSectionGuid = (operation.targetContainer as HTMLElement).dataset.sectionId;
-            const targetSection = new List(sections).firstOrUndefined(s => s.guid === targetSectionGuid);
+            const sourceSectionGuid = (operation.sourceContainer as HTMLElement).dataset.sectionId ?? "";
+            const targetSectionGuid = (operation.targetContainer as HTMLElement).dataset.sectionId ?? "";
+            const sourceSection = new List(sections).firstOrUndefined(s => areEqual(s.guid, sourceSectionGuid));
+            const targetSection = new List(sections).firstOrUndefined(s => areEqual(s.guid, targetSectionGuid));
 
             if (sourceSection?.fields && targetSection?.fields && operation.targetIndex !== undefined) {
                 const field = sourceSection.fields[operation.sourceIndex];
@@ -156,102 +157,6 @@ function getFieldReorderDragSourceOptions(sections: FormSection[]): IDragSourceO
 const formHeaderZoneGuid = "C7D522D0-A18C-4CB0-B604-B2E9727E9E33";
 const formFooterZoneGuid = "317E5892-C156-4614-806F-BE4CAB67AC10";
 const personEntryZoneGuid = "5257312E-102C-4026-B558-10184AFEAC4D";
-
-// Temporary placeholder for available form field types to use.
-const temporaryFieldTypes: FormFieldType[] = [
-    {
-        guid: FieldType.Text,
-        text: "Text",
-        icon: "fa fa-font",
-        isCommon: true
-    },
-    {
-        guid: FieldType.Memo,
-        text: "Memo",
-        icon: "fa fa-align-left",
-        isCommon: true
-    },
-    {
-        guid: FieldType.SingleSelect,
-        text: "Single Select",
-        icon: "fa fa-dot-circle",
-        isCommon: true
-    },
-    {
-        guid: FieldType.MultiSelect,
-        text: "Multi Select",
-        icon: "fa fa-check-circle",
-        isCommon: true
-    },
-    {
-        guid: FieldType.Decimal,
-        text: "Decimal",
-        icon: "fa fa-font",
-        isCommon: true
-    },
-    {
-        guid: FieldType.Date,
-        text: "Date",
-        icon: "fa fa-calendar",
-        isCommon: true
-    },
-    {
-        guid: FieldType.Time,
-        text: "Time",
-        icon: "fa fa-clock",
-        isCommon: true
-    },
-    {
-        guid: FieldType.DateTime,
-        text: "Date Time",
-        icon: "fa fa-calendar-alt",
-        isCommon: true
-    },
-    {
-        guid: FieldType.Boolean,
-        text: "Boolean",
-        icon: "fa fa-check",
-        isCommon: true
-    }
-];
-
-// Temporary palceholder for initial sections to display.
-const temporarySections: FormSection[] = [
-    {
-        guid: newGuid(),
-        title: "My Favorite Things",
-        description: "Below is a form that helps us get to know you a bit more. Please complete it and we'll keep it on record.",
-        showHeadingSeparator: true,
-        type: null,
-        fields: [
-            {
-                guid: newGuid(),
-                fieldTypeGuid: FieldType.SingleSelect,
-                name: "Single Select",
-                key: "SingleSelect1",
-                size: 6
-            },
-            {
-                guid: newGuid(),
-                fieldTypeGuid: FieldType.Memo,
-                name: "Memo",
-                key: "Memo1",
-                size: 6
-            },
-            {
-                guid: newGuid(),
-                fieldTypeGuid: FieldType.MultiSelect,
-                name: "Multi Select",
-                key: "MultiSelect1",
-                size: 12
-            }
-        ]
-    }
-];
-
-const temporaryHeader = "<h1>My custom header</h1>";
-
-const temporaryFooter = "<ul><li>My</li><li>Custom</li><li>Footer</li></ul>";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.FormBuilderTab",
@@ -280,20 +185,35 @@ export default defineComponent({
         DragTarget,
     },
 
-    setup() {
+    props: {
+        modelValue: {
+            type: Object as PropType<FormBuilderSettings>,
+            required: true
+        },
+    },
+
+    emits: [
+        "update:modelValue"
+    ],
+
+    setup(props, { emit }) {
         // #region Values
+
+        const sources = useFormSources();
+
+        const sectionTypeOptions = sources.sectionTypeOptions ?? [];
 
         /**
          * The section that are currently displayed on the form. This is reactive
          * since we make live updates to it in various places.
          */
-        const sections = reactive<FormSection[]>(temporarySections);
+        const sections = reactive<FormSection[]>(props.modelValue.sections ?? []);
 
         /** The header HTML content that will appear above the form. */
-        const formHeaderContent = ref(temporaryHeader);
+        const formHeaderContent = ref(props.modelValue.headerContent ?? "");
 
         /** The footer HTML content that will appear below the form. */
-        const formFooterContent = ref(temporaryFooter);
+        const formFooterContent = ref(props.modelValue.footerContent ?? "");
 
         /** The header HTML content while it is being edited in the modal. */
         const formHeaderEditContent = ref("");
@@ -302,19 +222,19 @@ export default defineComponent({
         const formFooterEditContent = ref("");
 
         /** All the field types that are available for use when designing a form. */
-        const availableFieldTypes = ref<FormFieldType[]>(temporaryFieldTypes);
+        const availableFieldTypes = ref(sources.fieldTypes ?? []);
 
         /** The settings object used by the general aside form settings. */
         const generalAsideSettings = ref<GeneralAsideSettings>({
-            campusSetFrom: undefined,
-            hasPersonEntry: true
+            campusSetFrom: props.modelValue.campusSetFrom,
+            hasPersonEntry: props.modelValue.allowPersonEntry
         });
 
         /** The settings object used by the section aside. */
         const sectionAsideSettings = ref<SectionAsideSettings | null>(null);
 
         /** The settings object used by the person entry aside. */
-        const personEntryAsideSettings = ref<FormPersonEntry | null>(null);
+        const personEntryAsideSettings = ref<FormPersonEntry>(props.modelValue.personEntry ?? {});
 
         // Generate all the drag options.
         const sectionDragSourceOptions = getSectionDragSourceOptions(sections);
@@ -387,7 +307,7 @@ export default defineComponent({
         });
 
         /** True if the person entry editor aside should be currently displayed. */
-        const showPersonEntryAside = computed((): boolean => personEntryAsideSettings.value !== null);
+        const showPersonEntryAside = computed((): boolean => activeZone.value === personEntryZoneGuid);
 
         /** True if the form has a person entry section. */
         const hasPersonEntry = computed((): boolean => generalAsideSettings.value.hasPersonEntry ?? false);
@@ -489,7 +409,6 @@ export default defineComponent({
             closeAside();
 
             activeZone.value = personEntryZoneGuid;
-            personEntryAsideSettings.value = {};
         };
 
         /**
@@ -634,6 +553,20 @@ export default defineComponent({
             fieldReorderDragSourceOptions.mirrorContainer = bodyElement.value ?? undefined;
         });
 
+        watch([sections, formHeaderContent, formFooterContent, generalAsideSettings, personEntryAsideSettings], () => {
+            console.log("update");
+            const newValue: FormBuilderSettings = {
+                allowPersonEntry: generalAsideSettings.value.hasPersonEntry,
+                campusSetFrom: generalAsideSettings.value.campusSetFrom,
+                footerContent: formFooterContent.value,
+                headerContent: formHeaderContent.value,
+                personEntry: personEntryAsideSettings.value,
+                sections: sections
+            };
+
+            emit("update:modelValue", newValue);
+        });
+
         return {
             activeZone,
             availableFieldTypes,
@@ -669,6 +602,7 @@ export default defineComponent({
             sectionAsideSettings,
             sectionDragSourceOptions,
             sectionDragTargetId: sectionDragSourceOptions.id,
+            sectionTypeOptions,
             sections,
             showFieldAside,
             showGeneralAside,
@@ -723,6 +657,7 @@ export default defineComponent({
                 :activeZone="activeZone"
                 :dragTargetId="fieldDragTargetId"
                 :reorderDragOptions="fieldReorderDragSourceOptions"
+                :sectionTypeOptions="sectionTypeOptions"
                 @configure="onConfigureSection(section)"
                 @configureField="onConfigureField" />
         </div>

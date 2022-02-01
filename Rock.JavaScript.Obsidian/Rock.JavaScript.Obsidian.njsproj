@@ -135,6 +135,7 @@
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilder\FormBuilderDetail\settingsTab.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilder\FormBuilderDetail\settingsWell.ts" />
     <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilder\FormBuilderDetail\types.d.ts" />
+    <TypeScriptCompile Include="Framework\Blocks\Workflow\FormBuilder\FormBuilderDetail\utils.ts" />
     <TypeScriptCompile Include="Framework\Controls\addressControl.ts" />
     <TypeScriptCompile Include="Framework\Controls\attributeEditor.ts" />
     <TypeScriptCompile Include="Framework\Controls\categoriesPicker.ts" />

@@ -17,28 +17,28 @@
 
 using System.Collections.Generic;
 
+using Rock.ViewModel.NonEntities;
+
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
-    public class FormSettingsViewModel
+    public class FormValueSourcesViewModel
     {
-        public string HeaderContent { get; set; }
+        public List<ListItemViewModel> CampusTopicOptions { get; set; }
 
-        public string FooterContent { get; set; }
+        public List<ListItemViewModel> CampusTypeOptions { get; set; }
 
-        public List<FormSectionViewModel> Sections { get; set; }
+        public List<ListItemViewModel> CampusStatusOptions { get; set; }
 
-        public FormGeneralViewModel General { get; set; }
+        public List<ListItemViewModel> RecordStatusOptions { get; set; }
 
-        public FormConfirmationEmailViewModel ConfirmationEmail { get; set; }
+        public List<ListItemViewModel> ConnectionStatusOptions { get; set; }
 
-        public FormNotificationEmailViewModel NotificationEmail { get; set; }
+        public List<ListItemViewModel> AddressTypeOptions { get; set; }
 
-        public FormCompletionActionViewModel Completion { get; set; }
+        public List<ListItemViewModel> EmailTemplateOptions { get; set; }
 
-        public int CampusSetFrom { get; set; }
+        public List<ListItemViewModel> SectionTypeOptions { get; set; }
 
-        public bool AllowPersonEntry { get; set; }
-
-        public FormPersonEntryViewModel PersonEntry { get; set; }
+        public List<FormFieldTypeViewModel> FieldTypes { get; set; }
     }
 }

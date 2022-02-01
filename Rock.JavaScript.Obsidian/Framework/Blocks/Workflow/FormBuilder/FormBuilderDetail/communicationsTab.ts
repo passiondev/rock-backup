@@ -21,6 +21,7 @@ import Alert from "../../../../Elements/alert";
 import ConfirmationEmail from "./confirmationEmail";
 import NotificationEmail from "./notificationEmail";
 import { FormCommunication } from "./types";
+import { useFormSources } from "./utils";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.CommunicationsTab",
@@ -58,6 +59,11 @@ export default defineComponent({
 
         const notificationEmail = ref(props.modelValue.notificationEmail ?? {});
 
+        const sources = useFormSources();
+
+        const sourceTemplateOptions = sources.emailTemplateOptions ?? [];
+        const campusTopicOptions = sources.campusTopicOptions ?? [];
+
         watch(() => props.modelValue, () => {
             confirmationEmail.value = props.modelValue.confirmationEmail ?? {};
             notificationEmail.value = props.modelValue.notificationEmail ?? {};
@@ -74,17 +80,18 @@ export default defineComponent({
         });
 
         return {
+            campusTopicOptions,
             confirmationEmail,
             notificationEmail,
-            onSubmit: () => alert("save")
+            sourceTemplateOptions,
         };
     },
 
     template: `
 <div class="d-flex flex-column" style="flex-grow: 1; overflow-y: auto;">
     <div class="panel-body">
-        <RockForm @submit="onSubmit">
-            <ConfirmationEmail v-if="!confirmationEmailForced" v-model="confirmationEmail" />
+        <RockForm>
+            <ConfirmationEmail v-if="!confirmationEmailForced" v-model="confirmationEmail" :sourceTemplateOptions="sourceTemplateOptions" />
             <Alert v-else alertType="info">
                 <h4 class="alert-heading">Confirmation Email</h4>
                 <p>
@@ -92,7 +99,7 @@ export default defineComponent({
                 </p>
             </Alert>
 
-            <NotificationEmail v-if="!notificationEmailForced" v-model="notificationEmail" />
+            <NotificationEmail v-if="!notificationEmailForced" v-model="notificationEmail" :sourceTemplateOptions="sourceTemplateOptions" :campusTopicOptions="campusTopicOptions" />
             <Alert v-else alertType="info">
                 <h4 class="alert-heading">Notification Email</h4>
                 <p>

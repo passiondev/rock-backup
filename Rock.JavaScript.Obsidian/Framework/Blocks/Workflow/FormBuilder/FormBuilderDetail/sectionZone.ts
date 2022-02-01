@@ -105,7 +105,7 @@ export default defineComponent({
             required: false
         },
 
-        sectionTypes: {
+        sectionTypeOptions: {
             type: Array as PropType<ListItem[]>,
             default: []
         }
@@ -138,7 +138,7 @@ export default defineComponent({
         const sectionTypeClass = computed((): string => {
             if (sectionType.value) {
                 const sectionTypeValue = sectionType.value;
-                const matches = props.sectionTypes.filter(t => areEqual(sectionTypeValue, t.value));
+                const matches = props.sectionTypeOptions.filter(t => areEqual(sectionTypeValue, t.value));
 
                 if (matches.length > 0) {
                     return matches[0].category ?? "";

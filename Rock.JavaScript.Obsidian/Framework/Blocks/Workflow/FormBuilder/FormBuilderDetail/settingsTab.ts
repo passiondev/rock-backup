@@ -15,13 +15,15 @@
 // </copyright>
 //
 
-import { defineComponent, PropType, ref, watch } from "vue";
+import { defineComponent, PropType } from "vue";
 import RockForm from "../../../../Controls/rockForm";
+import { useVModelPassthrough } from "../../../../Util/component";
 import CompletionSettings from "./completionSettings";
 import GeneralSettings from "./generalSettings";
+import { FormCompletionAction, FormGeneral } from "./types";
 
 export default defineComponent({
-    name: "Workflow.FormBuilderDetail.CommunicationsTab",
+    name: "Workflow.FormBuilderDetail.SettingsTab",
 
     components: {
         GeneralSettings,
@@ -31,34 +33,24 @@ export default defineComponent({
 
     props: {
         modelValue: {
-            type: Object as PropType<Record<string, unknown>>,
+            type: Object as PropType<FormGeneral>,
+            required: true
+        },
+
+        completion: {
+            type: Object as PropType<FormCompletionAction>,
             required: true
         }
     },
 
     emits: [
-        "update:modelValue"
+        "update:modelValue",
+        "update:completion",
     ],
 
     setup(props, { emit }) {
-        const generalSettings = ref(props.modelValue.generalSettings ?? {});
-
-        const completionSettings = ref(props.modelValue.completionSettings ?? {});
-
-        watch(() => props.modelValue, () => {
-            generalSettings.value = props.modelValue.generalSettings ?? {};
-            completionSettings.value = props.modelValue.completionSettings ?? {};
-        });
-
-        watch([generalSettings, completionSettings], () => {
-            const newValue: Record<string, unknown> = {
-                ...props.modelValue,
-                generalSettings: generalSettings.value,
-                completionSettings: completionSettings.value
-            };
-
-            emit("update:modelValue", newValue);
-        });
+        const generalSettings = useVModelPassthrough(props, "modelValue", emit);
+        const completionSettings = useVModelPassthrough(props, "completion", emit);
 
         return {
             generalSettings,

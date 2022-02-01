@@ -29,6 +29,8 @@ import ConfigurableZone from "./FormBuilderDetail/configurableZone";
 import FormBuilderTab from "./FormBuilderDetail/formBuilderTab";
 import CommunicationsTab from "./FormBuilderDetail/communicationsTab";
 import SettingsTab from "./FormBuilderDetail/settingsTab";
+import { FormBuilderDetailConfiguration, FormBuilderSettings, FormCommunication, FormCompletionAction, FormGeneral } from "./FormBuilderDetail/types";
+import { provideFormSources } from "./FormBuilderDetail/utils";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail",
@@ -49,7 +51,29 @@ export default defineComponent({
     },
 
     setup() {
+        const config = useConfigurationValues<FormBuilderDetailConfiguration>();
+
+        const form = config.form ?? {};
+
+        let isFormDirty = false;
+
         const selectedTab = ref(0);
+
+        const communicationsViewModel = ref<FormCommunication>({
+            confirmationEmail: form.confirmationEmail ?? {},
+            notificationEmail: form.notificationEmail ?? {}
+        });
+
+        const generalViewModel = ref<FormGeneral>(form.general ?? {});
+        const completionViewModel = ref<FormCompletionAction>(form.completion ?? {});
+
+        const builderViewModel = ref<FormBuilderSettings>({
+            allowPersonEntry: form.allowPersonEntry,
+            footerContent: form.footerContent,
+            headerContent: form.headerContent,
+            personEntry: form.personEntry,
+            sections: form.sections
+        });
 
         const isFormBuilderTabSelected = computed((): boolean => selectedTab.value === 0);
         const isCommunicationsTabSelected = computed((): boolean => selectedTab.value === 1);
@@ -85,18 +109,38 @@ export default defineComponent({
             selectedTab.value = 2;
         };
 
-        const communicationsViewModel = ref<unknown>({});
-        const settingsViewModel = ref<unknown>({});
+        watch([builderViewModel, communicationsViewModel, generalViewModel, completionViewModel], () => {
+            console.log("dirty");
+            form.allowPersonEntry = builderViewModel.value.allowPersonEntry;
+            form.footerContent = builderViewModel.value.footerContent;
+            form.headerContent = builderViewModel.value.headerContent;
+            form.personEntry = builderViewModel.value.personEntry;
+            form.sections = builderViewModel.value.sections;
+
+            form.general = generalViewModel.value;
+            form.completion = completionViewModel.value;
+
+            form.confirmationEmail = communicationsViewModel.value.confirmationEmail;
+            form.notificationEmail = communicationsViewModel.value.notificationEmail;
+
+            isFormDirty = true;
+        });
+
+        provideFormSources(config.sources ?? {});
 
         return {
+            analyticsPageUrl: config.analyticsPageUrl,
+            builderViewModel,
             communicationsContainerStyle,
             communicationsViewModel,
+            completionViewModel,
             formBuilderContainerStyle,
             isCommunicationsTabSelected,
             isFormBuilderTabSelected,
             isSettingsTabSelected,
             settingsContainerStyle,
-            settingsViewModel,
+            generalViewModel,
+            submissionsPageUrl: config.submissionsPageUrl, 
             onCommunicationsTabClick,
             onFormBuilderTabClick,
             onSettingsTabClick
@@ -310,11 +354,11 @@ export default defineComponent({
         <div ref="bodyElement" class="form-builder-detail d-flex flex-column panel-flex-fill-body" style="overflow-y: hidden;">
             <div class="p-2 d-flex" style="border-bottom: 1px solid #dfe0e1; box-shadow: rgba(0,0,0,0.15) 0 0 4px; z-index: 1;">
                 <ul class="nav nav-pills" style="flex-grow: 1;">
-                    <li role="presentation"><a href="#">Submissions</a></li>
+                    <li role="presentation"><a :href="submissionsPageUrl">Submissions</a></li>
                     <li :class="{ active: isFormBuilderTabSelected }" role="presentation"><a href="#" @click.prevent="onFormBuilderTabClick">Form Builder</a></li>
                     <li :class="{ active: isCommunicationsTabSelected }" role="presentation"><a href="#" @click.prevent="onCommunicationsTabClick">Communications</a></li>
                     <li :class="{ active: isSettingsTabSelected }" role="presentation"><a href="#" @click.prevent="onSettingsTabClick">Settings</a></li>
-                    <li role="presentation"><a href="#">Analytics</a></li>
+                    <li role="presentation"><a :href="analyticsPageUrl">Analytics</a></li>
                 </ul>
 
                 <div>
@@ -323,7 +367,7 @@ export default defineComponent({
             </div>
 
             <div style="flex-grow: 1; overflow-y: hidden;" :style="formBuilderContainerStyle">
-                <FormBuilderTab />
+                <FormBuilderTab v-model="builderViewModel" />
             </div>
 
             <div style="flex-grow: 1; overflow-y: hidden;" :style="communicationsContainerStyle">
@@ -331,7 +375,7 @@ export default defineComponent({
             </div>
 
             <div style="flex-grow: 1; overflow-y: hidden;" :style="settingsContainerStyle">
-                <SettingsTab v-model="settingsViewModel" />
+                <SettingsTab v-model="generalViewModel" v-model:completion="completionViewModel" />
             </div>
         </div>
     </template>

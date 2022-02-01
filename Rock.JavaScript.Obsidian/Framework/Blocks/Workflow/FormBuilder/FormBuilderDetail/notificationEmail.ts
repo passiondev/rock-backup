@@ -65,7 +65,12 @@ export default defineComponent({
             required: true
         },
 
-        recipientOptions: {
+        sourceTemplateOptions: {
+            type: Array as PropType<ListItem[]>,
+            default: []
+        },
+
+        campusTopicOptions: {
             type: Array as PropType<ListItem[]>,
             default: []
         }
@@ -182,7 +187,7 @@ export default defineComponent({
     </div>
 
     <div class="mt-3">
-        <EmailSource v-model="source" />
+        <EmailSource v-model="source" :templateOptions="sourceTemplateOptions" />
     </div>
 </SettingsWell>
 `

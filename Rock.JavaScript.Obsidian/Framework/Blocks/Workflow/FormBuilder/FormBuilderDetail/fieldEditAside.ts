@@ -26,6 +26,8 @@ import RockForm from "../../../../Controls/rockForm";
 import { List } from "../../../../Util/linq";
 import { FormField, FormFieldType } from "./types";
 import { FieldTypeConfigurationViewModel } from "../../../../ViewModels/Controls/fieldTypeEditor";
+import { useFormSources } from "./utils";
+import { areEqual } from "../../../../Util/guid";
 
 /**
  * Check if the two records are equal. This makes sure all the key names match
@@ -76,11 +78,6 @@ export default defineComponent({
         modelValue: {
             type: Object as PropType<FormField>,
             required: true
-        },
-
-        fieldTypes: {
-            type: Array as PropType<FormFieldType[]>,
-            required: true
         }
     },
 
@@ -109,6 +106,8 @@ export default defineComponent({
             defaultValue: props.modelValue.defaultValue ?? ""
         });
 
+        const fieldTypes = useFormSources().fieldTypes ?? [];
+
         /**
          * The key which forces the field type editor to reload itself whenever the
          * attribute we are editing changes.
@@ -117,7 +116,7 @@ export default defineComponent({
 
         /** The FormFieldType of the attribute we are editing. */
         const fieldType = computed((): FormFieldType | null => {
-            return new List(props.fieldTypes).firstOrUndefined(f => f.guid === props.modelValue.fieldTypeGuid) ?? null;
+            return new List(fieldTypes).firstOrUndefined(f => areEqual(f.guid, props.modelValue.fieldTypeGuid)) ?? null;
         });
 
         /** The icon to display in the title area. */
@@ -218,6 +217,7 @@ export default defineComponent({
             formSubmit,
             isFieldLabelHidden,
             isFieldRequired,
+            isShowOnGrid,
             onBackClick,
             onFieldTypeModelValueUpdate,
             onValidationChanged,

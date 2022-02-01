@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright by the Spark Development Network
 //
 // Licensed under the Rock Community License (the "License");
@@ -15,16 +15,15 @@
 // </copyright>
 //
 
-namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
-{
-    public class FormBuilderDetailViewModel
-    {
-        public string SubmissionsPageUrl { get; set; }
+import { inject, provide } from "vue";
+import { FormValueSources } from "./types";
 
-        public string AnalyticsPageUrl { get; set; }
+const sourcesKey = Symbol();
 
-        public FormValueSourcesViewModel Sources { get; set; }
+export function provideFormSources(options: FormValueSources): void {
+    provide(sourcesKey, options);
+}
 
-        public FormSettingsViewModel Form { get; set; }
-    }
+export function useFormSources(): FormValueSources {
+    return inject<FormValueSources>(sourcesKey) ?? {};
 }

@@ -25,6 +25,7 @@ import Switch from "../../../../Elements/switch";
 import TextBox from "../../../../Elements/textBox";
 import { SectionAsideSettings } from "./types";
 import { ListItem } from "../../../../ViewModels";
+import { useFormSources } from "./utils";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.SectionEditAside",
@@ -43,11 +44,6 @@ export default defineComponent({
         modelValue: {
             type: Object as PropType<SectionAsideSettings>,
             required: true
-        },
-
-        sectionTypeOptions: {
-            type: Array as PropType<ListItem[]>,
-            default: []
         }
     },
 
@@ -90,6 +86,8 @@ export default defineComponent({
         /** Used to temporarily disable emitting the modelValue when something changes. */
         let autoSyncModelValue = true;
 
+        const sectionTypeOptions = useFormSources().sectionTypeOptions ?? [];
+
         /**
          * Event handler for when the back button is clicked.
          */
@@ -128,6 +126,7 @@ export default defineComponent({
             onBackClick,
             title,
             sectionType,
+            sectionTypeOptions,
             showHeadingSeparator,
             validationErrors
         };

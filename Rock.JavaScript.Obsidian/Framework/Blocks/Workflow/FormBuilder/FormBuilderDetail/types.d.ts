@@ -200,6 +200,24 @@ export type FormSettings = {
 
     completion?: FormCompletionAction | null;
 
+    campusSetFrom?: number;
+
+    allowPersonEntry?: boolean;
+
+    personEntry?: FormPersonEntry | null;
+};
+
+export type FormBuilderSettings = {
+    headerContent?: string | null;
+
+    footerContent?: string | null;
+
+    sections?: FormSection[] | null;
+
+    campusSetFrom?: number;
+
+    allowPersonEntry?: boolean;
+
     personEntry?: FormPersonEntry | null;
 };
 
@@ -235,6 +253,36 @@ export type FormPersonEntry = {
     spouseEntry?: FieldVisibilityRule;
 
     spouseLabel?: string | null;
+};
+
+export type FormValueSources = {
+    campusTopicOptions?: ListItem[] | null;
+
+    campusTypeOptions?: ListItem[] | null;
+
+    campusStatusOptions?: ListItem[] | null;
+
+    recordStatusOptions?: ListItem[] | null;
+
+    connectionStatusOptions?: ListItem[] | null;
+
+    addressTypeOptions?: ListItem[] | null;
+
+    emailTemplateOptions?: ListItem[] | null;
+
+    sectionTypeOptions?: ListItem[] | null;
+
+    fieldTypes?: FormFieldType[] | null;
+};
+
+export type FormBuilderDetailConfiguration = {
+    submissionsPageUrl?: string | null;
+
+    analyticsPageUrl?: string | null;
+
+    sources?: FormValueSources | null;
+
+    form?: FormSettings | null;
 };
 
 // #endregion

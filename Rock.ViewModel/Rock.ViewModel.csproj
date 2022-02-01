@@ -52,6 +52,7 @@
     <Compile Include="Blocks\Workflow\FormBuilder\FormConfirmationEmailViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormEmailSourceType.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormEmailSourceViewModel.cs" />
+    <Compile Include="Blocks\Workflow\FormBuilder\FormFieldTypeViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormFieldViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormGeneralViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormNotificationEmailDestination.cs" />
@@ -59,6 +60,7 @@
     <Compile Include="Blocks\Workflow\FormBuilder\FormPersonEntryViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormSectionViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormSettingsViewModel.cs" />
+    <Compile Include="Blocks\Workflow\FormBuilder\FormValueSourcesViewModel.cs" />
     <Compile Include="CodeGenerated\BenevolenceTypeViewModel.cs" />
     <Compile Include="CodeGenerated\BenevolenceWorkflowViewModel.cs" />
     <Compile Include="CodeGenerated\ConnectionStatusAutomationViewModel.cs" />

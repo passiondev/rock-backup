@@ -18,10 +18,10 @@
 import { defineComponent, PropType, ref } from "vue";
 import Panel from "../../../../Controls/panel";
 import RockForm from "../../../../Controls/rockForm";
-import { ListItem } from "../../../../ViewModels";
 import { useVModelPassthrough } from "../../../../Util/component";
 import PersonEntrySettings from "./personEntrySettings";
 import { FormPersonEntry } from "./types";
+import { useFormSources } from "./utils";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.PersonEntryEditAside",
@@ -35,31 +35,6 @@ export default defineComponent({
         modelValue: {
             type: Object as PropType<FormPersonEntry>,
             default: {}
-        },
-
-        recordStatusOptions: {
-            type: Array as PropType<ListItem[]>,
-            default: []
-        },
-
-        connectionStatusOptions: {
-            type: Array as PropType<ListItem[]>,
-            default: []
-        },
-
-        campusTypeOptions: {
-            type: Array as PropType<ListItem[]>,
-            default: []
-        },
-
-        campusStateOptions: {
-            type: Array as PropType<ListItem[]>,
-            default: []
-        },
-
-        addressTypeOptions: {
-            type: Array as PropType<ListItem[]>,
-            default: []
         }
     },
 
@@ -103,7 +78,14 @@ export default defineComponent({
             validationErrors.value = errors;
         };
 
+        const options = useFormSources();
+
         return {
+            addressTypeOptions: options.addressTypeOptions ?? [],
+            campusStatusOptions: options.campusStatusOptions ?? [],
+            campusTypeOptions: options.campusTypeOptions ?? [],
+            connectionStatusOptions: options.connectionStatusOptions ?? [],
+            recordStatusOptions: options.recordStatusOptions ?? [],
             formSubmit,
             internalValue,
             onBackClick,
@@ -132,7 +114,7 @@ export default defineComponent({
                 :recordStatusOptions="recordStatusOptions"
                 :connectionStatusOptions="connectionStatusOptions"
                 :campusTypeOptions="campusTypeOptions"
-                :campusStateOptions="campusStateOptions"
+                :campusStatusOptions="campusStatusOptions"
                 :addressTypeOptions="addressTypeOptions" />
         </RockForm>
     </div>

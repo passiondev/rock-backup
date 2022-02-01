@@ -23,6 +23,7 @@ import Switch from "../../../../Elements/switch";
 import { toNumberOrNull } from "../../../../Services/number";
 import ConfigurableZone from "./configurableZone";
 import { FormFieldType, GeneralAsideSettings } from "./types";
+import { useFormSources } from "./utils";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.GeneralAside",
@@ -40,11 +41,6 @@ export default defineComponent({
     props: {
         modelValue: {
             type: Object as PropType<GeneralAsideSettings>,
-            required: true
-        },
-
-        fieldTypes: {
-            type: Array as PropType<FormFieldType[]>,
             required: true
         },
 
@@ -83,9 +79,11 @@ export default defineComponent({
         /** True if the form has a person entry section. */
         const hasPersonEntry = ref(props.modelValue.hasPersonEntry ?? false);
 
+        const fieldTypes = useFormSources().fieldTypes ?? [];
+
         /** The field types to display in the common field types section. */
         const commonFieldTypes = computed((): FormFieldType[] => {
-            return props.fieldTypes.filter(f => f.isCommon);
+            return fieldTypes.filter(f => f.isCommon);
         });
 
         /** Used to temporarily disable emitting the modelValue when something changes. */
