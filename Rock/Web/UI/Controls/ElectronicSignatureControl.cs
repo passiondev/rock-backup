@@ -175,7 +175,7 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Gets the email address that the person entered when signing
+        /// Gets/Sets the email address that the person entered when signing.
         /// </summary>
         /// <value>The email address.</value>
         public string SignedByEmail
@@ -184,6 +184,12 @@ namespace Rock.Web.UI.Controls
             {
                 EnsureChildControls();
                 return _ebEmailAddress.Text;
+            }
+
+            set
+            {
+                EnsureChildControls();
+                _ebEmailAddress.Text = value;
             }
         }
 

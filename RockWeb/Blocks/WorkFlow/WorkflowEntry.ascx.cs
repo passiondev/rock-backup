@@ -1898,6 +1898,14 @@ namespace RockWeb.Blocks.WorkFlow
             escElectronicSignatureControl.SignatureType = signatureDocumentTemplate.SignatureType;
             escElectronicSignatureControl.DocumentTerm = signatureDocumentTemplate.DocumentTerm;
 
+            var signedByPersonAliasId = electronicSignatureWorkflowAction.GetSignedByPersonAliasId( rockContext, workflowAction, this.CurrentPersonAliasId );
+            if ( signedByPersonAliasId.HasValue )
+            {
+                // default email to the SignedByPerson's email
+                var signedByPersonEmail = new PersonAliasService( rockContext ).GetPerson( signedByPersonAliasId.Value )?.Email;
+                escElectronicSignatureControl.SignedByEmail = signedByPersonEmail;
+            }
+
             escElectronicSignatureControl.EmailAddressPrompt = signatureDocumentTemplate.CompletionSystemCommunicationId.HasValue
                 ? ElectronicSignatureControl.EmailAddressPromptType.CompletionEmail
                 : ElectronicSignatureControl.EmailAddressPromptType.PersonEmail;
@@ -2010,7 +2018,7 @@ namespace RockWeb.Blocks.WorkFlow
                     pdfBinaryFileId = binaryFile.Id;
                 }
             }
-            
+
             signatureDocument.BinaryFileId = pdfBinaryFileId;
 
             var signatureDocumentService = new SignatureDocumentService( rockContext );
