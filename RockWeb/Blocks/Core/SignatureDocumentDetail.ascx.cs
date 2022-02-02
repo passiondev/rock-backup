@@ -37,7 +37,6 @@ namespace RockWeb.Blocks.Core
     [DisplayName( "Signature Document Detail" )]
     [Category( "Core" )]
     [Description( "Displays the details of a given signature document." )]
-
     public partial class SignatureDocumentDetail : RockBlock
     {
         #region Base Control Methods
@@ -103,12 +102,179 @@ namespace RockWeb.Blocks.Core
             ShowDetail( PageParameter( "SignatureDocumentId" ).AsInteger() );
         }
 
+        #endregion Events
+
+        /// <summary>
+        /// Shows the readonly details.
+        /// </summary>
+        /// <param name="signatureDocument">Type of the defined.</param>
+        private void ShowReadonlyDetails( SignatureDocument signatureDocument )
+        {
+            SetEditMode( false );
+
+            hfSignatureDocumentId.SetValue( signatureDocument.Id );
+
+            lTitle.Text = signatureDocument.Name.FormatAsHtmlTitle();
+
+            var lDetails = new DescriptionList();
+            var rDetails = new DescriptionList();
+
+            bool isLegacyProvider = signatureDocument.UsesLegacyDocumentProvider();
+
+            lDetails.Add( "Document Key", signatureDocument.DocumentKey );
+
+            if ( signatureDocument.LastInviteDate.HasValue )
+            {
+                lDetails.Add( "Last Request Date", string.Format( "<span title='{0}'>{1}</span>", signatureDocument.LastInviteDate.Value.ToString(), signatureDocument.LastInviteDate.Value.ToElapsedString() ) );
+            }
+
+            if ( signatureDocument.AppliesToPersonAlias != null && signatureDocument.AppliesToPersonAlias.Person != null )
+            {
+                rDetails.Add( "Applies To", signatureDocument.AppliesToPersonAlias.Person.FullName );
+            }
+
+            if ( signatureDocument.AssignedToPersonAlias != null && signatureDocument.AssignedToPersonAlias.Person != null )
+            {
+                rDetails.Add( "Assigned To", signatureDocument.AssignedToPersonAlias.Person.FullName );
+            }
+
+            if ( signatureDocument.SignedByPersonAlias != null && signatureDocument.SignedByPersonAlias.Person != null )
+            {
+                rDetails.Add( "Signed By", signatureDocument.SignedByPersonAlias.Person.FullName );
+            }
+
+            if ( signatureDocument.SignatureDocumentTemplate != null )
+            {
+                lDetails.Add( "Signature Document Type", signatureDocument.SignatureDocumentTemplate.Name );
+            }
+
+            lLeftDetails.Text = lDetails.Html;
+            lRightDetails.Text = rDetails.Html;
+
+            if ( signatureDocument.BinaryFile != null )
+            {
+                var getFileUrl = string.Format( "{0}GetFile.ashx?guid={1}", System.Web.VirtualPathUtility.ToAbsolute( "~" ), signatureDocument.BinaryFile.Guid );
+                pdfSignatureDocument.Visible = true;
+                pdfSignatureDocument.SourceUrl = getFileUrl;
+            }
+            else
+            {
+                pdfSignatureDocument.Visible = false;
+            }
+        }
+
+        /// <summary>
+        /// Sets the edit mode.
+        /// </summary>
+        /// <param name="editable">if set to <c>true</c> [editable].</param>
+        private void SetEditMode( bool editable )
+        {
+            pnlEditLegacyProviderDocumentDetails.Visible = editable;
+            vsDetails.Enabled = editable;
+            fieldsetViewDetails.Visible = !editable;
+
+            this.HideSecondaryBlocks( editable );
+        }
+
+        /// <summary>
+        /// Shows the detail.
+        /// </summary>
+        /// <param name="signatureDocumentId">The signature document type identifier.</param>
+        public void ShowDetail( int signatureDocumentId )
+        {
+            pnlDetails.Visible = true;
+            SignatureDocument signatureDocument = null;
+
+            using ( var rockContext = new RockContext() )
+            {
+                if ( !signatureDocumentId.Equals( 0 ) )
+                {
+                    signatureDocument = new SignatureDocumentService( rockContext ).Get( signatureDocumentId );
+                }
+
+                if ( signatureDocument == null )
+                {
+                    signatureDocument = new SignatureDocument { Id = 0 };
+
+                    int? personId = PageParameter( "personId" ).AsIntegerOrNull();
+                    if ( personId.HasValue )
+                    {
+                        var person = new PersonService( rockContext ).Get( personId.Value );
+                        if ( person != null )
+                        {
+                            var personAlias = person.PrimaryAlias;
+                            if ( personAlias != null )
+                            {
+                                signatureDocument.AppliesToPersonAlias = personAlias;
+                                signatureDocument.AppliesToPersonAliasId = personAlias.Id;
+                                signatureDocument.AssignedToPersonAlias = personAlias;
+                                signatureDocument.AssignedToPersonAliasId = personAlias.Id;
+                            }
+                        }
+                    }
+
+                    int? documentTypeId = PageParameter( "SignatureDocumentTemplateId" ).AsIntegerOrNull();
+                    if ( documentTypeId.HasValue )
+                    {
+                        var documentType = new SignatureDocumentTemplateService( rockContext ).Get( documentTypeId.Value );
+                        if ( documentType != null )
+                        {
+                            signatureDocument.SignatureDocumentTemplate = documentType;
+                            signatureDocument.SignatureDocumentTemplateId = documentType.Id;
+                        }
+                    }
+                }
+
+                hfSignatureDocumentId.SetValue( signatureDocument.Id );
+
+                nbEditModeMessage.Text = string.Empty;
+                bool canEdit = UserCanEdit || signatureDocument.IsAuthorized( Authorization.EDIT, CurrentPerson );
+                bool canView = canEdit || signatureDocument.IsAuthorized( Authorization.VIEW, CurrentPerson );
+
+                if ( !canView )
+                {
+                    pnlDetails.Visible = false;
+                }
+                else
+                {
+                    pnlDetails.Visible = true;
+
+                    ShowReadonlyDetails( signatureDocument );
+
+                    bool showEditButton = canEdit && signatureDocument.UsesLegacyDocumentProvider();
+
+                    btnEditLegacyProviderDocument.Visible = showEditButton;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns to parent.
+        /// </summary>
+        private void ReturnToParent()
+        {
+            var qryParams = new Dictionary<string, string>();
+            int? personId = PageParameter( "PersonId" ).AsIntegerOrNull();
+            if ( personId.HasValue )
+            {
+                qryParams.Add( "PersonId", personId.Value.ToString() );
+            }
+            else
+            {
+                qryParams.Add( "SignatureDocumentTemplateId", PageParameter( "SignatureDocumentTemplateId" ) );
+            }
+
+            NavigateToParentPage( qryParams );
+        }
+
+        #region Legacy Provider Related
+
         /// <summary>
         /// Handles the Click event of the btnSaveType control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
-        protected void btnSave_Click( object sender, EventArgs e )
+        protected void btnSaveLegacyProviderDocument_Click( object sender, EventArgs e )
         {
             bool inviteCancelled = false;
 
@@ -118,7 +284,7 @@ namespace RockWeb.Blocks.Core
             if ( !documentTemplateId.HasValue )
             {
                 nbErrorMessage.Title = string.Empty;
-                nbErrorMessage.Text = "Document Template is Required!";
+                nbErrorMessage.Text = "Document Template is Required";
                 nbErrorMessage.NotificationBoxType = NotificationBoxType.Danger;
                 nbErrorMessage.Visible = true;
                 return;
@@ -193,7 +359,7 @@ namespace RockWeb.Blocks.Core
             if ( inviteCancelled && !string.IsNullOrWhiteSpace( signatureDocument.DocumentKey ) )
             {
                 var errorMessages = new List<string>();
-                if ( new SignatureDocumentTemplateService( rockContext ).CancelDocument( signatureDocument, out errorMessages ) )
+                if ( new SignatureDocumentTemplateService( rockContext ).CancelLegacyProviderDocument( signatureDocument, out errorMessages ) )
                 {
                     rockContext.SaveChanges();
                 }
@@ -207,7 +373,7 @@ namespace RockWeb.Blocks.Core
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
-        protected void btnCancel_Click( object sender, EventArgs e )
+        protected void btnCancelLegacyProviderDocument_Click( object sender, EventArgs e )
         {
             ReturnToParent();
         }
@@ -217,7 +383,7 @@ namespace RockWeb.Blocks.Core
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnSend_Click( object sender, EventArgs e )
+        protected void btnSendLegacyProviderDocument_Click( object sender, EventArgs e )
         {
             int? signatureDocumentId = hfSignatureDocumentId.Value.AsIntegerOrNull();
             if ( signatureDocumentId.HasValue && signatureDocumentId.Value > 0 )
@@ -228,11 +394,11 @@ namespace RockWeb.Blocks.Core
                     if ( signatureDocument != null ) 
                     {
                         var errorMessages = new List<string>();
-                        if ( new SignatureDocumentTemplateService( rockContext ).SendDocument( signatureDocument, string.Empty, out errorMessages ) )
+                        if ( new SignatureDocumentTemplateService( rockContext ).SendLegacyProviderDocument( signatureDocument, string.Empty, out errorMessages ) )
                         {
                             rockContext.SaveChanges();
 
-                            ShowEditDetails( signatureDocument, true );
+                            ShowLegacyDocumentEditDetails( signatureDocument, true );
 
                             nbErrorMessage.Title = string.Empty;
                             nbErrorMessage.Text = "Signature Invite Was Successfully Sent";
@@ -252,67 +418,10 @@ namespace RockWeb.Blocks.Core
         }
 
         /// <summary>
-        /// Shows the readonly details.
-        /// </summary>
-        /// <param name="signatureDocument">Type of the defined.</param>
-        private void ShowReadonlyDetails( SignatureDocument signatureDocument )
-        {
-            SetEditMode( false );
-
-            hfSignatureDocumentId.SetValue( signatureDocument.Id );
-
-            lTitle.Text = signatureDocument.Name.FormatAsHtmlTitle();
-
-            var lDetails = new DescriptionList();
-            var rDetails = new DescriptionList();
-
-            lDetails.Add( "Document Key", signatureDocument.DocumentKey );
-
-            if ( signatureDocument.LastInviteDate.HasValue )
-            {
-                lDetails.Add( "Last Request Date", string.Format( "<span title='{0}'>{1}</span>", signatureDocument.LastInviteDate.Value.ToString(), signatureDocument.LastInviteDate.Value.ToElapsedString() ) );
-            }
-
-            if ( signatureDocument.AppliesToPersonAlias != null && signatureDocument.AppliesToPersonAlias.Person != null )
-            {
-                rDetails.Add( "Applies To", signatureDocument.AppliesToPersonAlias.Person.FullName );
-            }
-
-            if ( signatureDocument.AssignedToPersonAlias != null && signatureDocument.AssignedToPersonAlias.Person != null )
-            {
-                rDetails.Add( "Assigned To", signatureDocument.AssignedToPersonAlias.Person.FullName );
-            }
-
-            if ( signatureDocument.SignedByPersonAlias != null && signatureDocument.SignedByPersonAlias.Person != null )
-            {
-                rDetails.Add( "Signed By", signatureDocument.SignedByPersonAlias.Person.FullName );
-            }
-
-            if ( signatureDocument.SignatureDocumentTemplate != null )
-            {
-                lDetails.Add( "Signature Document Type", signatureDocument.SignatureDocumentTemplate.Name );
-            }
-
-            lLeftDetails.Text = lDetails.Html;
-            lRightDetails.Text = rDetails.Html;
-            
-            if ( signatureDocument.BinaryFile != null )
-            {
-                var getFileUrl = string.Format( "{0}GetFile.ashx?guid={1}", System.Web.VirtualPathUtility.ToAbsolute( "~" ), signatureDocument.BinaryFile.Guid );
-                pdfSignatureDocument.Visible = true;
-                pdfSignatureDocument.SourceUrl = getFileUrl;
-            }
-            else
-            {
-                pdfSignatureDocument.Visible = false;
-            }
-        }
-
-        /// <summary>
         /// Shows the edit details.
         /// </summary>
         /// <param name="signatureDocument">Type of the defined.</param>
-        private void ShowEditDetails( SignatureDocument signatureDocument, bool onlyStatusDetails )
+        private void ShowLegacyDocumentEditDetails( SignatureDocument signatureDocument, bool onlyStatusDetails )
         {
             if ( !onlyStatusDetails )
             {
@@ -326,8 +435,8 @@ namespace RockWeb.Blocks.Core
                     lTitle.Text = ActionTitle.Add( titleName ).FormatAsHtmlTitle();
                 }
 
-                btnSend.Visible = signatureDocument.Id > 0 && signatureDocument.Status != SignatureDocumentStatus.Signed;
-                btnSend.Text = signatureDocument.Status == SignatureDocumentStatus.Sent ? "Resend Invite" : "Send Invite";
+                btnSendLegacyProviderDocument.Visible = signatureDocument.Id > 0 && signatureDocument.Status != SignatureDocumentStatus.Signed;
+                btnSendLegacyProviderDocument.Text = signatureDocument.Status == SignatureDocumentStatus.Sent ? "Resend Invite" : "Send Invite";
 
                 SetEditMode( true );
 
@@ -363,111 +472,25 @@ namespace RockWeb.Blocks.Core
                 string.Empty;
         }
 
-        /// <summary>
-        /// Sets the edit mode.
-        /// </summary>
-        /// <param name="editable">if set to <c>true</c> [editable].</param>
-        private void SetEditMode( bool editable )
+        protected void btnEditLegacyProviderDocument_Click( object sender, EventArgs e )
         {
-            pnlEditDetails.Visible = editable;
-            vsDetails.Enabled = editable;
-            fieldsetViewDetails.Visible = !editable;
-
-            this.HideSecondaryBlocks( editable );
-        }
-
-        /// <summary>
-        /// Shows the detail.
-        /// </summary>
-        /// <param name="signatureDocumentId">The signature document type identifier.</param>
-        public void ShowDetail( int signatureDocumentId )
-        {
-            pnlDetails.Visible = true;
-            SignatureDocument signatureDocument = null;
-
-            using ( var rockContext = new RockContext() )
+            int? signatureDocumentId = hfSignatureDocumentId.Value.AsIntegerOrNull();
+            if ( signatureDocumentId.HasValue && signatureDocumentId.Value > 0 )
             {
-                if ( !signatureDocumentId.Equals( 0 ) )
+                using ( var rockContext = new RockContext() )
                 {
-                    signatureDocument = new SignatureDocumentService( rockContext ).Get( signatureDocumentId );
-                }
-
-                if ( signatureDocument == null )
-                {
-                    signatureDocument = new SignatureDocument { Id = 0 };
-
-                    int? personId = PageParameter( "personId" ).AsIntegerOrNull();
-                    if ( personId.HasValue )
+                    var signatureDocument = new SignatureDocumentService( rockContext ).Get( signatureDocumentId.Value );
+                    if ( signatureDocument != null )
                     {
-                        var person = new PersonService( rockContext ).Get( personId.Value );
-                        if ( person != null )
-                        {
-                            var personAlias = person.PrimaryAlias;
-                            if ( personAlias != null )
-                            {
-                                signatureDocument.AppliesToPersonAlias = personAlias;
-                                signatureDocument.AppliesToPersonAliasId = personAlias.Id;
-                                signatureDocument.AssignedToPersonAlias = personAlias;
-                                signatureDocument.AssignedToPersonAliasId = personAlias.Id;
-                            }
-                        }
+
+                        ShowLegacyDocumentEditDetails( signatureDocument, false );
                     }
-
-                    int? documentTypeId = PageParameter( "SignatureDocumentTemplateId" ).AsIntegerOrNull();
-                    if ( documentTypeId.HasValue )
-                    {
-                        var documentType = new SignatureDocumentTemplateService( rockContext ).Get( documentTypeId.Value );
-                        if ( documentType != null )
-                        {
-                            signatureDocument.SignatureDocumentTemplate = documentType;
-                            signatureDocument.SignatureDocumentTemplateId = documentType.Id;
-                        }
-                    }
-                }
-
-                hfSignatureDocumentId.SetValue( signatureDocument.Id );
-
-                nbEditModeMessage.Text = string.Empty;
-                bool canEdit = UserCanEdit || signatureDocument.IsAuthorized( Authorization.EDIT, CurrentPerson );
-                bool canView = canEdit || signatureDocument.IsAuthorized( Authorization.VIEW, CurrentPerson );
-
-                if ( !canView )
-                {
-                    pnlDetails.Visible = false;
-                }
-                else
-                {
-                    pnlDetails.Visible = true;
-
-                    if ( !canEdit )
-                    {
-                        nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( SignatureDocument.FriendlyTypeName );
-                    }
-
-                    ShowReadonlyDetails( signatureDocument );
                 }
             }
         }
 
-        /// <summary>
-        /// Returns to parent.
-        /// </summary>
-        private void ReturnToParent()
-        {
-            var qryParams = new Dictionary<string, string>();
-            int? personId = PageParameter( "PersonId" ).AsIntegerOrNull();
-            if ( personId.HasValue )
-            {
-                qryParams.Add( "PersonId", personId.Value.ToString() );
-            }
-            else
-            {
-                qryParams.Add( "SignatureDocumentTemplateId", PageParameter( "SignatureDocumentTemplateId" ) );
-            }
+        #endregion Legacy Provider Related
 
-            NavigateToParentPage( qryParams );
-        }
 
-        #endregion
     }
 }

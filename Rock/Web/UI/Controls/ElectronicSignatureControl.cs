@@ -198,9 +198,10 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         private void UpdateUIControls()
         {
-            _lSignatureSignDisclaimer.Text = $"By clicking the sign button below, I agree to the above {DocumentTerm} and understand this is a legal representation of my signature.";
+            var documentTermDisplay = DocumentTerm?.ToLower() ?? "document";
+            _lSignatureSignDisclaimer.Text = $"By clicking the sign button below, I agree to the above {documentTermDisplay} and understand this is a legal representation of my signature.";
 
-            _ebEmailAddress.Label = $"Please enter an email address below where we can send a copy of the {DocumentTerm} to.";
+            _ebEmailAddress.Label = $"Please enter an email address below where we can send a copy of the {documentTermDisplay} to.";
 
             _pnlSignatureEntryDrawn.Visible = SignatureType == SignatureType.Drawn;
             _pnlSignatureEntryTyped.Visible = SignatureType == SignatureType.Typed;
@@ -210,7 +211,7 @@ namespace Rock.Web.UI.Controls
 
             if ( EmailAddressPrompt == EmailAddressPromptType.CompletionEmail )
             {
-                _ebEmailAddress.Label = $"Please enter an email address below where we can send a copy of the {DocumentTerm} to.";
+                _ebEmailAddress.Label = $"Please enter an email address below where we can send a copy of the {documentTermDisplay} to.";
             }
             else if ( EmailAddressPrompt == EmailAddressPromptType.PersonEmail )
             {

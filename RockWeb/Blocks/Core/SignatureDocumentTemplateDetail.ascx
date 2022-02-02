@@ -48,7 +48,36 @@
                     <div class="js-template-tips well" style="display: none">
                         <h2>Template Tips</h2>
                         <p>Below are some tips to assist you in your template creation. The merge fields that you use to customize your templates will vary depending on where they are being used.</p>
-                        <p>Be sure to add the {{ SignatureInformation }} merge field where you would like the signature information to be displayed. If you do not provide this merge field it will be added for you automatically at the end of the template.</p>
+
+                        <label>Merge Fields for Workflow Electronic Signatures</label>
+                        <p>Below are some common merge fields for templates used for the electronic signature workflow action.</p>
+                        <div class='row'>
+                            <div class='col-md-6'>
+                                {{ Workflow | Attribute:'SignedByPerson' }}<br>
+                                {{ Workflow | Attribute:'AppliesToPerson' }}<br>
+                                {{ Workflow | Attribute:'AssignedToPerson' }}<br>
+                            </div>
+                            <div class='col-md-6'>
+
+                            </div>
+                        </div>
+
+                        <br />
+
+                        <label>Merge Fields for Event Registration</label>
+                        <p>Below are some common merge fields for templates used for event registration.</p>
+                        <div class='row'>
+                            <div class='col-md-6'>
+                                <p><b>Registrant Fields</b></p>
+                                {{ Registrant.FirstName }}<br />
+                                {{ Registrant.LastName }}
+                            </div>
+                            <div class='col-md-6'>
+                                <p><b>Registration Fields</b></p>
+                                {{ Registration | Attribute:'VehicleDescription' }}
+                            </div>
+                        </div>
+
                     </div>
 
                     <Rock:NotificationBox ID="nbSignatureLavaTemplateWarning" runat="server" NotificationBoxType="Validation" Text="Lava Template is required." Visible="false" />

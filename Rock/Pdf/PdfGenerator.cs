@@ -40,16 +40,6 @@ namespace Rock.Pdf
         {
             InitializeChromeEngine( false );
         }
-        
-        /*/// <summary>
-        /// Initializes a new instance of the <see cref="PdfGenerator"/> class.
-        /// With an option to use the local chromium engine, even if <see cref="SystemSetting.PDF_EXTERNAL_RENDER_ENDPOINT"/>  is specified.
-        /// </summary>
-        /// <param name="forceUseLocal">if set to <c>true</c> [force use local].</param>
-        public PdfGenerator( bool forceUseLocal )
-        {
-            InitializeChromeEngine( forceUseLocal );
-        }*/
 
         private Browser _puppeteerBrowser = null;
         private Page _puppeteerPage;

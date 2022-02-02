@@ -482,39 +482,9 @@ namespace RockWeb.Blocks.Core
         {
             if ( tglTemplatePreview.Checked )
             {
-                var mergeFields = LavaHelper.GetCommonMergeFields( null );
-                var signatureDocumentHtml = ElectronicSignatureHelper.GetSignatureDocumentHtml( ceESignatureLavaTemplate.Text, mergeFields );
-                var fakeRandomHash = Rock.Security.Encryption.GetSHA1Hash( Guid.NewGuid().ToString() );
-                ;
-                var signatureInformationHtml = ElectronicSignatureHelper.GetSignatureInformationHtml( new GetSignatureInformationHtmlArgs
-                {
-                    SignatureType = rblSignatureType.SelectedValueAsEnumOrNull<SignatureType>() ?? SignatureType.Typed,
-                    DrawnSignatureDataUrl = ElectronicSignatureHelper.SampleSignatureDataURL,
-                    SignedByPerson = this.CurrentPerson,
-                    SignedDateTime = RockDateTime.Now,
-                    SignedClientIp = this.GetClientIpAddress(),
-                    SignedName = this.CurrentPerson.FullName,
-                    SignatureVerificationHash = fakeRandomHash
-                } );
+                string pdfPreviewUrl = GetPdfPreviewUrl();
 
-                using ( var pdfGenerator = new PdfGenerator() )
-                {
-                    var signedDocumentHtml = ElectronicSignatureHelper.GetSignedDocumentHtml( signatureDocumentHtml, signatureInformationHtml );
-                    var pdfDocument = pdfGenerator.GetPDFDocumentFromHtml( signatureDocumentHtml );
-
-                    // put the pdf into a BinaryFile. We'll mark it IsTemporary so it'll eventually get cleaned up by RockCleanup
-                    BinaryFile binaryFile = pdfGenerator.GetAsBinaryFile( pdfDocument, bftpFileType.SelectedValueAsInt() ?? 0, true );
-                    binaryFile.FileName = "preview.pdf";
-
-                    using ( var rockContext = new RockContext() )
-                    {
-                        new BinaryFileService( rockContext ).Add( binaryFile );
-                        rockContext.SaveChanges();
-                    }
-
-                    var getFileUrl = string.Format( "{0}GetFile.ashx?guid={1}", System.Web.VirtualPathUtility.ToAbsolute( "~" ), binaryFile.Guid );
-                    pdfSignatureDocumentPreview.SourceUrl = getFileUrl;
-                }
+                pdfSignatureDocumentPreview.SourceUrl = pdfPreviewUrl;
 
                 // toggle to show PDF and hide Lava Template
                 rcwSignatureDocumentPreview.Visible = true;
@@ -526,6 +496,51 @@ namespace RockWeb.Blocks.Core
                 rcwSignatureDocumentPreview.Visible = false;
                 ceESignatureLavaTemplate.Visible = true;
             }
+        }
+
+        /// <summary>
+        /// Gets the PDF preview URL.
+        /// </summary>
+        /// <returns>System.String.</returns>
+        private string GetPdfPreviewUrl()
+        {
+            var mergeFields = LavaHelper.GetCommonMergeFields( null );
+            var signatureDocumentHtml = ElectronicSignatureHelper.GetSignatureDocumentHtml( ceESignatureLavaTemplate.Text, mergeFields );
+            var fakeRandomHash = Rock.Security.Encryption.GetSHA1Hash( Guid.NewGuid().ToString() );
+
+            var signatureInformationHtml = ElectronicSignatureHelper.GetSignatureInformationHtml( new GetSignatureInformationHtmlArgs
+            {
+                SignatureType = rblSignatureType.SelectedValueAsEnumOrNull<SignatureType>() ?? SignatureType.Typed,
+                DrawnSignatureDataUrl = ElectronicSignatureHelper.SampleSignatureDataURL,
+                SignedByPerson = this.CurrentPerson,
+                SignedDateTime = RockDateTime.Now,
+                SignedClientIp = this.GetClientIpAddress(),
+                SignedName = this.CurrentPerson?.FullName,
+                SignatureVerificationHash = fakeRandomHash
+            } );
+
+            string pdfPreviewUrl;
+
+            using ( var pdfGenerator = new PdfGenerator() )
+            {
+                var signedDocumentHtml = ElectronicSignatureHelper.GetSignedDocumentHtml( signatureDocumentHtml, signatureInformationHtml );
+                var pdfDocument = pdfGenerator.GetPDFDocumentFromHtml( signedDocumentHtml );
+
+                // put the pdf into a BinaryFile. We'll mark it IsTemporary so it'll eventually get cleaned up by RockCleanup
+                BinaryFile binaryFile = pdfGenerator.GetAsBinaryFile( pdfDocument, bftpFileType.SelectedValueAsInt() ?? 0, true );
+                binaryFile.FileName = "preview.pdf";
+
+                using ( var rockContext = new RockContext() )
+                {
+                    new BinaryFileService( rockContext ).Add( binaryFile );
+                    rockContext.SaveChanges();
+                }
+
+                pdfPreviewUrl = string.Format( "{0}GetFile.ashx?guid={1}", System.Web.VirtualPathUtility.ToAbsolute( "~" ), binaryFile.Guid );
+
+            }
+
+            return pdfPreviewUrl;
         }
     }
 }

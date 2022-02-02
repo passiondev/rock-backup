@@ -32,6 +32,16 @@ namespace Rock.Model
         }
 
         /// <summary>
+        /// Returns true of this document was generated using a legacy document provider.
+        /// </summary>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
+        public bool UsesLegacyDocumentProvider()
+        {
+            bool isLegacyProvider = this.SignatureDocumentTemplate?.ProviderEntityTypeId != null;
+            return isLegacyProvider;
+        }
+
+        /// <summary>
         /// The data that was collected during a drawn signature type.
         /// This is an img data url. Example:
         /// <code>data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAngAAABkCAYAAAAVH...</code>
