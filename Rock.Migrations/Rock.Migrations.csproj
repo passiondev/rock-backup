@@ -89,6 +89,10 @@
     <Compile Include="Migrations\202202011901560_CodeGenerated_20220201.Designer.cs">
       <DependentUpon>202202011901560_CodeGenerated_20220201.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202202021705336_ElectronicSignatures.cs" />
+    <Compile Include="Migrations\202202021705336_ElectronicSignatures.Designer.cs">
+      <DependentUpon>202202021705336_ElectronicSignatures.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Version 13.0\202201042325477_FinancialTransactionAlertCascadeDelete.cs" />
     <Compile Include="Migrations\Version 13.0\202201042325477_FinancialTransactionAlertCascadeDelete.Designer.cs">
       <DependentUpon>202201042325477_FinancialTransactionAlertCascadeDelete.cs</DependentUpon>
@@ -971,6 +975,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202202011901560_CodeGenerated_20220201.resx">
       <DependentUpon>202202011901560_CodeGenerated_20220201.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202202021705336_ElectronicSignatures.resx">
+      <DependentUpon>202202021705336_ElectronicSignatures.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 13.0\202201042325477_FinancialTransactionAlertCascadeDelete.resx">
       <DependentUpon>202201042325477_FinancialTransactionAlertCascadeDelete.cs</DependentUpon>

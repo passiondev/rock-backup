@@ -18,7 +18,7 @@ namespace Rock.Migrations
 {
     using System;
     using System.Data.Entity.Migrations;
-    
+
     /// <summary>
     ///
     /// </summary>
@@ -29,27 +29,27 @@ namespace Rock.Migrations
         /// </summary>
         public override void Up()
         {
-            AddColumn("dbo.SignatureDocument", "SignatureVerificationHash", c => c.String(maxLength: 40));
+            AddColumn( "dbo.SignatureDocument", "SignatureVerificationHash", c => c.String( maxLength: 40 ) );
             Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureVerificationHash] = [SignatureVerficationHash]" );
             DropColumn( "dbo.SignatureDocument", "SignatureVerficationHash" );
 
             AddColumn( "dbo.SignatureDocument", "SignatureDataEncrypted", c => c.String() );
             Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureDataEncrypted] = [SignatureData]" );
-            DropColumn("dbo.SignatureDocument", "SignatureData");
+            DropColumn( "dbo.SignatureDocument", "SignatureData" );
         }
-        
+
         /// <summary>
         /// Operations to be performed during the downgrade process.
         /// </summary>
         public override void Down()
         {
-            AddColumn("dbo.SignatureDocument", "SignatureVerficationHash", c => c.String(maxLength: 40));
+            AddColumn( "dbo.SignatureDocument", "SignatureVerficationHash", c => c.String( maxLength: 40 ) );
             Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureVerficationHash] = [SignatureVerificationHash]" );
             DropColumn( "dbo.SignatureDocument", "SignatureVerificationHash" );
 
-            AddColumn("dbo.SignatureDocument", "SignatureData", c => c.String());
+            AddColumn( "dbo.SignatureDocument", "SignatureData", c => c.String() );
             Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureData] = [SignatureDataEncrypted]" );
-            DropColumn("dbo.SignatureDocument", "SignatureDataEncrypted");
+            DropColumn( "dbo.SignatureDocument", "SignatureDataEncrypted" );
         }
     }
 }
