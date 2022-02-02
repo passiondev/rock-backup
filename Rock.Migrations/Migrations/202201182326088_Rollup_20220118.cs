@@ -332,8 +332,7 @@ No
 	    <ul>
 	        <li><strong><a href='{{ personProfilePage | ResolveRockUrl }}{{ person.Id }}' target='_blank'>{{ Workflow | Attribute:'Person','FullName' }}</a></strong> has an empty or inactive email address. A background check can not be run unless a valid email address is provided.</li>
 				    <ul>
-                        <li>Enter a valid email address and\or set it to active for <strong>{{ Workflow | Attribute:'Person','FullName' }}</strong>.</li>
-                        <li>Then run the background check again.</li>
+                        <li>Enter a valid email address and/or set it to active.</li>
                     </ul>
 	    </ul>
 	</span>
@@ -367,7 +366,6 @@ No
 <hr/>";
 
                         const string actions = "Submit^fdc397cd-8b4a-436e-bea1-bce2e6717c03^342BCBFC-2CA7-426E-ABBB-A7C461A05736^Your request has been submitted successfully.|Cancel^5683E775-B9F3-408C-80AC-94DE0E51CF3A^F47C3F69-4485-4A6A-BFCE-C44FE628DF3E^The request has been cancelled.|";
-
 
                         // Update using the fixed lava and the current Action values for the Action Form
                         RockMigrationHelper.UpdateWorkflowActionForm( header, "", actions, "", false, "", "328B74E5-6058-4C4E-9EF8-EC10985F18A8" );
