@@ -81,9 +81,13 @@
     <Compile Include="Migrations\202201202058341_AddAdditionalContentPlatform.Designer.cs">
       <DependentUpon>202201202058341_AddAdditionalContentPlatform.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202201262021196_ElectronicSignatures.cs" />
-    <Compile Include="Migrations\202201262021196_ElectronicSignatures.Designer.cs">
-      <DependentUpon>202201262021196_ElectronicSignatures.cs</DependentUpon>
+    <Compile Include="Migrations\202202011809532_Rollup_20220201.cs" />
+    <Compile Include="Migrations\202202011809532_Rollup_20220201.Designer.cs">
+      <DependentUpon>202202011809532_Rollup_20220201.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202202011901560_CodeGenerated_20220201.cs" />
+    <Compile Include="Migrations\202202011901560_CodeGenerated_20220201.Designer.cs">
+      <DependentUpon>202202011901560_CodeGenerated_20220201.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Version 13.0\202201042325477_FinancialTransactionAlertCascadeDelete.cs" />
     <Compile Include="Migrations\Version 13.0\202201042325477_FinancialTransactionAlertCascadeDelete.Designer.cs">
@@ -962,8 +966,11 @@
     <EmbeddedResource Include="Migrations\202201202058341_AddAdditionalContentPlatform.resx">
       <DependentUpon>202201202058341_AddAdditionalContentPlatform.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202201262021196_ElectronicSignatures.resx">
-      <DependentUpon>202201262021196_ElectronicSignatures.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202202011809532_Rollup_20220201.resx">
+      <DependentUpon>202202011809532_Rollup_20220201.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202202011901560_CodeGenerated_20220201.resx">
+      <DependentUpon>202202011901560_CodeGenerated_20220201.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\Version 13.0\202201042325477_FinancialTransactionAlertCascadeDelete.resx">
       <DependentUpon>202201042325477_FinancialTransactionAlertCascadeDelete.cs</DependentUpon>
