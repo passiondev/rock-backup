@@ -939,6 +939,7 @@
     <Compile Include="Model\Core\Schedule\ScheduleType.cs" />
     <Compile Include="Model\Core\RemoteAuthenticationSession\RemoteAuthenticationSession.cs" />
     <Compile Include="Model\Core\ServiceJobHistory\ServiceJobHistory.Logic.cs" />
+    <Compile Include="Model\Core\SignatureDocument\SignatureDocumentValidationException.cs" />
     <Compile Include="Model\Core\TaggedItem\TaggedItem.Logic.cs" />
     <Compile Include="Model\CRM\Badge\Badge.Logic.cs" />
     <Compile Include="Model\Core\Campus\Campus.Logic.cs" />

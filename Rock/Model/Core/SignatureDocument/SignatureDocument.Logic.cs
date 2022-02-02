@@ -31,6 +31,24 @@ namespace Rock.Model
             return hashResult;
         }
 
+        private static UAParser.Parser uaParser = UAParser.Parser.GetDefault();
+
+        /// <summary>
+        /// Gets the formatted user agent.
+        /// </summary>
+        /// <returns>System.String.</returns>
+        public string GetFormattedUserAgent()
+        {
+            var userAgent = this.SignedClientUserAgent ?? string.Empty;
+            var deviceOs = uaParser.ParseOS( userAgent ).ToString();
+            var deviceApplication = uaParser.ParseUserAgent( userAgent ).ToString();
+            var deviceClientType = InteractionDeviceType.GetClientType( userAgent );
+
+            return $@"{deviceApplication}
+{deviceOs}
+{deviceClientType}";
+        }
+
         /// <summary>
         /// Returns true of this document was generated using a legacy document provider.
         /// </summary>

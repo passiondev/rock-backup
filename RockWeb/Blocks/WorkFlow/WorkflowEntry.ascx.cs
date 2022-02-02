@@ -1979,9 +1979,10 @@ namespace RockWeb.Blocks.WorkFlow
             signatureDocument.AssignedToPersonAliasId = assignedToPersonAliasId;
             signatureDocument.AppliesToPersonAliasId = appliesToPersonAliasId;
             signatureDocument.SignedClientIp = this.GetClientIpAddress();
-            signatureDocument.SignedClientUserAgent = this.RockPage?.BrowserInfo?.UserAgent?.ToString();
-            signatureDocument.SignatureVerificationHash = signatureDocument.CalculateSignatureVerificationHash();
+            signatureDocument.SignedClientUserAgent = Request.UserAgent;
             signatureDocument.SignedByEmail = escElectronicSignatureControl.SignedByEmail;
+
+            signatureDocument.SignatureVerificationHash = signatureDocument.CalculateSignatureVerificationHash();
 
             var signatureInformationHtmlArgs = new GetSignatureInformationHtmlArgs
             {
@@ -2035,7 +2036,7 @@ namespace RockWeb.Blocks.WorkFlow
         /// </summary>
         private void CompleteSignatureAction()
         {
-            CompleteCurrentWorkflowAction( null, "#TODO#" );
+            CompleteCurrentWorkflowAction( null, "Your signature has been submitted successfully." );
         }
 
         #endregion Electronic Signature Related stuff

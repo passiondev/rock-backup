@@ -36,6 +36,17 @@ namespace Rock.Migrations
             AddColumn( "dbo.SignatureDocument", "SignatureDataEncrypted", c => c.String() );
             Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureDataEncrypted] = [SignatureData]" );
             DropColumn( "dbo.SignatureDocument", "SignatureData" );
+
+
+            Sql( @"UPDATE [EntityType]
+SET [LinkUrlLavaTemplate] = '~/Workflow/{{ Entity.Id }}'
+WHERE [Guid] = '" + Rock.SystemGuid.EntityType.WORKFLOW + "'" );
+
+
+            Sql( @"UPDATE [EntityType]
+SET [LinkUrlLavaTemplate] = '~/web/event-registrations/{{ Entity.RegistrationInstanceId }}/registration/{{ Entity.Id }}'
+WHERE [Guid] = '" + Rock.SystemGuid.EntityType.REGISTRATION + "'" );
+
         }
 
         /// <summary>

@@ -61,17 +61,26 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            <asp:Literal ID="lLeftDetails" runat="server" />
+                            <Rock:RockLiteral ID="lSignedBy" runat="server" Label="Signed By" />
+                            <Rock:RockControlWrapper ID="rcwCompletionEmailInfo" runat="server" Label="Completion Email">
+                                <asp:Literal ID="lCompletionSignedByPersonEmailAddress" runat="server" /><br />
+                                <asp:Literal ID="lCompletionLastSentDateTime" runat="server" />
+                                <asp:LinkButton ID="btnResendCompletionEmail" runat="server" CssClass="btn btn-sm btn-default" Text="Resend" OnClick="btnResendCompletionEmail_Click" />
+                            </Rock:RockControlWrapper>
+
+                            <Rock:RockLiteral ID="lAppliesTo" runat="server" Label="Applies To" />
+                            <Rock:RockLiteral ID="lLegacyDocumentLink" runat="server" Label="Document" />
                         </div>
                         <div class="col-md-6">
-                            <asp:Literal ID="lRightDetails" runat="server" />
+                            <Rock:RockLiteral ID="lSignedOnInformation" runat="server" Label="Signed On" />
+                            <Rock:RockLiteral ID="lRelatedEntity" runat="server" Label="Related Entity" />
                         </div>
                     </div>
 
                     <Rock:PDFViewer ID="pdfSignatureDocument" runat="server" />
 
                     <div class="actions">
-                        <asp:LinkButton ID="btnEditLegacyProviderDocument" runat="server" AccessKey="e" ToolTip="Alt+e" Text="Edit" CssClass="btn btn-primary" OnClick="btnEditLegacyProviderDocument_Click"/>
+                        <asp:LinkButton ID="btnEditLegacyProviderDocument" runat="server" AccessKey="e" ToolTip="Alt+e" Text="Edit" CssClass="btn btn-primary" OnClick="btnEditLegacyProviderDocument_Click" />
                     </div>
 
                 </fieldset>

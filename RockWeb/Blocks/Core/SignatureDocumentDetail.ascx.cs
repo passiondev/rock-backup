@@ -26,6 +26,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -115,51 +116,61 @@ namespace RockWeb.Blocks.Core
             hfSignatureDocumentId.SetValue( signatureDocument.Id );
 
             lTitle.Text = signatureDocument.Name.FormatAsHtmlTitle();
+            lSignedBy.Text = signatureDocument.SignedByPersonAlias?.Person.FullName ?? "-";
+            lCompletionSignedByPersonEmailAddress.Text = signatureDocument.SignedByEmail;
+            lCompletionLastSentDateTime.Text = signatureDocument.CompletionEmailSentDateTime?.ToString();
 
-            var lDetails = new DescriptionList();
-            var rDetails = new DescriptionList();
+            lAppliesTo.Text = signatureDocument.AppliesToPersonAlias?.Person.FullName ?? "-";
 
-            bool isLegacyProvider = signatureDocument.UsesLegacyDocumentProvider();
+            lSignedOnInformation.Text = $@"{signatureDocument.SignedDateTime?.ToString("f")}<br>
+{signatureDocument.GetFormattedUserAgent().ConvertCrLfToHtmlBr()}<br>
+{signatureDocument.SignedClientIp}<br>";
 
-            lDetails.Add( "Document Key", signatureDocument.DocumentKey );
-
-            if ( signatureDocument.LastInviteDate.HasValue )
+            lRelatedEntity.Visible = signatureDocument.EntityTypeId.HasValue;
+            if ( signatureDocument.EntityTypeId.HasValue )
             {
-                lDetails.Add( "Last Request Date", string.Format( "<span title='{0}'>{1}</span>", signatureDocument.LastInviteDate.Value.ToString(), signatureDocument.LastInviteDate.Value.ToElapsedString() ) );
-            }
+                var relatedEntityType = EntityTypeCache.Get( signatureDocument.EntityTypeId.Value );
 
-            if ( signatureDocument.AppliesToPersonAlias != null && signatureDocument.AppliesToPersonAlias.Person != null )
-            {
-                rDetails.Add( "Applies To", signatureDocument.AppliesToPersonAlias.Person.FullName );
-            }
+                // either show just the EntityType's name, or a URL depending if the EntityType has a LinkUrlLavaTemplate
+                lRelatedEntity.Text = relatedEntityType?.FriendlyName;
 
-            if ( signatureDocument.AssignedToPersonAlias != null && signatureDocument.AssignedToPersonAlias.Person != null )
-            {
-                rDetails.Add( "Assigned To", signatureDocument.AssignedToPersonAlias.Person.FullName );
-            }
+                var linkUrlLavaTemplate = relatedEntityType?.LinkUrlLavaTemplate;
 
-            if ( signatureDocument.SignedByPersonAlias != null && signatureDocument.SignedByPersonAlias.Person != null )
-            {
-                rDetails.Add( "Signed By", signatureDocument.SignedByPersonAlias.Person.FullName );
-            }
+                if ( linkUrlLavaTemplate.IsNotNullOrWhiteSpace() )
+                {
+                    var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage );
+                    if ( signatureDocument.EntityId.HasValue && relatedEntityType != null )
+                    {
+                        mergeFields.Add( "EntityId", signatureDocument.EntityId );
 
-            if ( signatureDocument.SignatureDocumentTemplate != null )
-            {
-                lDetails.Add( "Signature Document Type", signatureDocument.SignatureDocumentTemplate.Name );
-            }
+                        var relatedEntity = Reflection.GetIEntityForEntityType( relatedEntityType.GetEntityType(), signatureDocument.EntityId.Value );
+                        mergeFields.Add( "Entity", relatedEntity );
 
-            lLeftDetails.Text = lDetails.Html;
-            lRightDetails.Text = rDetails.Html;
+                        var linkUrl = linkUrlLavaTemplate.ResolveMergeFields( mergeFields );
+                        linkUrl = this.ResolveRockUrl( linkUrl );
+                        if ( linkUrl.IsNotNullOrWhiteSpace() )
+                        {
+                            lRelatedEntity.Text = $"<a href='{linkUrl}'>{relatedEntityType.FriendlyName}<a>";
+                        }
+                    }
+                }
+            }
 
             if ( signatureDocument.BinaryFile != null )
             {
                 var getFileUrl = string.Format( "{0}GetFile.ashx?guid={1}", System.Web.VirtualPathUtility.ToAbsolute( "~" ), signatureDocument.BinaryFile.Guid );
-                pdfSignatureDocument.Visible = true;
+
+                var usesLegacyDocumentProvider = signatureDocument.UsesLegacyDocumentProvider();
+
+                lLegacyDocumentLink.Visible = usesLegacyDocumentProvider;
+                lLegacyDocumentLink.Text = $"<a href='{getFileUrl}'>{signatureDocument.BinaryFile.FileName}</a>";
+                pdfSignatureDocument.Visible = !usesLegacyDocumentProvider;
                 pdfSignatureDocument.SourceUrl = getFileUrl;
             }
             else
             {
                 pdfSignatureDocument.Visible = false;
+                lLegacyDocumentLink.Visible = false;
             }
         }
 
@@ -249,6 +260,16 @@ namespace RockWeb.Blocks.Core
         }
 
         /// <summary>
+        /// Handles the Click event of the btnResendCompletionEmail control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void btnResendCompletionEmail_Click( object sender, EventArgs e )
+        {
+            // TODO
+        }
+
+        /// <summary>
         /// Returns to parent.
         /// </summary>
         private void ReturnToParent()
@@ -303,7 +324,7 @@ namespace RockWeb.Blocks.Core
             }
 
             if ( signatureDocument == null )
-            { 
+            {
                 signatureDocument = new SignatureDocument();
                 service.Add( signatureDocument );
             }
@@ -391,9 +412,11 @@ namespace RockWeb.Blocks.Core
                 using ( var rockContext = new RockContext() )
                 {
                     var signatureDocument = new SignatureDocumentService( rockContext ).Get( signatureDocumentId.Value );
-                    if ( signatureDocument != null ) 
+                    if ( signatureDocument != null )
                     {
-                        var errorMessages = new List<string>();
+                        _ = new List<string>();
+
+                        List<string> errorMessages;
                         if ( new SignatureDocumentTemplateService( rockContext ).SendLegacyProviderDocument( signatureDocument, string.Empty, out errorMessages ) )
                         {
                             rockContext.SaveChanges();
@@ -472,6 +495,11 @@ namespace RockWeb.Blocks.Core
                 string.Empty;
         }
 
+        /// <summary>
+        /// Handles the Click event of the btnEditLegacyProviderDocument control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnEditLegacyProviderDocument_Click( object sender, EventArgs e )
         {
             int? signatureDocumentId = hfSignatureDocumentId.Value.AsIntegerOrNull();
@@ -482,7 +510,6 @@ namespace RockWeb.Blocks.Core
                     var signatureDocument = new SignatureDocumentService( rockContext ).Get( signatureDocumentId.Value );
                     if ( signatureDocument != null )
                     {
-
                         ShowLegacyDocumentEditDetails( signatureDocument, false );
                     }
                 }
@@ -490,7 +517,5 @@ namespace RockWeb.Blocks.Core
         }
 
         #endregion Legacy Provider Related
-
-
     }
 }
