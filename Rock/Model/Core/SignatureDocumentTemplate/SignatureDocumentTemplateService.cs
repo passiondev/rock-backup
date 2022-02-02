@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using Rock.Data;
 using Rock.Security;
 
@@ -39,6 +40,7 @@ namespace Rock.Model
         /// <param name="errorMessages">The error messages.</param>
         /// <returns></returns>
         [Obsolete( "Use SendLegacyProviderDocument instead." )]
+        [RockObsolete( "1.14" )]
         public bool SendDocument( SignatureDocument document, string alternateEmail, out List<string> errorMessages )
         {
             return SendLegacyProviderDocument( document, null, null, null, string.Empty, alternateEmail, out errorMessages );
@@ -67,6 +69,7 @@ namespace Rock.Model
         /// <param name="errorMessages">The error messages.</param>
         /// <returns></returns>
         [Obsolete( "Use SendLegacyProviderDocument instead." )]
+        [RockObsolete( "1.14" )]
         public bool SendDocument( SignatureDocumentTemplate signatureDocumentTemplate, Person appliesToPerson, Person assignedToPerson, string documentName, string alternateEmail, out List<string> errorMessages )
         {
             return SendLegacyProviderDocument( null, signatureDocumentTemplate, appliesToPerson, assignedToPerson, documentName, alternateEmail, out errorMessages );
@@ -110,6 +113,7 @@ namespace Rock.Model
                 {
                     appliesToPerson = appliesToPerson ?? document.AppliesToPersonAlias.Person;
                 }
+
                 if ( document.AssignedToPersonAlias != null && document.AssignedToPersonAlias.Person != null )
                 {
                     assignedToPerson = assignedToPerson ?? document.AssignedToPersonAlias.Person;
@@ -142,7 +146,7 @@ namespace Rock.Model
                     errorMessages.Add( "Digital Signature provider was not found or is not active." );
                 }
                 else
-                { 
+                {
                     string email = string.IsNullOrWhiteSpace( alternateEmail ) ? assignedToPerson.Email : alternateEmail;
                     if ( string.IsNullOrWhiteSpace( email ) )
                     {
@@ -197,6 +201,7 @@ namespace Rock.Model
                             {
                                 document.LastStatusDate = document.LastInviteDate;
                             }
+
                             document.Status = SignatureDocumentStatus.Sent;
 
                             return true;
@@ -219,6 +224,7 @@ namespace Rock.Model
         /// <param name="errorMessages">The error messages.</param>
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
         [Obsolete( "Use CancelLegacyProviderDocument instead." )]
+        [RockObsolete( "1.14" )]
         public bool CancelDocument( SignatureDocument document, out List<string> errorMessages )
         {
             return CancelLegacyProviderDocument( document, out errorMessages );
@@ -253,6 +259,7 @@ namespace Rock.Model
                         {
                             document.LastStatusDate = RockDateTime.Now;
                         }
+
                         document.Status = SignatureDocumentStatus.Cancelled;
 
                         return true;
@@ -271,6 +278,7 @@ namespace Rock.Model
         /// <param name="errorMessages">The error messages.</param>
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
         [Obsolete( "Use UpdateLegacyProviderDocumentStatus instead" )]
+        [RockObsolete( "1.14" )]
         public bool UpdateDocumentStatus( SignatureDocument signatureDocument, string tempFolderPath, out List<string> errorMessages )
         {
             return UpdateLegacyProviderDocumentStatus( signatureDocument, tempFolderPath, out errorMessages );
@@ -339,9 +347,7 @@ namespace Rock.Model
                         {
                             signatureDocument.LastStatusDate = RockDateTime.Now;
                         }
-
                     }
-
                 }
             }
 
@@ -349,6 +355,5 @@ namespace Rock.Model
         }
 
         #endregion Obsolete Legacy Provider methods
-
     }
 }
