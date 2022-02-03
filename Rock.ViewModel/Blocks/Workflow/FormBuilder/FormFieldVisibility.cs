@@ -15,13 +15,13 @@
 // </copyright>
 //
 
-namespace Rock.ViewModel.NonEntities
+namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
     /// <summary>
-    /// The rule for if a field should be shown on the page and if it should
+    /// The state of a field being shown on the page and if it should
     /// be required.
     /// </summary>
-    public enum FieldVisibilityRule
+    public enum FormFieldVisibility
     {
         /// <summary>
         /// Don't show the field.

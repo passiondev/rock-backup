@@ -19,14 +19,31 @@ using System;
 
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
+    /// <summary>
+    /// Identifies a single field type that can be used when designing the form.
+    /// </summary>
     public class FormFieldTypeViewModel
     {
+        /// <summary>
+        /// The unique identifier of the field type.
+        /// </summary>
         public Guid Guid { get; set; }
 
+        /// <summary>
+        /// The text that represents the display name of the field type.
+        /// </summary>
         public string Text { get; set; }
 
+        /// <summary>
+        /// The CSS classes that are used to provide an iconic representation
+        /// of this field type.
+        /// </summary>
         public string Icon { get; set; }
 
+        /// <summary>
+        /// Determines if this field type is considered common and should be
+        /// made readily accessible.
+        /// </summary>
         public bool IsCommon { get; set; }
     }
 }

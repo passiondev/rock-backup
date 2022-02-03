@@ -24,7 +24,26 @@ import RockForm from "../../../../Controls/rockForm";
 import { ListItem } from "../../../../ViewModels";
 import { toNumberOrNull } from "../../../../Services/number";
 import { FormPersonEntry } from "./types";
-import { FieldVisibilityRule } from "../../../../ViewModels/fieldVisibilityRule";
+import { FormFieldVisibility } from "./types";
+
+/**
+ * The list of options for the individual to pick from when defining if or how
+ * a field is shown.
+ */
+const formFieldVisibilityOptions: ListItem[] = [
+    {
+        value: FormFieldVisibility.Hidden.toString(),
+        text: "Hidden"
+    },
+    {
+        value: FormFieldVisibility.Optional.toString(),
+        text: "Optionsl"
+    },
+    {
+        value: FormFieldVisibility.Required.toString(),
+        text: "Required"
+    }
+];
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.PersonEntrySettings",
@@ -86,30 +105,15 @@ export default defineComponent({
         const showCampus = ref(props.modelValue.showCampus ?? false);
         const campusType = ref(props.modelValue.campusType ?? "");
         const campusStatus = ref(props.modelValue.campusStatus ?? "");
-        const gender = ref(props.modelValue.gender?.toString() ?? FieldVisibilityRule.Hidden.toString());
-        const email = ref(props.modelValue.gender?.toString() ?? FieldVisibilityRule.Hidden.toString());
-        const mobilePhone = ref(props.modelValue.mobilePhone?.toString() ?? FieldVisibilityRule.Hidden.toString());
-        const birthdate = ref(props.modelValue.birthdate?.toString() ?? FieldVisibilityRule.Hidden.toString());
-        const address = ref(props.modelValue.address?.toString() ?? FieldVisibilityRule.Hidden.toString());
+        const gender = ref(props.modelValue.gender?.toString() ?? FormFieldVisibility.Hidden.toString());
+        const email = ref(props.modelValue.gender?.toString() ?? FormFieldVisibility.Hidden.toString());
+        const mobilePhone = ref(props.modelValue.mobilePhone?.toString() ?? FormFieldVisibility.Hidden.toString());
+        const birthdate = ref(props.modelValue.birthdate?.toString() ?? FormFieldVisibility.Hidden.toString());
+        const address = ref(props.modelValue.address?.toString() ?? FormFieldVisibility.Hidden.toString());
         const addressType = ref(props.modelValue.addressType ?? "");
-        const maritalStatus = ref(props.modelValue.maritalStatus?.toString() ?? FieldVisibilityRule.Hidden.toString());
-        const spouseEntry = ref(props.modelValue.spouseEntry?.toString() ?? FieldVisibilityRule.Hidden.toString());
+        const maritalStatus = ref(props.modelValue.maritalStatus?.toString() ?? FormFieldVisibility.Hidden.toString());
+        const spouseEntry = ref(props.modelValue.spouseEntry?.toString() ?? FormFieldVisibility.Hidden.toString());
         const spouseLabel = ref(props.modelValue.spouseLabel ?? "");
-
-        const fieldVisibilityOptions: ListItem[] = [
-            {
-                value: FieldVisibilityRule.Hidden.toString(),
-                text: "Hidden"
-            },
-            {
-                value: FieldVisibilityRule.Optional.toString(),
-                text: "Optionsl"
-            },
-            {
-                value: FieldVisibilityRule.Required.toString(),
-                text: "Required"
-            }
-        ];
 
         /** The column span class to apply to the columns. */
         const columnClass = computed((): string => props.isVertical ? "col-xs-12" : "col-md-3");
@@ -126,14 +130,14 @@ export default defineComponent({
                 showCampus: showCampus.value,
                 campusType: campusType.value,
                 campusStatus: campusStatus.value,
-                gender: toNumberOrNull(gender.value) ?? FieldVisibilityRule.Hidden,
-                email: toNumberOrNull(email.value) ?? FieldVisibilityRule.Hidden,
-                mobilePhone: toNumberOrNull(mobilePhone.value) ?? FieldVisibilityRule.Hidden,
-                birthdate: toNumberOrNull(birthdate.value) ?? FieldVisibilityRule.Hidden,
-                address: toNumberOrNull(address.value) ?? FieldVisibilityRule.Hidden,
+                gender: toNumberOrNull(gender.value) ?? FormFieldVisibility.Hidden,
+                email: toNumberOrNull(email.value) ?? FormFieldVisibility.Hidden,
+                mobilePhone: toNumberOrNull(mobilePhone.value) ?? FormFieldVisibility.Hidden,
+                birthdate: toNumberOrNull(birthdate.value) ?? FormFieldVisibility.Hidden,
+                address: toNumberOrNull(address.value) ?? FormFieldVisibility.Hidden,
                 addressType: addressType.value,
-                maritalStatus: toNumberOrNull(maritalStatus.value) ?? FieldVisibilityRule.Hidden,
-                spouseEntry: toNumberOrNull(spouseEntry.value) ?? FieldVisibilityRule.Hidden,
+                maritalStatus: toNumberOrNull(maritalStatus.value) ?? FormFieldVisibility.Hidden,
+                spouseEntry: toNumberOrNull(spouseEntry.value) ?? FormFieldVisibility.Hidden,
                 spouseLabel: spouseLabel.value
             };
 
@@ -150,14 +154,14 @@ export default defineComponent({
             showCampus.value = props.modelValue.showCampus ?? false;
             campusType.value = props.modelValue.campusType ?? "";
             campusStatus.value = props.modelValue.campusStatus ?? "";
-            gender.value = props.modelValue.gender?.toString() ?? FieldVisibilityRule.Hidden.toString();
-            email.value = props.modelValue.gender?.toString() ?? FieldVisibilityRule.Hidden.toString();
-            mobilePhone.value = props.modelValue.mobilePhone?.toString() ?? FieldVisibilityRule.Hidden.toString();
-            birthdate.value = props.modelValue.birthdate?.toString() ?? FieldVisibilityRule.Hidden.toString();
-            address.value = props.modelValue.address?.toString() ?? FieldVisibilityRule.Hidden.toString();
+            gender.value = props.modelValue.gender?.toString() ?? FormFieldVisibility.Hidden.toString();
+            email.value = props.modelValue.gender?.toString() ?? FormFieldVisibility.Hidden.toString();
+            mobilePhone.value = props.modelValue.mobilePhone?.toString() ?? FormFieldVisibility.Hidden.toString();
+            birthdate.value = props.modelValue.birthdate?.toString() ?? FormFieldVisibility.Hidden.toString();
+            address.value = props.modelValue.address?.toString() ?? FormFieldVisibility.Hidden.toString();
             addressType.value = props.modelValue.addressType ?? "";
-            maritalStatus.value = props.modelValue.maritalStatus?.toString() ?? FieldVisibilityRule.Hidden.toString();
-            spouseEntry.value = props.modelValue.spouseEntry?.toString() ?? FieldVisibilityRule.Hidden.toString();
+            maritalStatus.value = props.modelValue.maritalStatus?.toString() ?? FormFieldVisibility.Hidden.toString();
+            spouseEntry.value = props.modelValue.spouseEntry?.toString() ?? FormFieldVisibility.Hidden.toString();
             spouseLabel.value = props.modelValue.spouseLabel ?? "";
         });
 
@@ -179,7 +183,7 @@ export default defineComponent({
             showCampus,
             spouseEntry,
             spouseLabel,
-            fieldVisibilityOptions
+            formFieldVisibilityOptions
         };
     },
 
@@ -233,35 +237,35 @@ export default defineComponent({
             <DropDownList v-model="gender"
                 label="Gender"
                 :showBlankValue="false"
-                :options="fieldVisibilityOptions" />
+                :options="formFieldVisibilityOptions" />
         </div>
 
         <div :class="columnClass">
             <DropDownList v-model="email"
                 label="Email"
                 :showBlankValue="false"
-                :options="fieldVisibilityOptions" />
+                :options="formFieldVisibilityOptions" />
         </div>
 
         <div :class="columnClass">
             <DropDownList v-model="mobilePhone"
                 label="Mobile Phone"
                 :showBlankValue="false"
-                :options="fieldVisibilityOptions" />
+                :options="formFieldVisibilityOptions" />
         </div>
 
         <div :class="columnClass">
             <DropDownList v-model="birthdate"
                 label="Birthdate"
                 :showBlankValue="false"
-                :options="fieldVisibilityOptions" />
+                :options="formFieldVisibilityOptions" />
         </div>
 
         <div :class="columnClass">
             <DropDownList v-model="address"
                 label="Address"
                 :showBlankValue="false"
-                :options="fieldVisibilityOptions" />
+                :options="formFieldVisibilityOptions" />
         </div>
 
         <div :class="columnClass">
@@ -275,7 +279,7 @@ export default defineComponent({
             <DropDownList v-model="maritalStatus"
                 label="Marital Status"
                 :showBlankValue="false"
-                :options="fieldVisibilityOptions" />
+                :options="formFieldVisibilityOptions" />
         </div>
     </div>
 
@@ -284,7 +288,7 @@ export default defineComponent({
             <DropDownList v-model="spouseEntry"
                 label="Spouse Entry"
                 :showBlankValue="false"
-                :options="fieldVisibilityOptions" />
+                :options="formFieldVisibilityOptions" />
         </div>
 
         <div :class="columnClass">

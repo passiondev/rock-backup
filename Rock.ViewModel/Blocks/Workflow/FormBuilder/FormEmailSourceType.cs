@@ -17,10 +17,21 @@
 
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
+    /// <summary>
+    /// The possible sources that can be used when generating an e-mail in
+    /// the FormBuilder system.
+    /// </summary>
     public enum FormEmailSourceType
     {
+        /// <summary>
+        /// A template will be used that contains all the information required
+        /// to generate the e-mail contents.
+        /// </summary>
         UseTemplate = 0,
 
+        /// <summary>
+        /// Custom properties will be used to generate the e-mail contents.
+        /// </summary>
         Custom = 1
     }
 }

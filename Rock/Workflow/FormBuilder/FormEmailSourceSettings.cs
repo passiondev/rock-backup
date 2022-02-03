@@ -59,6 +59,16 @@ namespace Rock.Workflow.FormBuilder
         public string Subject { get; set; }
 
         /// <summary>
+        /// The e-mail address to be used as the reply-to address for the
+        /// custom e-mail.
+        /// </summary>
+        /// <remarks>
+        /// This property is only used if <see cref="Type"/> contains the value
+        /// <see cref="FormEmailSourceType.Custom"/>.
+        /// </remarks>
+        public string ReplyTo { get; set; }
+
+        /// <summary>
         /// The HTML content to use for the custom e-mail body.
         /// </summary>
         /// <remarks>

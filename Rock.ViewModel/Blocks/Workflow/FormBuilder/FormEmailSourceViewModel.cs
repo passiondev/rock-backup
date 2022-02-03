@@ -19,18 +19,63 @@ using System;
 
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
+    /// <summary>
+    /// Specifies how an e-mail used by the FormBuilder system will be generated.
+    /// </summary>
     public class FormEmailSourceViewModel
     {
+        /// <summary>
+        /// The source type that will be used to generate the contents of the
+        /// e-mail.
+        /// </summary>
         public FormEmailSourceType Type { get; set; }
 
+        /// <summary>
+        /// The template unique identifier that should be used to generate the
+        /// e-mail contents.
+        /// </summary>
+        /// <remarks>
+        /// This property is only used if <see cref="Type"/> contains the value
+        /// <see cref="FormEmailSourceType.UseTemplate"/>.
+        /// </remarks>
         public Guid? Template { get; set; }
 
+        /// <summary>
+        /// The plain text to use for the custom subject of the e-mail.
+        /// </summary>
+        /// <remarks>
+        /// This property is only used if <see cref="Type"/> contains the value
+        /// <see cref="FormEmailSourceType.Custom"/>.
+        /// </remarks>
         public string Subject { get; set; }
 
+        /// <summary>
+        /// The e-mail address to be used as the reply-to address for the
+        /// custom e-mail.
+        /// </summary>
+        /// <remarks>
+        /// This property is only used if <see cref="Type"/> contains the value
+        /// <see cref="FormEmailSourceType.Custom"/>.
+        /// </remarks>
         public string ReplyTo { get; set; }
 
+        /// <summary>
+        /// The HTML content to use for the custom e-mail body.
+        /// </summary>
+        /// <remarks>
+        /// This property is only used if <see cref="Type"/> contains the value
+        /// <see cref="FormEmailSourceType.Custom"/>.
+        /// </remarks>
         public string Body { get; set; }
 
+        /// <summary>
+        /// Determines if the standard organization header and footer should
+        /// be prepended and appended to the custom <see cref="Body"/>.
+        /// </summary>
+        /// <remarks>
+        /// This property is only used if <see cref="Type"/> contains the value
+        /// <see cref="FormEmailSourceType.Custom"/>.
+        /// </remarks>
         public bool AppendOrgHeaderAndFooter { get; set; }
     }
 }

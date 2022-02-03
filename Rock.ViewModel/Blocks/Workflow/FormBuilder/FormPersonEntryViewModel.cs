@@ -17,42 +17,108 @@
 
 using System;
 
-using Rock.ViewModel.NonEntities;
-
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
+    /// <summary>
+    /// Identifies all the settings related to configuring the Person Entry
+    /// section of a FormBuilder form.
+    /// </summary>
     public class FormPersonEntryViewModel
     {
+        /// <summary>
+        /// Indicates if the form should auto-fill values from the Person
+        /// that is currently logged in.
+        /// </summary>
         public bool AutofillCurrentPerson { get; set; }
 
+        /// <summary>
+        /// Indicates if the form should be hidden when a Person
+        /// is already logged in and known.
+        /// </summary>
         public bool HideIfCurrentPersonKnown { get; set; }
 
+        /// <summary>
+        /// The DefinedValue unique identifier that specifies the value used for
+        /// Person.RecordStatusValue when a new Person is created.
+        /// </summary>
         public Guid? RecordStatus { get; set; }
 
+        /// <summary>
+        /// The DefinedValue unique identifier that specifies the value used for
+        /// Person.ConnectionStatusValue when a new Person is created.
+        /// </summary>
         public Guid? ConnectionStatus { get; set; }
 
+        /// <summary>
+        /// Indicates if the campus picker should be shown on the person entry
+        /// form. The campus picker will always be required if it is visible.
+        /// </summary>
         public bool ShowCampus { get; set; }
 
+        /// <summary>
+        /// The DefinedValue unique identifier for the campus type used to
+        /// filter Campuses when displaying the campus picker.
+        /// </summary>
         public Guid? CampusType { get; set; }
 
+        /// <summary>
+        /// The DefinedValue unique identifier for the campus status used to filter
+        /// Campuses when displaying the campus picker.
+        /// </summary>
         public Guid? CampusStatus { get; set; }
 
-        public FieldVisibilityRule Gender { get; set; }
+        /// <summary>
+        /// Determines if the gender control should be hidden, optional or
+        /// required when displaying the person entry form.
+        /// </summary>
+        public FormFieldVisibility Gender { get; set; }
 
-        public FieldVisibilityRule Email { get; set; }
+        /// <summary>
+        /// Determines if the e-mail control should be hidden, optional or
+        /// required when displaying the person entry form.
+        /// </summary>
+        public FormFieldVisibility Email { get; set; }
 
-        public FieldVisibilityRule MobilePhone { get; set; }
+        /// <summary>
+        /// Determines if the mobile phone control should be hidden, optional or
+        /// required when displaying the person entry form.
+        /// </summary>
+        public FormFieldVisibility MobilePhone { get; set; }
 
-        public FieldVisibilityRule Birthdate { get; set; }
+        /// <summary>
+        /// Determines if the birthdate control should be hidden, optional or
+        /// required when displaying the person entry form.
+        /// </summary>
+        public FormFieldVisibility Birthdate { get; set; }
 
-        public FieldVisibilityRule Address { get; set; }
+        /// <summary>
+        /// Determines if the address control should be hidden, optional or
+        /// required when displaying the person entry form.
+        /// </summary>
+        public FormFieldVisibility Address { get; set; }
 
+        /// <summary>
+        /// The DefinedValue unique identifier that specifies which address
+        /// type will be used on the person entry form.
+        /// </summary>
         public Guid? AddressType { get; set; }
 
-        public FieldVisibilityRule MaritalStatus { get; set; }
+        /// <summary>
+        /// Determines if the martial status control should be hidden, optional or
+        /// required when displaying the person entry form.
+        /// </summary>
+        public FormFieldVisibility MaritalStatus { get; set; }
 
-        public FieldVisibilityRule SpouseEntry { get; set; }
+        /// <summary>
+        /// Determines if the spouse controls should be hidden, optional or
+        /// required when displaying the person entry form.
+        /// </summary>
+        public FormFieldVisibility SpouseEntry { get; set; }
 
+        /// <summary>
+        /// The text string that is used above the spouse entry controls to
+        /// indicate that the following controls are for the spouse.
+        /// </summary>
         public string SpouseLabel { get; set; }
     }
 }

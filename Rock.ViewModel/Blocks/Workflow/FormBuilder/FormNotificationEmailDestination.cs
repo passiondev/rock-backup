@@ -17,12 +17,26 @@
 
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
+    /// <summary>
+    /// The possible destination options for a form notification email.
+    /// </summary>
     public enum FormNotificationEmailDestination
     {
+        /// <summary>
+        /// A specific individual in the database will be sent the notification
+        /// e-mail.
+        /// </summary>
         SpecificIndividual = 0,
 
+        /// <summary>
+        /// One or more raw e-mail addresses will be sent the notification e-mail.
+        /// </summary>
         EmailAddress = 1,
 
+        /// <summary>
+        /// A secondary lookup will be performed using CampusTopic
+        /// to determine the final recipient of the notification e-mail.
+        /// </summary>
         CampusTopic = 2
     }
 }

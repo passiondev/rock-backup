@@ -48,7 +48,14 @@ namespace Rock.Workflow.FormBuilder
         /// recipient of the confirmation e-mail.
         /// </summary>
         /// <remarks>
-        /// The attribute must be a field type of Person or Email.
+        ///     <para>The attribute must be a field type of Person or Email.</para>
+        ///     <para>
+        ///         This property is a Guid instead of integer so that the
+        ///         attribute can be referenced before it has been saved. The form
+        ///         must be saved first, including this JSON data, before the
+        ///         attribute can be created. So we don't always have access to
+        ///         the integer identifier.
+        ///     </para>
         /// </remarks>
         public Guid? RecipientAttributeGuid { get; set; }
 

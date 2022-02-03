@@ -17,10 +17,19 @@
 
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
+    /// <summary>
+    /// The possible actions that can be performed after the form has been submitted.
+    /// </summary>
     public enum FormCompletionActionType
     {
+        /// <summary>
+        /// A message is displayed to the user after the form has been submitted.
+        /// </summary>
         DisplayMessage = 0,
 
+        /// <summary>
+        /// The individual will be redirected to a specific URL.
+        /// </summary>
         Redirect = 1
     }
 }

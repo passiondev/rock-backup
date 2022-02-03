@@ -21,24 +21,55 @@ using Rock.ViewModel.NonEntities;
 
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
+    /// <summary>
+    /// Represents the sources of truth for various pickers and lists of entities
+    /// that will be used by the JavaScript code.
+    /// </summary>
     public class FormValueSourcesViewModel
     {
+        /// <summary>
+        /// The list of campus topic options that are available to pick from.
+        /// </summary>
         public List<ListItemViewModel> CampusTopicOptions { get; set; }
 
+        /// <summary>
+        /// The list of campus type options that are available to pick from.
+        /// </summary>
         public List<ListItemViewModel> CampusTypeOptions { get; set; }
 
+        /// <summary>
+        /// The list of campus status options that are available to pick from.
+        /// </summary>
         public List<ListItemViewModel> CampusStatusOptions { get; set; }
 
+        /// <summary>
+        /// The list of record status options that are available to pick from.
+        /// </summary>
         public List<ListItemViewModel> RecordStatusOptions { get; set; }
 
+        /// <summary>
+        /// The list of connection status options that are available to pick from.
+        /// </summary>
         public List<ListItemViewModel> ConnectionStatusOptions { get; set; }
 
+        /// <summary>
+        /// The list of address type options that are available to pick from.
+        /// </summary>
         public List<ListItemViewModel> AddressTypeOptions { get; set; }
 
+        /// <summary>
+        /// The list of e-mail template options that are available to pick from.
+        /// </summary>
         public List<ListItemViewModel> EmailTemplateOptions { get; set; }
 
+        /// <summary>
+        /// The list of section type options that are available to pick from.
+        /// </summary>
         public List<ListItemViewModel> SectionTypeOptions { get; set; }
 
+        /// <summary>
+        /// The list of field types that are available to pick from.
+        /// </summary>
         public List<FormFieldTypeViewModel> FieldTypes { get; set; }
     }
 }

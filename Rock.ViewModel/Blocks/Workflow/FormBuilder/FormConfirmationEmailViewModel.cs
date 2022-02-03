@@ -19,12 +19,28 @@ using System;
 
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
+    /// <summary>
+    /// Contains details about a confirmation e-mail for a Form Builder form.
+    /// This specifies if one should be sent, who receives it and the content
+    /// it will contain.
+    /// </summary>
     public class FormConfirmationEmailViewModel
     {
+        /// <summary>
+        /// Specifies if the confirmation e-mail has been enabled and should be
+        /// sent.
+        /// </summary>
         public bool Enabled { get; set; }
 
+        /// <summary>
+        /// Specifies which workflow attribute will be used to determine the
+        /// recipient of the confirmation e-mail.
+        /// </summary>
         public Guid? RecipientAttributeGuid { get; set; }
 
+        /// <summary>
+        /// Determines how the content of the e-mail will be generated.
+        /// </summary>
         public FormEmailSourceViewModel Source { get; set; }
     }
 }

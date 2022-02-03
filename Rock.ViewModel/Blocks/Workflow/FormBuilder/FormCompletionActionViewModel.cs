@@ -17,12 +17,36 @@
 
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
+    /// <summary>
+    /// Identifies the action that should be taken after the form has been
+    /// submitted by the individual.
+    /// </summary>
     public class FormCompletionActionViewModel
     {
+        /// <summary>
+        /// The type of action that should be performed after the form has
+        /// been submitted.
+        /// </summary>
         public FormCompletionActionType Type { get; set; }
 
+        /// <summary>
+        /// Contains the HTML message content that should be displayed to the
+        /// individual after the form has been submitted.
+        /// </summary>
+        /// <remarks>
+        /// This property is only used if <see cref="Type"/> contains the value
+        /// <see cref="FormCompletionActionType.DisplayMessage"/>.
+        /// </remarks>
         public string Message { get; set; }
 
+        /// <summary>
+        /// Contains the URL to redirect the individual to after the form has
+        /// been submitted.
+        /// </summary>
+        /// <remarks>
+        /// This property is only used if <see cref="Type"/> contains the value
+        /// <see cref="FormCompletionActionType.Redirect"/>.
+        /// </remarks>
         public string RedirectUrl { get; set; }
     }
 }

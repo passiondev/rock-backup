@@ -17,14 +17,32 @@
 
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
+    /// <summary>
+    /// The primary view model that contains all the runtime information needed
+    /// by the FormBuilder block.
+    /// </summary>
     public class FormBuilderDetailViewModel
     {
+        /// <summary>
+        /// The URL to redirect the individual to when the Submissions tab is
+        /// clicked.
+        /// </summary>
         public string SubmissionsPageUrl { get; set; }
 
+        /// <summary>
+        /// The URL to redirect the individual to when the Analytics tab is
+        /// clicked.
+        /// </summary>
         public string AnalyticsPageUrl { get; set; }
 
+        /// <summary>
+        /// The source of information for various pickers and controls.
+        /// </summary>
         public FormValueSourcesViewModel Sources { get; set; }
 
+        /// <summary>
+        /// The details about the form that is to be edited.
+        /// </summary>
         public FormSettingsViewModel Form { get; set; }
     }
 }
