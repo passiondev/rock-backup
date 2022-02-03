@@ -83,12 +83,12 @@ function getFieldDragSourceOptions(sections: FormSection[], availableFieldTypes:
         copyElement: true,
         dragOver(operation) {
             if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
-                operation.targetContainer.closest(".field-zone")?.classList.add("highlight");
+                operation.targetContainer.closest(".zone-section")?.classList.add("highlight");
             }
         },
         dragOut(operation) {
             if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
-                operation.targetContainer.closest(".field-zone")?.classList.remove("highlight");
+                operation.targetContainer.closest(".zone-section")?.classList.remove("highlight");
             }
         },
         dragShadow(operation) {
@@ -137,6 +137,16 @@ function getFieldReorderDragSourceOptions(sections: FormSection[]): IDragSourceO
         id: newGuid(),
         copyElement: false,
         handleSelector: ".zone-actions",
+        dragOver(operation) {
+            if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
+                operation.targetContainer.closest(".zone-section")?.classList.add("highlight");
+            }
+        },
+        dragOut(operation) {
+            if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
+                operation.targetContainer.closest(".zone-section")?.classList.remove("highlight");
+            }
+        },
         dragDrop(operation) {
             const sourceSectionGuid = (operation.sourceContainer as HTMLElement).dataset.sectionId ?? "";
             const targetSectionGuid = (operation.targetContainer as HTMLElement).dataset.sectionId ?? "";
@@ -165,7 +175,7 @@ function getSectionReorderDragSourceOptions(sections: FormSection[]): IDragSourc
     return {
         id: newGuid(),
         copyElement: false,
-        handleSelector: ".zone-actions",
+        handleSelector: ".zone-section > .zone-actions",
         dragDrop(operation) {
             if (operation.targetIndex !== undefined) {
                 const section = sections[operation.sourceIndex];

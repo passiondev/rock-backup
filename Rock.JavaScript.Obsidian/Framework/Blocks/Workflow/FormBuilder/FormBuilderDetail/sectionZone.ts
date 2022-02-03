@@ -209,7 +209,7 @@ export default defineComponent({
     },
 
     template: `
-<ConfigurableZone class="field-zone" :modelValue="isSectionActive">
+<ConfigurableZone class="zone-section" :modelValue="isSectionActive">
     <div class="zone-body d-flex flex-column" style="min-height: 100%;">
         <div class="d-flex flex-column" :class="sectionTypeClass" style="flex-grow: 1;">
             <div>

@@ -239,7 +239,7 @@ export default defineComponent({
                 margin-bottom: 12px;
             }
 
-            .form-builder-detail .configurable-zone.field-zone {
+            .form-builder-detail .configurable-zone.zone-section {
                 flex-grow: 1;
             }
 
@@ -249,7 +249,7 @@ export default defineComponent({
                 border: 2px solid var(--zone-color);
             }
 
-            .form-builder-detail .configurable-zone.field-zone > .zone-content-container {
+            .form-builder-detail .configurable-zone.zone-section > .zone-content-container {
                 border-style: dashed;
                 border-right-style: solid;
             }
