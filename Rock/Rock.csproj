@@ -3600,6 +3600,7 @@
     <Compile Include="Workflow\Action\WorkflowControl\UserForm.cs" />
     <Compile Include="Workflow\Action\Utility\WebRequest.cs" />
     <Compile Include="Workflow\Action\WorkflowControl\WriteToLog.cs" />
+    <Compile Include="SystemKey\WorkflowFormBuilderKey.cs" />
     <Compile Include="Workflow\FormBuilder\FormCompletionActionSettings.cs" />
     <Compile Include="Workflow\FormBuilder\FormCompletionActionType.cs" />
     <Compile Include="Workflow\FormBuilder\FormConfirmationEmailSettings.cs" />
