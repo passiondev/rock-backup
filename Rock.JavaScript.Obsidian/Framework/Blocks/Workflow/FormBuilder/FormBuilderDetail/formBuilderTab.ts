@@ -519,6 +519,32 @@ export default defineComponent({
         };
 
         /**
+         * Event handler for when the edit field aside wants to delete the field
+         * from the section.
+         */
+        const onFieldDelete = (): void => {
+            const fieldGuid = editField.value?.guid;
+
+            if (!fieldGuid) {
+                return;
+            }
+
+            // Find the original field and delete it.
+            for (const section of sections) {
+                if (section.fields) {
+                    const existingFieldIndex = section.fields.findIndex(f => areEqual(f.guid, fieldGuid));
+
+                    if (existingFieldIndex !== -1) {
+                        section.fields.splice(existingFieldIndex, 1);
+                        break;
+                    }
+                }
+            }
+
+            closeAside();
+        };
+
+        /**
          * Event handler for when a section's settings have been updated in the
          * aside.
          * 
@@ -539,6 +565,26 @@ export default defineComponent({
                     return;
                 }
             }
+        };
+
+        /**
+         * Event handler for when the edit section aside wants to delete the section.
+         */
+        const onSectionDelete = (): void => {
+            const sectionGuid = sectionAsideSettings.value?.guid;
+
+            if (!sectionGuid) {
+                return;
+            }
+
+            // Find the original section and delete it.
+            const existingSectionIndex = sections.findIndex(s => areEqual(s.guid, sectionGuid));
+
+            if (existingSectionIndex !== -1) {
+                sections.splice(existingSectionIndex, 1);
+            }
+
+            closeAside();
         };
 
         /**
@@ -621,8 +667,10 @@ export default defineComponent({
             onEditFieldUpdate,
             onEditPersonEntryUpdate,
             onEditSectionUpdate,
+            onFieldDelete,
             onFormFooterSave,
             onFormHeaderSave,
+            onSectionDelete,
             personEntryAsideSettings,
             personEntryEditAsideComponentInstance,
             sectionAsideSettings,
@@ -653,13 +701,15 @@ export default defineComponent({
             ref="fieldEditAsideComponentInstance"
             :fieldTypes="availableFieldTypes"
             @update:modelValue="onEditFieldUpdate"
-            @close="onAsideClose" />
+            @close="onAsideClose"
+            @delete="onFieldDelete" />
 
         <SectionEditAside v-else-if="showSectionAside"
             :modelValue="sectionAsideSettings"
             ref="sectionEditAsideComponentInstance"
             @update:modelValue="onEditSectionUpdate"
-            @close="onAsideClose" />
+            @close="onAsideClose"
+            @delete="onSectionDelete" />
 
         <PersonEntryEditAside v-else-if="showPersonEntryAside"
             :modelValue="personEntryAsideSettings"

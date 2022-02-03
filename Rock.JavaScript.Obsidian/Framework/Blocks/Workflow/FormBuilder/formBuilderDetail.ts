@@ -208,12 +208,15 @@ export default defineComponent({
 
             /*** Configuration Asides ***/
             .form-builder-detail .aside-header {
-                border-right: 1px solid #dfe0e1;
                 border-bottom: 1px solid #dfe0e1;
             }
 
-            .form-builder-detail .aside-header .fa {
-                margin-right: 4px;
+            .form-builder-detail .aside-header:last-child {
+                border-right: 1px solid #dfe0e1;
+            }
+
+            .form-builder-detail .aside-header .fa + .title {
+                margin-left: 4px;
             }
 
             .form-builder-detail .aside-header .title {
@@ -223,6 +226,11 @@ export default defineComponent({
 
             .form-builder-detail .aside-body {
                 padding: 15px;
+            }
+
+            .form-builder-detail .aside-danger:hover {
+                background-color: var(--brand-danger);
+                color: #fff;
             }
 
             /*** Configurable Zones ***/
