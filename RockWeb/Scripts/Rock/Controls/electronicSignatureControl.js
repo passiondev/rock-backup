@@ -78,11 +78,6 @@
 
                 window.addEventListener("resize", self.resizeSignatureCanvas(self));
 
-                signaturePad.addEventListener("beginStroke", () => {
-                    // if there was an error showing, hide the error if they start signing again
-                    self.$signatureEmptyAlert.show().hide();
-                }, { once: true });
-
                 self.resizeSignatureCanvas(self);
             },
 

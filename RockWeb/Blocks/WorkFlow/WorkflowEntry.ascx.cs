@@ -2029,7 +2029,8 @@ namespace RockWeb.Blocks.WorkFlow
             signatureDocumentService.Add( signatureDocument );
             rockContext.SaveChanges();
 
-            signatureDocument = signatureDocumentService.Get( signatureDocument.Id );
+            // reload with new context to get navigation properties to load
+            signatureDocument = new SignatureDocumentService( new RockContext() ).Get( signatureDocument.Id );
 
             mergeFields.Add( "SignatureDocument", signatureDocument );
             mergeFields.Add( "SignatureDocumentTemplate", signatureDocumentTemplate );
