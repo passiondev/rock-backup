@@ -22,6 +22,7 @@ using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.Attribute;
+using Rock.Communication;
 using Rock.Data;
 using Rock.ElectronicSignature;
 using Rock.Model;
@@ -1940,7 +1941,6 @@ namespace RockWeb.Blocks.WorkFlow
                 return;
             }
 
-            var lavaTemplate = signatureDocumentTemplate.LavaTemplate;
             Dictionary<string, object> mergeFields = GetWorkflowEntryMergeFields();
 
             var signatureDocumentName = electronicSignatureWorkflowAction.GetSignatureDocumentName( workflowAction, mergeFields );
@@ -1999,6 +1999,8 @@ namespace RockWeb.Blocks.WorkFlow
 
             int pdfBinaryFileId = 0;
 
+            BinaryFile pdfFile;
+
             using ( var pdfGenerator = new Rock.Pdf.PdfGenerator() )
             {
                 var signedSignatureDocumentHtml = ElectronicSignatureHelper.GetSignedDocumentHtml( this.SignatureDocumentHtml, signatureInformationHtml );
@@ -2017,6 +2019,7 @@ namespace RockWeb.Blocks.WorkFlow
                     new BinaryFileService( rockContext ).Add( binaryFile );
                     rockContext.SaveChanges();
                     pdfBinaryFileId = binaryFile.Id;
+                    pdfFile = binaryFile;
                 }
             }
 
@@ -2026,7 +2029,34 @@ namespace RockWeb.Blocks.WorkFlow
             signatureDocumentService.Add( signatureDocument );
             rockContext.SaveChanges();
 
+            signatureDocument = signatureDocumentService.Get( signatureDocument.Id );
+
+            mergeFields.Add( "SignatureDocument", signatureDocument );
+            mergeFields.Add( "SignatureDocumentTemplate", signatureDocumentTemplate );
+
             electronicSignatureWorkflowAction.SaveSignatureDocumentValuesToAttributes( _workflowRockContext, workflowAction, signatureDocument );
+
+            if ( signatureDocumentTemplate.CompletionSystemCommunication != null && signedByPerson.Email.IsNotNullOrWhiteSpace() )
+            {
+                var emailMessage = new RockEmailMessage( signatureDocumentTemplate.CompletionSystemCommunication );
+                RockEmailMessageRecipient rockEmailMessageRecipient;
+                if ( signedByPerson.Email.Equals( signatureDocument.SignedByEmail, StringComparison.OrdinalIgnoreCase ) )
+                {
+                    rockEmailMessageRecipient = new RockEmailMessageRecipient( signedByPerson, mergeFields );
+                }
+                else
+                {
+                    rockEmailMessageRecipient = RockEmailMessageRecipient.CreateAnonymous( signatureDocument.SignedByEmail, mergeFields );
+                }
+
+                emailMessage.Attachments.Add( pdfFile );
+
+                emailMessage.AddRecipient( rockEmailMessageRecipient );
+
+                // errors will be logged by send
+                emailMessage.Send( out _ );
+            }
+
 
             CompleteSignatureAction();
         }
