@@ -153,6 +153,30 @@ function getFieldReorderDragSourceOptions(sections: FormSection[]): IDragSourceO
     };
 }
 
+/**
+ * Get the drag source options for re-ordering the sections. This allows the user
+ * to drag and drop existing sections to move them around the form.
+ *
+ * @param sections The (reactive) array of sections to update.
+ *
+ * @returns The IDragSourceOptions object to use for drag operations.
+ */
+function getSectionReorderDragSourceOptions(sections: FormSection[]): IDragSourceOptions {
+    return {
+        id: newGuid(),
+        copyElement: false,
+        handleSelector: ".zone-actions",
+        dragDrop(operation) {
+            if (operation.targetIndex !== undefined) {
+                const section = sections[operation.sourceIndex];
+
+                sections.splice(operation.sourceIndex, 1);
+                sections.splice(operation.targetIndex, 0, section);
+            }
+        }
+    };
+}
+
 // Unique identifiers for the standard zones.
 const formHeaderZoneGuid = "C7D522D0-A18C-4CB0-B604-B2E9727E9E33";
 const formFooterZoneGuid = "317E5892-C156-4614-806F-BE4CAB67AC10";
@@ -238,6 +262,7 @@ export default defineComponent({
 
         // Generate all the drag options.
         const sectionDragSourceOptions = getSectionDragSourceOptions(sections);
+        const sectionReorderDragSourceOptions = getSectionReorderDragSourceOptions(sections);
         const fieldDragSourceOptions = getFieldDragSourceOptions(sections, availableFieldTypes);
         const fieldReorderDragSourceOptions = getFieldReorderDragSourceOptions(sections);
 
@@ -549,6 +574,7 @@ export default defineComponent({
         // Wait for the body element to load and then update the drag options.
         watch(bodyElement, () => {
             sectionDragSourceOptions.mirrorContainer = bodyElement.value ?? undefined;
+            sectionReorderDragSourceOptions.mirrorContainer = bodyElement.value ?? undefined;
             fieldDragSourceOptions.mirrorContainer = bodyElement.value ?? undefined;
             fieldReorderDragSourceOptions.mirrorContainer = bodyElement.value ?? undefined;
         });
@@ -602,6 +628,7 @@ export default defineComponent({
             sectionAsideSettings,
             sectionDragSourceOptions,
             sectionDragTargetId: sectionDragSourceOptions.id,
+            sectionReorderDragSourceOptions,
             sectionTypeOptions,
             sections,
             showFieldAside,
@@ -650,7 +677,7 @@ export default defineComponent({
             </div>
         </ConfigurableZone>
 
-        <div style="flex-grow: 1; display: flex; flex-direction: column;" v-drag-target="sectionDragTargetId">
+        <div style="flex-grow: 1; display: flex; flex-direction: column;" v-drag-target="sectionDragTargetId" v-drag-source="sectionReorderDragSourceOptions" v-drag-target:2="sectionReorderDragSourceOptions.id">
             <SectionZone v-for="section in sections"
                 :key="section.guid"
                 v-model="section"
