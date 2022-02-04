@@ -2043,10 +2043,12 @@ namespace RockWeb.Blocks.WorkFlow
                 RockEmailMessageRecipient rockEmailMessageRecipient;
                 if ( signedByPerson.Email.Equals( signatureDocument.SignedByEmail, StringComparison.OrdinalIgnoreCase ) )
                 {
+                    // if they specified the same email they already have, send it as a normal email message
                     rockEmailMessageRecipient = new RockEmailMessageRecipient( signedByPerson, mergeFields );
                 }
                 else
                 {
+                    // if they selected a different email address, don't change their email address. Just send to the specified email address.
                     rockEmailMessageRecipient = RockEmailMessageRecipient.CreateAnonymous( signatureDocument.SignedByEmail, mergeFields );
                 }
 
@@ -2057,7 +2059,6 @@ namespace RockWeb.Blocks.WorkFlow
                 // errors will be logged by send
                 emailMessage.Send( out _ );
             }
-
 
             CompleteSignatureAction();
         }
