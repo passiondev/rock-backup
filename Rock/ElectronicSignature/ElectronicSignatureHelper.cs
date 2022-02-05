@@ -71,6 +71,12 @@ namespace Rock.ElectronicSignature
                 signatureHtml = $@"<span class='signature-typed'> {signatureInformationHtmlArgs.SignedName} <span>";
             }
 
+            var signatureInfoName = signatureInformationHtmlArgs.SignedName;
+            if ( signatureInfoName.IsNullOrWhiteSpace() )
+            {
+                signatureInfoName = signatureInformationHtmlArgs.SignedByPerson?.FullName;
+            }
+
 
             var signatureCss = @"
 <style>
@@ -116,7 +122,7 @@ namespace Rock.ElectronicSignature
             {signatureHtml}
         </div>
         <div class='col signature-details'>
-            <div class='signature-fullname'>Name: {signatureInformationHtmlArgs.SignedByPerson?.FullName}</div>
+            <div class='signature-fullname'>Name: {signatureInfoName}</div>
             <div class='signature-datetime'>Signed: {signatureInformationHtmlArgs.SignedDateTime.ToShortDateString()}</div>
             <div class='signature-ip-address'>IP: {signatureInformationHtmlArgs.SignedClientIp}</div>
         </div>

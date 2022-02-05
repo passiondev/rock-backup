@@ -102,7 +102,7 @@ namespace Rock.Workflow.Action
         /// <returns>SignatureDocumentTemplate.</returns>
         public SignatureDocumentTemplate GetSignatureDocumentTemplate( RockContext rockContext, WorkflowAction workflowAction )
         {
-            var templateGuid = this.GetAttributeValue( workflowAction, AttributeKey.SignatureDocumentTemplate ).AsGuidOrNull();
+            var templateGuid = this.GetAttributeValue( workflowAction, AttributeKey.SignatureDocumentTemplate, true ).AsGuidOrNull();
             if ( templateGuid.HasValue )
             {
                 return new SignatureDocumentTemplateService( rockContext ).Get( templateGuid.Value );
@@ -122,7 +122,7 @@ namespace Rock.Workflow.Action
         public int? GetSignedByPersonAliasId( RockContext rockContext, WorkflowAction workflowAction, int? currentPersonAliasId )
         {
             int? personAliasId = null;
-            var personAliasGuid = this.GetAttributeValue( workflowAction, AttributeKey.SignedByPersonAlias ).AsGuidOrNull();
+            var personAliasGuid = this.GetAttributeValue( workflowAction, AttributeKey.SignedByPersonAlias, true ).AsGuidOrNull();
             if ( personAliasGuid.HasValue )
             {
                 personAliasId = new PersonAliasService( rockContext ).GetId( personAliasGuid.Value );
@@ -145,7 +145,7 @@ namespace Rock.Workflow.Action
         public int? GetAppliesToPersonAliasId( RockContext rockContext, WorkflowAction workflowAction )
         {
             int? personAliasId = null;
-            var personAliasGuid = this.GetAttributeValue( workflowAction, AttributeKey.AppliesToPersonAlias ).AsGuidOrNull();
+            var personAliasGuid = this.GetAttributeValue( workflowAction, AttributeKey.AppliesToPersonAlias, true ).AsGuidOrNull();
             if ( personAliasGuid.HasValue )
             {
                 personAliasId = new PersonAliasService( rockContext ).GetId( personAliasGuid.Value );
@@ -163,7 +163,7 @@ namespace Rock.Workflow.Action
         public int? GetAssignedToPersonAliasId( RockContext rockContext, WorkflowAction workflowAction )
         {
             int? personAliasId = null;
-            var personAliasGuid = this.GetAttributeValue( workflowAction, AttributeKey.AssignedToPersonAlias ).AsGuidOrNull();
+            var personAliasGuid = this.GetAttributeValue( workflowAction, AttributeKey.AssignedToPersonAlias, true ).AsGuidOrNull();
             if ( personAliasGuid.HasValue )
             {
                 personAliasId = new PersonAliasService( rockContext ).GetId( personAliasGuid.Value );
@@ -180,7 +180,7 @@ namespace Rock.Workflow.Action
         /// <returns>System.String.</returns>
         public string GetSignatureDocumentName( WorkflowAction workflowAction, Dictionary<string, object> mergeFields )
         {
-            string signatureDocumentName = this.GetAttributeValue( workflowAction, AttributeKey.SignatureDocumentName );
+            string signatureDocumentName = this.GetAttributeValue( workflowAction, AttributeKey.SignatureDocumentName, true );
             return signatureDocumentName?.ResolveMergeFields( mergeFields );
         }
 

@@ -18,25 +18,17 @@ namespace Rock.Migrations
 {
     using System;
     using System.Data.Entity.Migrations;
-
+    
     /// <summary>
     ///
     /// </summary>
-    public partial class ElectronicSignatures : Rock.Migrations.RockMigration
+    public partial class ElectronicSignature : Rock.Migrations.RockMigration
     {
         /// <summary>
         /// Operations to be performed during the upgrade process.
         /// </summary>
         public override void Up()
         {
-            AddColumn( "dbo.SignatureDocument", "SignatureVerificationHash", c => c.String( maxLength: 40 ) );
-            Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureVerificationHash] = [SignatureVerficationHash]" );
-            DropColumn( "dbo.SignatureDocument", "SignatureVerficationHash" );
-
-            AddColumn( "dbo.SignatureDocument", "SignatureDataEncrypted", c => c.String() );
-            Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureDataEncrypted] = [SignatureData]" );
-            DropColumn( "dbo.SignatureDocument", "SignatureData" );
-
             // Update EntityType so that Workflow and Registration have LinkUrlLavaTemplate's
             Sql( @"UPDATE [EntityType]
 SET [LinkUrlLavaTemplate] = '~/Workflow/{{ Entity.Id }}'
@@ -91,21 +83,13 @@ BEGIN
     WHERE [Guid] = '8690831c-d48a-48a7-bba7-5bc496e493f2'
 END
 " );
-
         }
-
+        
         /// <summary>
         /// Operations to be performed during the downgrade process.
         /// </summary>
         public override void Down()
         {
-            AddColumn( "dbo.SignatureDocument", "SignatureVerficationHash", c => c.String( maxLength: 40 ) );
-            Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureVerficationHash] = [SignatureVerificationHash]" );
-            DropColumn( "dbo.SignatureDocument", "SignatureVerificationHash" );
-
-            AddColumn( "dbo.SignatureDocument", "SignatureData", c => c.String() );
-            Sql( "UPDATE [dbo].[SignatureDocument] SET [SignatureData] = [SignatureDataEncrypted]" );
-            DropColumn( "dbo.SignatureDocument", "SignatureDataEncrypted" );
         }
     }
 }
