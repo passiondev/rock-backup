@@ -321,7 +321,7 @@ namespace Rock.Field.Types
         /// <returns></returns>
         private TreeNode<CategorizedValuePickerItem> GetSelectionTreeForDefinedType( int? definedTypeId, List<string> selectableValueKeys )
         {
-            var listItems = new List<CategorizedValuePickerItem>();
+            var listItems = new List<DefinedValueTreeNode>();
             var rockContext = new RockContext();
 
             // Get the Defined Type and associated values.
@@ -334,8 +334,10 @@ namespace Rock.Field.Types
             var definedValueService = new DefinedValueService( rockContext );
             var definedValues = definedValueService.GetByDefinedTypeId( definedTypeId.Value )
                 .Where( x => x.IsActive )
+                .OrderBy( x => x.Order )
                 .ToList();
 
+            // Filter the selectable values.
             if ( selectableValueKeys != null
                  && selectableValueKeys.Any() )
             {
@@ -347,38 +349,25 @@ namespace Rock.Field.Types
                 return null;
             }
 
-            // Add Defined Values and their associated Categories to the selection item list.
+            // Get a list of the Categories associated with the Defined Values.
             var categories = new Dictionary<int, Category>();
-            var categoryIdList = new List<int>();
+            var definedValueCategoryIdList = new List<int>();
 
             foreach ( var definedValue in definedValues )
             {
-                // Add the Defined Value as a selectable node.
-                var listItem = new CategorizedValuePickerItem
-                {
-                    Key = definedValue.Id.ToString(),
-                    Text = definedValue.Value,
-                    ItemType = CategorizedValuePickerItemTypeSpecifier.Value
-                };
-
                 if ( definedValue.CategoryId != null )
                 {
-                    var categoryKey = definedValue.CategoryId != null ? $"C{definedValue.CategoryId}" : null;
-                    listItem.ParentKey = categoryKey;
-
-                    if ( !categoryIdList.Contains( definedValue.CategoryId.Value ) )
+                    if ( !definedValueCategoryIdList.Contains( definedValue.CategoryId.Value ) )
                     {
-                        categoryIdList.Add( definedValue.CategoryId.Value );
+                        definedValueCategoryIdList.Add( definedValue.CategoryId.Value );
                     }
                 }
-
-                listItems.Add( listItem );
             }
 
-            // Retrieve the Categories associated with the Defined Values, including any parent categories required to build the selection tree.
+            // Retrieve the Category details, including any parent categories required to build the selection tree.
             var categoryService = new CategoryService( rockContext );
 
-            foreach ( var categoryId in categoryIdList )
+            foreach ( var categoryId in definedValueCategoryIdList )
             {
                 // If this category already exists in the categories list, ignore it as an ancestor of a previous category.
                 if ( categories.ContainsKey( categoryId ) )
@@ -396,14 +385,15 @@ namespace Rock.Field.Types
                 }
             }
 
-            // Add Categories to the node list.
+            // Create a selection tree structure from the Categories.
+            // Categories are created with a placeholder label which will be replaced by applying the naming rules.
             foreach ( var category in categories.Values )
             {
-                var listItem = new CategorizedValuePickerItem
+                var listItem = new DefinedValueTreeNode
                 {
-                    Key = $"C{category.Id}",
+                    Value = $"C{category.Id}",
                     Text = category.Name,
-                    ItemType = CategorizedValuePickerItemTypeSpecifier.Category
+                    CategoryLabel = "*"
                 };
 
                 if ( category.ParentCategoryId != null )
@@ -414,42 +404,87 @@ namespace Rock.Field.Types
                 listItems.Add( listItem );
             }
 
-            // Create a selection tree from the list of items.
-            var rootNodes = TreeNode.BuildTree( listItems, cv => cv.Key, cv => cv.ParentKey );
+            var rootNodes = TreeNode.BuildTree( listItems, cv => cv.Value, cv => cv.ParentKey );
 
-            // Add the Defined Type as the root node.
+            // Add the Defined Type as the root of the selection tree.
             var rootKey = $"T{definedType.Id}";
-            var definedTypeItem = new CategorizedValuePickerItem
+            var definedTypeItem = new DefinedValueTreeNode
             {
-                Key = rootKey,
+                Value = rootKey,
                 Text = definedType.Name,
-                ItemType = CategorizedValuePickerItemTypeSpecifier.Category
+                CategoryLabel = "*"
             };
-            var definedTypeNode = new TreeNode<CategorizedValuePickerItem>( definedTypeItem );
-            definedTypeNode.AddChildren( rootNodes );
+            var rootNode = new TreeNode<DefinedValueTreeNode>( definedTypeItem );
+            rootNode.AddChildren( rootNodes );
+
+            // Now that the tree structure is built, convert the tree nodes to picker items.
+            var definedTypeNode = TreeNode.Convert( rootNode, x => ( CategorizedValuePickerItem ) x );
+
+            // Add the Defined Values to the selection tree.
+            // Defined Values are available for selection in the Category they are defined, and also in every child Category.
+            // Defined Values having no parent Category are available at all selection levels.
+            var nodeMapByKey = definedTypeNode.Flatten()
+                .ToDictionary( k => k.Value.Value, v => v );
+
+            foreach ( var definedValue in definedValues )
+            {
+                // Get the parent node.
+                string categoryKey = null;
+                TreeNode<CategorizedValuePickerItem> parentNode = definedTypeNode;
+
+                if ( definedValue.CategoryId != null )
+                {
+                    categoryKey = $"C{definedValue.CategoryId}";
+                    nodeMapByKey.TryGetValue( categoryKey, out parentNode );
+                }
+
+                // Add the Defined Value to the parent category, and every child category.
+                AddDefinedValueToCategoryAndChildCategories( definedValue, parentNode );
+            }
 
             // Finally, apply the node naming rules to the selection tree.
             // 1. Top-level node is given the name of the Defined Type with "Category" appended.
             // 2. Intermediate nodes are given the name of the Category with "Category" appended.
             // 3. Nodes that have no children are given the name of the Defined Type.
-            // Create a tree structure from the nodes.
-            definedTypeNode.Value.CategoryName = $"{definedType.Name} Category";
+            definedTypeNode.Value.CategoryLabel = $"{definedType.Name} Category";
 
-            foreach ( var node in definedTypeNode.Flatten() )
+            foreach ( var node in nodeMapByKey.Values )
             {
-                if ( node.Children.Any( x => x.Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Category ) )
+                if ( node.Children.Any( x => x.Value.CategoryLabel != null ) )
                 {
                     // The node has child categories, so it is an intermediate selection node.
-                    node.Value.CategoryName = $"{node.Value.Text} Category";
+                    node.Value.CategoryLabel = $"{node.Value.Text} Category";
                 }
                 else
                 {
                     // The node has no child categories, so it is a final value node.
-                    node.Value.CategoryName = definedType.Name;
+                    node.Value.CategoryLabel = definedType.Name;
                 }
             }
 
-            return rootNodes[0];
+            return definedTypeNode;
+        }
+
+        private void AddDefinedValueToCategoryAndChildCategories( DefinedValue definedValue, TreeNode<CategorizedValuePickerItem> parentNode )
+        {
+            // Add the Defined Value to the parent category, and every child category.
+            if ( parentNode == null )
+            {
+                return;
+            }
+
+            var listItem = new DefinedValueTreeNode
+            {
+                Value = definedValue.Id.ToString(),
+                Text = definedValue.Value,
+            };
+            parentNode.AddChild( listItem );
+
+            var childCategoryNodes = parentNode.Children.Where( x => x.Value.CategoryLabel != null );
+            foreach ( var childNode in childCategoryNodes )
+            {
+                AddDefinedValueToCategoryAndChildCategories( definedValue, childNode );
+            }
         }
 
         #endregion
@@ -564,6 +599,11 @@ namespace Rock.Field.Types
                     TrySetValue( value.Key, value.Value.Value );
                 }
             }
+        }
+
+        private class DefinedValueTreeNode : CategorizedValuePickerItem
+        {
+            public string ParentKey { get; set; }
         }
 
         #endregion

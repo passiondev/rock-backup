@@ -32,7 +32,6 @@ namespace Rock.Web.UI.Controls
     /// </summary>
     public class CategorizedValuePicker : CompositeControl, IRockControl, IRockChangeHandlerControl
     {
-        private const string _emptyItemKey = "";
         private Repeater _categorySelectorRepeater = null;
 
         #region Constructors
@@ -318,8 +317,8 @@ namespace Rock.Web.UI.Controls
         /// <param name="isValueChanged"></param>
         private void SetSelection( string itemKey, out bool isValueChanged )
         {
-            var selectedNode = ValueTree?.Find( x => x.Value.Key == itemKey ).FirstOrDefault();
-            var isValue = ( selectedNode?.Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Value );
+            var selectedNode = ValueTree?.Find( x => x.Value.Value == itemKey ).FirstOrDefault();
+            var isValue = selectedNode?.Value.IsValue() ?? false;
             var isChanged = _hfSelection.Value != itemKey;
 
             if ( isChanged )
@@ -370,7 +369,6 @@ namespace Rock.Web.UI.Controls
         /// <inheritdoc/>
         protected override void OnLoad( EventArgs e )
         {
-
             base.OnLoad( e );
 
             if ( !this.Page.IsPostBack )
@@ -394,19 +392,6 @@ namespace Rock.Web.UI.Controls
             }
         }
 
-        private class SelectionControlInfo
-        {
-            public string NodeKey;
-            public string Label;
-            public List<CategorizedValuePickerItem> Items;
-            public string SelectedItemKey;
-
-            public override string ToString()
-            {
-                return $"[{NodeKey}] {Label} ({Items.Count},Selected={SelectedItemKey})";
-            }
-        }
-
         /// <summary>
         /// Handles the ItemDataBound event of the valueSelectorRepeater control.
         /// </summary>
@@ -416,8 +401,11 @@ namespace Rock.Web.UI.Controls
         {
             var repeaterItem = e.Item;
             var controlInfo = e.Item.DataItem as SelectionControlInfo;
-            var ddlSelector = repeaterItem.FindControl( "ddlSelector" ) as RockDropDownList;
+            var hfNodeKey = repeaterItem.FindControl( "hfNodeKey" ) as HiddenField;
             var lLabel = repeaterItem.FindControl( "lLabel" ) as Label;
+            var ddlSelector = repeaterItem.FindControl( "ddlSelector" ) as RockDropDownList;
+
+            hfNodeKey.Value = controlInfo.NodeKey;
 
             lLabel.Text = controlInfo.Label;
             if ( this.Required )
@@ -430,11 +418,11 @@ namespace Rock.Web.UI.Controls
             {
                 foreach ( var item in controlInfo.Items )
                 {
-                    ddlSelector.Items.Add( new ListItem( item.Text, item.Key ) );
+                    ddlSelector.Items.Add( new ListItem( item.Text, item.Value ) );
                 }
             }
             ddlSelector.Required = this.Required;
-            ddlSelector.SelectedValue = controlInfo.SelectedItemKey ?? _emptyItemKey;
+            ddlSelector.SelectedValue = controlInfo.SelectedItemKey ?? CategorizedValuePickerItem.EmptyValue;
         }
 
         private void CreateSelectionControls( string selectedNodeKey )
@@ -444,22 +432,29 @@ namespace Rock.Web.UI.Controls
             if ( ValueTree != null )
             {
                 // Get the currently selected node.
-                var selectedNode = ValueTree.Find( x => x.Value.Key == selectedNodeKey ).FirstOrDefault();
+                // If there is more than one match for the selected value, get the node at the highest level.
+                var selectedNode = ValueTree.Find( x => x.Value.Value == selectedNodeKey )
+                    .OrderBy( x => x.GetDepth() )
+                    .FirstOrDefault();
 
-                // If no selected node, find the first child node that allows a decision.
+                // If no selected node, find the first child node that requires a decision.
                 var candidateNode = this.ValueTree;
-                TreeNode<CategorizedValuePickerItem> selectorNode = selectedNode;
+                var selectorNode = selectedNode;
 
                 while ( candidateNode != null && selectorNode == null )
                 {
-                    if ( candidateNode.Children.Count > 1 )
+                    var selectableNodes = candidateNode.Children
+                        .Where( x => x.Value.IsValue() || x.Value.IsCategory() )
+                        .ToList();
+                    if ( selectableNodes.Count > 1 )
                     {
                         // If this node has multiple child nodes, make it the final selector.
                         selectorNode = candidateNode;
                     }
-                    else if ( candidateNode.Children.Count == 1 )
+                    else if ( selectableNodes.Count == 1 )
                     {
-                        if ( candidateNode.Children[0].Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Value )
+                        var childValue = candidateNode.Children[0].Value;
+                        if ( childValue.IsValue() )
                         {
                             // If this node has a single child value, make it the final selector.
                             // This is a decision node because an empty selection is also possible.
@@ -474,7 +469,7 @@ namespace Rock.Web.UI.Controls
                     else
                     {
                         // If this node has no child nodes, no selection is possible.
-                        selectorNode = this.ValueTree;
+                        candidateNode = null;
                     }
                 }
 
@@ -485,14 +480,14 @@ namespace Rock.Web.UI.Controls
                 while ( selectorNode != null )
                 {
                     // Add a selector for this node if it represents a category.
-                    if ( selectorNode.Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Category )
+                    if ( selectorNode.Value.IsCategory() )
                     {
                         var info = GetSelectorInfo( selectorNode, selectorNodeKey );
 
                         // If the node only contains a single category, skip the selector and drill-down to the next level.
-                        var selectionNodes = info.Items.Where( x => x.ItemType != CategorizedValuePickerItemTypeSpecifier.Empty ).ToList();
-                        var containsSingleCategory = selectionNodes.Count == 1
-                            && selectionNodes[0].ItemType == CategorizedValuePickerItemTypeSpecifier.Category;
+                        var selectableNodes = info.Items.Where( x => x.IsCategory() || x.IsValue() ).ToList();
+                        var containsSingleCategory = selectableNodes.Count == 1
+                            && selectableNodes[0].IsCategory();
 
                         if ( !containsSingleCategory )
                         {
@@ -501,7 +496,7 @@ namespace Rock.Web.UI.Controls
                     }
 
                     // Set the value of the parent selector control to select the current node.
-                    selectorNodeKey = selectorNode.Value.Key;
+                    selectorNodeKey = selectorNode.Value.Value;
                     // Move to the parent node
                     selectorNode = selectorNode.Parent;
                 }
@@ -511,9 +506,9 @@ namespace Rock.Web.UI.Controls
 
                 // Add a value selector for the next unselected level in the hierarchy.
                 if ( selectedNode != null
-                     && selectedNode.Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Category )
+                     && selectedNode.Value.IsCategory() )
                 {
-                    var finalSelectionNode = selectedNode.Children.FirstOrDefault( x => x.Value.Key == selectedNodeKey );
+                    var finalSelectionNode = selectedNode.Children.FirstOrDefault( x => x.Value.Value == selectedNodeKey );
                     if ( finalSelectionNode != null )
                     {
                         var info = GetSelectorInfo( finalSelectionNode, null );
@@ -525,7 +520,7 @@ namespace Rock.Web.UI.Controls
             // If no ValueTree is defined, return a single empty selector.
             if ( !selectionControls.Any() )
             {
-                selectionControls.Add( new SelectionControlInfo { NodeKey = _emptyItemKey, Label = string.Empty, Items = null } );
+                selectionControls.Add( new SelectionControlInfo { NodeKey = CategorizedValuePickerItem.EmptyValue, Label = string.Empty, Items = null } );
             }
 
             // Render the selection controls top-down.
@@ -540,15 +535,16 @@ namespace Rock.Web.UI.Controls
         {
             var availableNodes = GetSelectableNodesFromParentNode( selectorNode );
 
-            availableNodes.Add( new CategorizedValuePickerItem { ItemType = CategorizedValuePickerItemTypeSpecifier.Empty, Text = "", Key = _emptyItemKey } );
+            var emptyItem = new CategorizedValuePickerItem { Value = CategorizedValuePickerItem.EmptyValue };
+            availableNodes.Add( emptyItem );
+
             var info = new SelectionControlInfo
             {
-                NodeKey = selectorNode.Value.Key,
-                Label = selectorNode.Value.CategoryName,
+                NodeKey = selectorNode.Value.Value,
+                Label = selectorNode.Value.CategoryLabel,
                 Items = availableNodes
             };
-
-            if ( availableNodes.Any( x => x.Key == selectedNodeKey ) )
+            if ( availableNodes.Any( x => x.Value == selectedNodeKey ) )
             {
                 info.SelectedItemKey = selectedNodeKey;
             }
@@ -600,37 +596,13 @@ namespace Rock.Web.UI.Controls
                 return selectableNodes;
             }
 
-            // If the node is a Value, there are no selections available.
-            if ( parentNode.Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Value
-                 || parentNode.Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Empty )
+            // If the parent node is a Value, there are no selections available.
+            if ( parentNode.Value.IsValue() )
             {
                 return selectableNodes;
             }
 
-            // Selectable Nodes include:
-            // 1. Category nodes that are immediate children of the parent selection.
-            // 2. Value nodes that are children of the parent node any parent Category.
-            // 3. Value nodes that do not have a parent Category.
-
-            // Add Category nodes that are immediate children of the parent selection.
-            var childCategoryNodes = parentNode.Children
-                .Where( x => x.Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Category )
-                .Select( x => x.Value );
-            selectableNodes.AddRange( childCategoryNodes );
-
-            // Add Value nodes that are children of any parent Category.
-            var categoryNode = parentNode;
-
-            while ( categoryNode != null )
-            {
-                var valueNodes = categoryNode.Children
-                    .Where( x => x.Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Value || x.Value.ItemType == CategorizedValuePickerItemTypeSpecifier.Empty )
-                    .Select( x => x.Value );
-                selectableNodes.AddRange( valueNodes );
-
-                categoryNode = categoryNode.Parent;
-            }
-
+            selectableNodes = parentNode.Children.Select( x => x.Value ).ToList();
             return selectableNodes;
         }
 
@@ -638,20 +610,15 @@ namespace Rock.Web.UI.Controls
 
         private class CategorizedValueSelectorTemplate : ITemplate
         {
-            private DropDownList _ddlSelector { get; set; }
-
             /// <summary>
             /// When implemented by a class, defines the <see cref="T:System.Web.UI.Control" /> object that child controls and templates belong to. These child controls are in turn defined within an inline template.
             /// </summary>
             /// <param name="container">The <see cref="T:System.Web.UI.Control" /> object to contain the instances of controls from the inline template.</param>
             public void InstantiateIn( Control container )
             {
-                var label = new Label() // HtmlGenericControl("span")
-                {
-                    ID = "lLabel"
-                };
-
-                _ddlSelector = new RockDropDownList
+                var hf = new HiddenField { ID = "hfNodeKey" };
+                var label = new Label { ID = "lLabel" };
+                var ddlSelector = new RockDropDownList
                 {
                     DataTextField = "Value",
                     DataValueField = "Key",
@@ -659,37 +626,54 @@ namespace Rock.Web.UI.Controls
                     AutoPostBack = true,
                 };
 
-                _ddlSelector.AddCssClass( "form-control input-width-lg js-value-list-input" );
-                _ddlSelector.SelectedIndexChanged += ddlSelector_SelectedIndexChanged;
+                ddlSelector.AddCssClass( "form-control input-width-lg js-value-list-input" );
+                ddlSelector.SelectedIndexChanged += ddlSelector_SelectedIndexChanged;
 
+                container.Controls.Add( hf );
                 container.Controls.Add( label );
-                container.Controls.Add( _ddlSelector );
+                container.Controls.Add( ddlSelector );
             }
 
             private void ddlSelector_SelectedIndexChanged( object sender, EventArgs e )
             {
                 var ddlSelector = sender as DropDownList;
+                var container = ddlSelector?.FirstParentControlOfType<RepeaterItem>();
+                var picker = container?.FirstParentControlOfType<CategorizedValuePicker>();
+                var hfNodeKey = container?.FindControl( "hfNodeKey" ) as HiddenField;
 
-                var picker = ddlSelector?.FirstParentControlOfType<CategorizedValuePicker>();
-
-                if ( picker == null )
+                if ( picker == null || hfNodeKey == null )
                 {
                     return;
                 }
 
                 var newValue = ddlSelector.SelectedValue;
-                if ( newValue == _emptyItemKey )
+                if ( newValue == CategorizedValuePickerItem.EmptyValue )
                 {
-                    var previousValue = picker.Value;
-                    var previousNode = picker.ValueTree.Find( x => x.Value.Key == previousValue ).FirstOrDefault();
-
-                    if ( previousNode != null )
+                    var selectorNode = picker.ValueTree.Find( x => x.Value.Value == hfNodeKey.Value ).FirstOrDefault();
+                    if ( selectorNode != null )
                     {
-                        newValue = previousNode?.Parent.Value.Key ?? _emptyItemKey;
+                        newValue = hfNodeKey.Value;
                     }
                 }
 
                 picker.CreateSelectionControls( newValue );
+            }
+        }
+
+        #endregion
+
+        #region Support classes
+
+        private class SelectionControlInfo
+        {
+            public string NodeKey;
+            public string Label;
+            public List<CategorizedValuePickerItem> Items;
+            public string SelectedItemKey;
+
+            public override string ToString()
+            {
+                return $"[{NodeKey}] {Label} ({Items.Count},Selected={SelectedItemKey})";
             }
         }
 
@@ -699,59 +683,58 @@ namespace Rock.Web.UI.Controls
     #region Support classes
 
     /// <summary>
-    /// Specifies the type of an item added to a CategorizedValuePicker
-    /// </summary>
-    public enum CategorizedValuePickerItemTypeSpecifier
-    {
-        /// <summary>
-        /// An item representing an empty selection.
-        /// </summary>
-        Empty = 0,
-        /// <summary>
-        /// A category that can contain child categories or values.
-        /// Categories represent an interim selection that is available while navigating the list of values.
-        /// </summary>
-        Category = 1,
-        /// <summary>
-        /// A selectable value.
-        /// </summary>
-        Value = 2
-    }
-
-    /// <summary>
     /// An entry in a categorized value picker.
     /// </summary>
     public class CategorizedValuePickerItem
     {
-        /// <summary>
-        /// The unique key of the item.
-        /// </summary>
-        public string Key { get; set; }
+        public const string EmptyValue = "";
 
         /// <summary>
-        /// The key of the parent item, or null if the item has no parent.
+        /// The value associated with this item.
         /// </summary>
-        public string ParentKey { get; set; }
+        public string Value { get; set; }
 
         /// <summary>
         /// The text to display for this item.
         /// </summary>
-        public string Text;
+        public string Text { get; set; } = null;
 
         /// <summary>
-        /// The name of the category this item represents, or empty if the item represents a value.
+        /// If this item represents a Category, The label for the category this item represents, or empty if the item represents a value.
         /// </summary>
-        public string CategoryName = null;
+        public string CategoryLabel { get; set; } = null;
 
         /// <summary>
-        /// A flag indicating the type of list item.
+        /// Does this item represent a category?
         /// </summary>
-        public CategorizedValuePickerItemTypeSpecifier ItemType;
+        /// <returns></returns>
+        public bool IsCategory()
+        {
+            return !string.IsNullOrEmpty( CategoryLabel );
+        }
+
+        /// <summary>
+        /// Does this item represent a value?
+        /// </summary>
+        /// <returns></returns>
+        public bool IsValue()
+        {
+            return string.IsNullOrEmpty( CategoryLabel ) && !IsEmpty();
+        }
+
+        /// <summary>
+        /// Does this item represent an empty selection?
+        /// </summary>
+        /// <returns></returns>
+        public bool IsEmpty()
+        {
+            return Value == CategorizedValuePickerItem.EmptyValue;
+        }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"[{Key}] {Text} [{CategoryName}]";
+            return $"[{Value}] {Text} [{CategoryLabel}]";
         }
     }
 
@@ -801,6 +784,27 @@ namespace Rock.Web.UI.Controls
             }
 
             return rootNodes;
+        }
+
+        /// <summary>
+        /// Converts a tree data structure containing values of a specified Type using the specified conversion function.
+        /// </summary>
+        /// <typeparam name="TIn">The Type of the value contained by the source node.</typeparam>
+        /// <typeparam name="TOut">The Type of the value contained by the destination node.</typeparam>
+        /// <param name="node">The source node.</param>
+        /// <param name="valueSelector">The function used to convert the source value to the destination value.</param>
+        /// <returns></returns>
+        public static TreeNode<TOut> Convert<TIn, TOut>( TreeNode<TIn> node, Func<TIn, TOut> valueSelector )
+        {
+            // Convert the supplied node and all children.
+            var outNode = new TreeNode<TOut>( valueSelector( node.Value ) );
+
+            foreach ( var childNode in node.Children )
+            {
+                outNode.AddChild( Convert( childNode, valueSelector ) );
+            }
+
+            return outNode;
         }
     }
 
@@ -941,6 +945,24 @@ namespace Rock.Web.UI.Controls
             nodes.AddRange( _children.SelectMany( x => x.Flatten() ) );
 
             return nodes;
+        }
+
+        /// <summary>
+        /// Gets the depth of the current tree node.
+        /// </summary>
+        /// <returns>The number of ancestors preceding the current node in the tree.</returns>
+        public int GetDepth()
+        {
+            var depth = 0;
+
+            var parent = this.Parent;
+            while ( parent != null )
+            {
+                depth++;
+                parent = parent.Parent;
+            }
+
+            return depth;
         }
 
         /// <inheritdoc/>
