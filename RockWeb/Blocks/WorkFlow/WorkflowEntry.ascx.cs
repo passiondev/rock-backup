@@ -22,10 +22,10 @@ using System.Web.UI.WebControls;
 
 using Rock;
 using Rock.Attribute;
-using Rock.Communication;
 using Rock.Data;
 using Rock.ElectronicSignature;
 using Rock.Model;
+using Rock.Pdf;
 using Rock.Security;
 using Rock.Transactions;
 using Rock.Web;
@@ -1927,6 +1927,7 @@ namespace RockWeb.Blocks.WorkFlow
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSignSignature_Click( object sender, EventArgs e )
         {
+            // From Workflow
             var electronicSignatureWorkflowAction = _actionType?.WorkflowAction as Rock.Workflow.Action.ElectronicSignature;
             if ( electronicSignatureWorkflowAction == null )
             {
@@ -1942,6 +1943,7 @@ namespace RockWeb.Blocks.WorkFlow
             }
 
             Dictionary<string, object> mergeFields = GetWorkflowEntryMergeFields();
+            mergeFields.Add( "SignatureDocumentTemplate", signatureDocumentTemplate );
 
             var signatureDocumentName = electronicSignatureWorkflowAction.GetSignatureDocumentName( workflowAction, mergeFields );
             if ( signatureDocumentName.IsNullOrWhiteSpace() )
@@ -1950,6 +1952,8 @@ namespace RockWeb.Blocks.WorkFlow
             }
 
             var signedByPersonAliasId = electronicSignatureWorkflowAction.GetSignedByPersonAliasId( rockContext, workflowAction, this.CurrentPersonAliasId );
+            var appliesToPersonAliasId = electronicSignatureWorkflowAction.GetAppliesToPersonAliasId( rockContext, workflowAction );
+            var assignedToPersonAliasId = electronicSignatureWorkflowAction.GetAssignedToPersonAliasId( rockContext, workflowAction );
 
             Person signedByPerson;
             if ( signedByPersonAliasId.HasValue )
@@ -1961,27 +1965,34 @@ namespace RockWeb.Blocks.WorkFlow
                 signedByPerson = null;
             }
 
-            var appliesToPersonAliasId = electronicSignatureWorkflowAction.GetAppliesToPersonAliasId( rockContext, workflowAction );
-            var assignedToPersonAliasId = electronicSignatureWorkflowAction.GetAssignedToPersonAliasId( rockContext, workflowAction );
-
+            // Glue stuff into the signature document
             var signatureDocument = new SignatureDocument();
+
+            // From Workflow Action
             signatureDocument.SignatureDocumentTemplateId = signatureDocumentTemplate.Id;
             signatureDocument.Status = SignatureDocumentStatus.Signed;
             signatureDocument.Name = signatureDocumentName;
-            signatureDocument.LastStatusDate = RockDateTime.Now;
-            signatureDocument.SignedDocumentText = this.SignatureDocumentHtml;
-            signatureDocument.SignedDateTime = RockDateTime.Now;
-            signatureDocument.SignatureData = escElectronicSignatureControl.DrawnSignatureImageDataUrl;
-            signatureDocument.SignedName = escElectronicSignatureControl.SignedName;
             signatureDocument.EntityTypeId = EntityTypeCache.GetId<Workflow>();
             signatureDocument.EntityId = _workflow?.Id;
             signatureDocument.SignedByPersonAliasId = signedByPersonAliasId;
             signatureDocument.AssignedToPersonAliasId = assignedToPersonAliasId;
             signatureDocument.AppliesToPersonAliasId = appliesToPersonAliasId;
-            signatureDocument.SignedClientIp = this.GetClientIpAddress();
-            signatureDocument.SignedClientUserAgent = Request.UserAgent;
+
+            // From Workflow Entry
+            signatureDocument.SignedDocumentText = this.SignatureDocumentHtml;
+            signatureDocument.LastStatusDate = RockDateTime.Now;
+            signatureDocument.SignedDateTime = RockDateTime.Now;
+
+            // From ElectronicSignatureControl
+            signatureDocument.SignatureData = escElectronicSignatureControl.DrawnSignatureImageDataUrl;
+            signatureDocument.SignedName = escElectronicSignatureControl.SignedName;
             signatureDocument.SignedByEmail = escElectronicSignatureControl.SignedByEmail;
 
+            // From System.Web            
+            signatureDocument.SignedClientIp = this.GetClientIpAddress();
+            signatureDocument.SignedClientUserAgent = Request.UserAgent;
+            
+            // Needed before determing SignatureInformation (Signed Name, metadata)
             signatureDocument.SignatureVerificationHash = signatureDocument.CalculateSignatureVerificationHash();
 
             var signatureInformationHtmlArgs = new GetSignatureInformationHtmlArgs
@@ -1995,71 +2006,48 @@ namespace RockWeb.Blocks.WorkFlow
                 SignatureVerificationHash = signatureDocument.SignatureVerificationHash
             };
 
+            // Helper takes care of generating HTML and combining SignatureDocumentHTML and signedSignatureDocumentHtml into the final Signed Document
             var signatureInformationHtml = ElectronicSignatureHelper.GetSignatureInformationHtml( signatureInformationHtmlArgs );
+            var signedSignatureDocumentHtml = ElectronicSignatureHelper.GetSignedDocumentHtml( this.SignatureDocumentHtml, signatureInformationHtml );
 
-            int pdfBinaryFileId = 0;
-
+            // PDF Generator to BinaryFile
             BinaryFile pdfFile;
-
-            using ( var pdfGenerator = new Rock.Pdf.PdfGenerator() )
+            using ( var pdfGenerator = new PdfGenerator() )
             {
-                var signedSignatureDocumentHtml = ElectronicSignatureHelper.GetSignedDocumentHtml( this.SignatureDocumentHtml, signatureInformationHtml );
-                using ( var pdfStream = pdfGenerator.GetPDFDocumentFromHtml( signedSignatureDocumentHtml ) )
+                var binaryFileTypeId = signatureDocumentTemplate.BinaryFileTypeId;
+                if ( !binaryFileTypeId.HasValue )
                 {
-                    BinaryFile binaryFile = new BinaryFile();
-                    binaryFile.FileSize = pdfStream.Length;
-                    binaryFile.MimeType = "application/pdf";
-
-                    binaryFile.ContentStream = pdfStream;
-                    binaryFile.FileName = signatureDocumentName.Replace( " ", "_" ).MakeValidFileName() + ".pdf";
-                    binaryFile.IsTemporary = false;
-
-                    binaryFile.BinaryFileTypeId = signatureDocumentTemplate.BinaryFileTypeId;
-
-                    new BinaryFileService( rockContext ).Add( binaryFile );
-                    rockContext.SaveChanges();
-                    pdfBinaryFileId = binaryFile.Id;
-                    pdfFile = binaryFile;
+                    binaryFileTypeId = BinaryFileTypeCache.GetId( Rock.SystemGuid.BinaryFiletype.DIGITALLY_SIGNED_DOCUMENTS.AsGuid() );
                 }
+
+                pdfFile = pdfGenerator.GetAsBinaryFileFromHtml( binaryFileTypeId ?? 0, signatureDocumentName, signedSignatureDocumentHtml );
             }
 
-            signatureDocument.BinaryFileId = pdfBinaryFileId;
+            pdfFile.IsTemporary = false;
+            new BinaryFileService( rockContext ).Add( pdfFile );
+            rockContext.SaveChanges();
+            signatureDocument.BinaryFileId = pdfFile.Id;
 
+            // Save Signature Documen to database
             var signatureDocumentService = new SignatureDocumentService( rockContext );
             signatureDocumentService.Add( signatureDocument );
             rockContext.SaveChanges();
 
-            // reload with new context to get navigation properties to load
+            // reload with new context to get navigation properties to load. This wil be needed to save values back to Workflow Attributes
+            // and also to send the Communication
             signatureDocument = new SignatureDocumentService( new RockContext() ).Get( signatureDocument.Id );
 
-            mergeFields.Add( "SignatureDocument", signatureDocument );
-            mergeFields.Add( "SignatureDocumentTemplate", signatureDocumentTemplate );
-
+            // Save to Workflow Attributes
             electronicSignatureWorkflowAction.SaveSignatureDocumentValuesToAttributes( _workflowRockContext, workflowAction, signatureDocument );
 
-            if ( signatureDocumentTemplate.CompletionSystemCommunication != null && signedByPerson.Email.IsNotNullOrWhiteSpace() )
+            // Send Communication
+            if ( signatureDocumentTemplate.CompletionSystemCommunication != null )
             {
-                var emailMessage = new RockEmailMessage( signatureDocumentTemplate.CompletionSystemCommunication );
-                RockEmailMessageRecipient rockEmailMessageRecipient;
-                if ( signedByPerson.Email.Equals( signatureDocument.SignedByEmail, StringComparison.OrdinalIgnoreCase ) )
-                {
-                    // if they specified the same email they already have, send it as a normal email message
-                    rockEmailMessageRecipient = new RockEmailMessageRecipient( signedByPerson, mergeFields );
-                }
-                else
-                {
-                    // if they selected a different email address, don't change their email address. Just send to the specified email address.
-                    rockEmailMessageRecipient = RockEmailMessageRecipient.CreateAnonymous( signatureDocument.SignedByEmail, mergeFields );
-                }
-
-                emailMessage.Attachments.Add( pdfFile );
-
-                emailMessage.AddRecipient( rockEmailMessageRecipient );
-
-                // errors will be logged by send
-                emailMessage.Send( out _ );
+                mergeFields.Add( "SignatureDocument", signatureDocument );
+                ElectronicSignatureHelper.SendSignatureCompletionCommunication( signatureDocumentTemplate.CompletionSystemCommunication, mergeFields, signedByPerson, signatureDocument.SignedByEmail, pdfFile );
             }
 
+            // Workflow
             CompleteSignatureAction();
         }
 

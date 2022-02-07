@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 
+using Rock.Communication;
 using Rock.Model;
 
 namespace Rock.ElectronicSignature
@@ -137,6 +138,37 @@ namespace Rock.ElectronicSignature
 ";
 
             return signatureInformationHtml;
+        }
+
+        /// <summary>
+        /// Sends the signature completion document communication.
+        /// </summary>
+        /// <param name="completionSystemCommunication">The completion system communication.</param>
+        /// <param name="mergeFields">The merge fields.</param>
+        /// <param name="signedByPerson">The signed by person.</param>
+        /// <param name="signedByEmail">The signed by email.</param>
+        /// <param name="pdfFile">The PDF file which will be attached to the email</param>
+        public static void SendSignatureCompletionCommunication( SystemCommunication completionSystemCommunication, Dictionary<string, object> mergeFields, Person signedByPerson, string signedByEmail, BinaryFile pdfFile )
+        {
+            var emailMessage = new RockEmailMessage( completionSystemCommunication );
+            RockEmailMessageRecipient rockEmailMessageRecipient;
+            if ( signedByPerson.Email.Equals( signedByEmail, StringComparison.OrdinalIgnoreCase ) )
+            {
+                // if they specified the same email they already have, send it as a normal email message
+                rockEmailMessageRecipient = new RockEmailMessageRecipient( signedByPerson, mergeFields );
+            }
+            else
+            {
+                // if they selected a different email address, don't change their email address. Just send to the specified email address.
+                rockEmailMessageRecipient = RockEmailMessageRecipient.CreateAnonymous( signedByEmail, mergeFields );
+            }
+
+            emailMessage.Attachments.Add( pdfFile );
+
+            emailMessage.AddRecipient( rockEmailMessageRecipient );
+
+            // errors will be logged by send
+            emailMessage.Send( out _ );
         }
     }
 

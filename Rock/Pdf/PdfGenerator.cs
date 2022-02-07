@@ -210,20 +210,51 @@ namespace Rock.Pdf
         }
 
         /// <summary>
-        /// Creates a new <see cref="Rock.Model.BinaryFile" /> from the pdfDocument stream.
+        /// Generates the PDF as a BinaryFile from HTML.
         /// </summary>
-        /// <param name="pdfDocument">The PDF document.</param>
         /// <param name="binaryFileTypeId">The binary file type identifier.</param>
-        /// <param name="isTemporary">if set to <c>true</c> [is temporary].</param>
-        /// <returns>BinaryFile.</returns>
-        public Rock.Model.BinaryFile GetAsBinaryFile( System.IO.Stream pdfDocument, int binaryFileTypeId, bool isTemporary )
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="html">The HTML.</param>
+        /// <returns>Rock.Model.BinaryFile.</returns>
+        public Rock.Model.BinaryFile GetAsBinaryFileFromHtml( int binaryFileTypeId, string fileName, string html )
         {
-            var binaryFile = new Rock.Model.BinaryFile();
-            binaryFile.ContentStream = pdfDocument;
-            binaryFile.IsTemporary = isTemporary;
-            binaryFile.MimeType = "application/pdf";
-            binaryFile.FileName = "document.pdf";
-            binaryFile.BinaryFileTypeId = binaryFileTypeId;
+            return GetAsBinaryFile( binaryFileTypeId, fileName, html, null );
+        }
+
+        /// <summary>
+        /// Generates the PDF as a BinaryFile from URL.
+        /// </summary>
+        /// <param name="binaryFileTypeId">The binary file type identifier.</param>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="url">The URL.</param>
+        /// <returns>Rock.Model.BinaryFile.</returns>
+        public Rock.Model.BinaryFile GetAsBinaryFileFromUrl( int binaryFileTypeId, string fileName, string url )
+        {
+            return GetAsBinaryFile( binaryFileTypeId, fileName, null, url );
+        }
+
+        /// <summary>
+        /// Creates a BinaryFile record that has the PDF in it.
+        /// </summary>
+        /// <param name="binaryFileTypeId">The binary file type identifier.</param>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="html">The HTML.</param>
+        /// <param name="url">The URL.</param>
+        /// <returns>Rock.Model.BinaryFile.</returns>
+        private Rock.Model.BinaryFile GetAsBinaryFile( int binaryFileTypeId, string fileName, string html, string url )
+        {
+            Rock.Model.BinaryFile binaryFile;
+
+            using ( var pdfStream = this.GetPDFDocument( html, url ) )
+            {
+                binaryFile = new Rock.Model.BinaryFile();
+                binaryFile.FileSize = pdfStream.Length;
+                binaryFile.MimeType = "application/pdf";
+
+                binaryFile.ContentStream = pdfStream;
+                binaryFile.FileName = fileName.Replace( " ", "_" ).MakeValidFileName() + ".pdf";
+                binaryFile.BinaryFileTypeId = binaryFileTypeId;
+            }
 
             return binaryFile;
         }
