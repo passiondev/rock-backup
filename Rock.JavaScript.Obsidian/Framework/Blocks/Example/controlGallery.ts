@@ -17,6 +17,7 @@
 
 import PaneledBlockTemplate from "../../Templates/paneledBlockTemplate";
 import { Component, defineComponent, PropType } from "vue";
+import FieldVisibilityRulesEditor from "../../Controls/fieldVisibilityRuleEditor";
 import TextBox from "../../Elements/textBox";
 import EmailBox from "../../Elements/emailBox";
 import CurrencyBox from "../../Elements/currencyBox";
@@ -90,6 +91,31 @@ const GalleryAndResult = defineComponent({
         </div>
         <div>
             <slot name="result" />
+        </div>
+    </template>
+</Panel>`
+});
+
+/** Demonstrates a phone number box */
+const aaafilter = defineComponent({
+    name: "AaaFilter",
+    components: {
+        Panel,
+        FieldVisibilityRulesEditor
+    },
+    data() {
+        return {
+            phoneNumber: "8005551234"
+        };
+    },
+    template: `
+<Panel :hasCollapse="false" title="Form Field Filter">
+    <template #default>
+        <div>
+            <FieldVisibilityRulesEditor field-name="Position Title" />
+        </div>
+        <div>
+            {{phoneNumber}}
         </div>
     </template>
 </Panel>`
@@ -1274,6 +1300,7 @@ const personPickerGallery = defineComponent({
 
 
 const galleryComponents: Record<string, Component> = {
+    aaafilter,
     textBoxGallery,
     datePickerGallery,
     dateRangePickerGallery,
