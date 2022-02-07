@@ -23,7 +23,7 @@ using System.Linq;
 using Owin;
 using Microsoft.Owin;
 
-[assembly: OwinStartup(typeof(RockWeb.Startup))]
+[assembly: OwinStartup( typeof( RockWeb.Startup ) )]
 namespace RockWeb
 {
     /// <summary>
@@ -42,7 +42,7 @@ namespace RockWeb
             try
             {
                 // This is for OIDC Connect
-             //   Rock.Oidc.Startup.OnStartup( app );
+                Rock.Oidc.Startup.OnStartup( app );
             }
             catch ( Exception ex )
             {
