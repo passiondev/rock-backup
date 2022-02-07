@@ -15,30 +15,36 @@
 // </copyright>
 //
 
-import { PropType } from "vue";
-import { defineComponent, ref } from "vue";
+import { PropType, defineComponent, ref, TransitionGroup } from "vue";
 import { FieldVisibilityRuleItemComponent, FieldVisibilityRuleItem } from "./fieldVisibilityRuleItem";
 import DropDownList from "../Elements/dropDownList";
 import { ListItem } from "../ViewModels";
+import { useVModelPassthrough } from "../Util/component";
+
 
 export default defineComponent({
     name: "FieldVisibilityRulesEditor",
 
     components: {
+        TransitionGroup,
         DropDownList,
         FieldVisibilityRuleItemComponent
     },
 
     props: {
+        modelValue: {
+            type: Array as PropType<FieldVisibilityRuleItem[]>,
+            required: true
+        },
         fieldName: {
             type: String as PropType<string>,
             required: true
         }
     },
 
-    emits: [],
+    emits: ["update:modelValue"],
 
-    setup() {
+    setup(props, { emit }) {
         const showHide = ref<"Show" | "Hide">("Show");
         const showHideOptions: ListItem[] = [
             { text: "Show", value: "Show" },
@@ -51,14 +57,24 @@ export default defineComponent({
             { text: "Any", value: "Any" }
         ];
 
-        const rules = ref<FieldVisibilityRuleItem[]>([{}]);
+        const rules = useVModelPassthrough(props, "modelValue", emit);
+
+        function addRule():void {
+            rules.value.push({key: Math.random()});
+        }
+
+        function removeRule(rule: FieldVisibilityRuleItem): void {
+            rules.value = rules.value.filter((val: FieldVisibilityRuleItem) => val !== rule);
+        }
 
         return {
             showHide,
             showHideOptions,
             allAny,
             allAnyOptions,
-            rules
+            addRule,
+            removeRule,
+            rules,
         };
     },
 
@@ -76,11 +92,11 @@ export default defineComponent({
     </div>
 
     <div class="filtervisibilityrules-ruleslist ">
-        <FieldVisibilityRuleItemComponent v-for="rule in rules" v-model="rule" />
+        <FieldVisibilityRuleItemComponent v-for="rule in rules" :key="rule.key" v-model="rule" @removeRule="removeRule" />
     </div>
 
     <div class="filter-actions">
-        <button class="btn btn-xs btn-action add-action" @click="addCriteria"><i class="fa fa-filter"></i> Add Criteria</button>
+        <button class="btn btn-xs btn-action add-action" @click.prevent="addRule"><i class="fa fa-filter"></i> Add Criteria</button>
     </div>
 </div>
 `

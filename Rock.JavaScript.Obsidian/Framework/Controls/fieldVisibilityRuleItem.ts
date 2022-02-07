@@ -1,30 +1,40 @@
 import { defineComponent, PropType } from "vue";
+import { useVModelPassthrough } from "../Util/component";
 
 export type FieldVisibilityRuleItem = {
-    key?: "value"
+    key?: number,
+    field?: string
 };
 
 export const FieldVisibilityRuleItemComponent = defineComponent({
     name: "FieldVisibilityRuleItemComponent",
 
     props: {
-        rule: {
+        modelValue: {
             type: Object as PropType<FieldVisibilityRuleItem>,
             required: true
         }
     },
 
     emits: [
+        "update:modelValue",
         "removeRule"
     ],
 
     setup(props, { emit }) {
-        function removeRule(): void {
-            console.log("REMOVE THIS");
-            emit("removeRule", props.rule);
+        const rule = useVModelPassthrough(props, "modelValue", emit);
+
+        if (!rule.value.field) {
+            rule.value.field = "6af9bf76-9e43-49f5-ac77-b02f59c65549"
         }
+
+        function removeRule(): void {
+            emit("removeRule", props.modelValue);
+        }
+
         return {
-            removeRule
+            removeRule,
+            rule
         };
     },
 
@@ -33,8 +43,8 @@ export const FieldVisibilityRuleItemComponent = defineComponent({
     <div class="col-xs-10 col-sm-11">
         <div class="row form-row">
             <div class="filter-rule-comparefield col-md-4">
-                <select class="form-control">
-                    <option value="6af9bf76-9e43-49f5-ac77-b02f59c65549" selected="selected">Position Description</option>
+                <select class="form-control" v-model="rule.field">
+                    <option value="6af9bf76-9e43-49f5-ac77-b02f59c65549">Position Description</option>
                     <option value="3703041b-2f0d-49b2-8c45-be0769802c7e">Type</option>
                 </select>
             </div>

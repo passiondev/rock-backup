@@ -16,7 +16,7 @@
 //
 
 import PaneledBlockTemplate from "../../Templates/paneledBlockTemplate";
-import { Component, defineComponent, PropType } from "vue";
+import { Component, computed, defineComponent, PropType, ref } from "vue";
 import FieldVisibilityRulesEditor from "../../Controls/fieldVisibilityRuleEditor";
 import TextBox from "../../Elements/textBox";
 import EmailBox from "../../Elements/emailBox";
@@ -103,20 +103,21 @@ const aaafilter = defineComponent({
         Panel,
         FieldVisibilityRulesEditor
     },
-    data() {
-        return {
-            phoneNumber: "8005551234"
-        };
+    setup() {
+        const rules = ref([]);
+        const json = computed(() => {
+            return JSON.stringify(rules.value, null, 4);
+        });
+
+        return { rules, json };
     },
     template: `
 <Panel :hasCollapse="false" title="Form Field Filter">
     <template #default>
         <div>
-            <FieldVisibilityRulesEditor field-name="Position Title" />
+            <FieldVisibilityRulesEditor field-name="Position Title" v-model="rules" />
         </div>
-        <div>
-            {{phoneNumber}}
-        </div>
+        <pre class="mt-3">{{json}}</pre>
     </template>
 </Panel>`
 });
