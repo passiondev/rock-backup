@@ -1931,6 +1931,7 @@ namespace RockWeb.Blocks.WorkFlow
             var electronicSignatureWorkflowAction = _actionType?.WorkflowAction as Rock.Workflow.Action.ElectronicSignature;
             if ( electronicSignatureWorkflowAction == null )
             {
+                ShowMessage( NotificationBoxType.Danger, "Configuration Error", "Unable to determine Signature Action." );
                 return;
             }
 
@@ -1939,6 +1940,31 @@ namespace RockWeb.Blocks.WorkFlow
             var signatureDocumentTemplate = electronicSignatureWorkflowAction.GetSignatureDocumentTemplate( rockContext, workflowAction );
             if ( signatureDocumentTemplate == null )
             {
+                ShowMessage( NotificationBoxType.Danger, "Configuration Error", "Unable to determine Signature Template." );
+                return;
+            }
+
+            var signedByPersonAliasId = electronicSignatureWorkflowAction.GetSignedByPersonAliasId( rockContext, workflowAction, this.CurrentPersonAliasId );
+            Person signedByPerson;
+            if ( signedByPersonAliasId.HasValue )
+            {
+                signedByPerson = new PersonAliasService( rockContext ).GetPerson( signedByPersonAliasId.Value );
+            }
+            else
+            {
+                signedByPerson = null;
+            }
+
+            if ( signedByPerson == null )
+            {
+                ShowMessage( NotificationBoxType.Danger, "Configuration Error", "Unable to determine person for signature." );
+                return;
+            }
+
+            var appliesToPersonAliasId = electronicSignatureWorkflowAction.GetAppliesToPersonAliasId( rockContext, workflowAction );
+            if (!appliesToPersonAliasId.HasValue)
+            {
+                ShowMessage( NotificationBoxType.Danger, "Configuration Error", "Unable to determine which person the signature applies to." );
                 return;
             }
 
@@ -1950,20 +1976,8 @@ namespace RockWeb.Blocks.WorkFlow
             {
                 signatureDocumentName = "Signed Document";
             }
-
-            var signedByPersonAliasId = electronicSignatureWorkflowAction.GetSignedByPersonAliasId( rockContext, workflowAction, this.CurrentPersonAliasId );
-            var appliesToPersonAliasId = electronicSignatureWorkflowAction.GetAppliesToPersonAliasId( rockContext, workflowAction );
+            
             var assignedToPersonAliasId = electronicSignatureWorkflowAction.GetAssignedToPersonAliasId( rockContext, workflowAction );
-
-            Person signedByPerson;
-            if ( signedByPersonAliasId.HasValue )
-            {
-                signedByPerson = new PersonAliasService( rockContext ).GetPerson( signedByPersonAliasId.Value );
-            }
-            else
-            {
-                signedByPerson = null;
-            }
 
             // Glue stuff into the signature document
             var signatureDocument = new SignatureDocument();

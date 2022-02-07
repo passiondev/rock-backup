@@ -113,7 +113,7 @@ namespace Rock.Workflow.Action
 
         /// <summary>
         /// Gets the PersonAliasId of the person that should be specified for <see cref="Rock.Model.SignatureDocument.SignedByPersonAliasId"></see>
-        /// If the workflow doesn't specify one, <paramref name="currentPersonAliasId" /> will be used.
+        /// If <code>CurrentPersonAliasId</code> is known, use CurrentPersonAliasId. Otherwise, if the workflow specified one, use that.
         /// </summary>
         /// <param name="rockContext">The rock context.</param>
         /// <param name="workflowAction">The workflow action.</param>
@@ -121,16 +121,18 @@ namespace Rock.Workflow.Action
         /// <returns>Person.</returns>
         public int? GetSignedByPersonAliasId( RockContext rockContext, WorkflowAction workflowAction, int? currentPersonAliasId )
         {
+            // if CurrentPersonAliasId is known, use that first.
+            if ( currentPersonAliasId.HasValue )
+            {
+                return currentPersonAliasId.Value;
+            }
+
+            // if CurrentPerson is null, see if the SignedByPerson was set by the Workflow
             int? personAliasId = null;
             var personAliasGuid = this.GetAttributeValue( workflowAction, AttributeKey.SignedByPersonAlias, true ).AsGuidOrNull();
             if ( personAliasGuid.HasValue )
             {
                 personAliasId = new PersonAliasService( rockContext ).GetId( personAliasGuid.Value );
-            }
-
-            if ( personAliasId == null )
-            {
-                personAliasId = currentPersonAliasId;
             }
 
             return personAliasId;

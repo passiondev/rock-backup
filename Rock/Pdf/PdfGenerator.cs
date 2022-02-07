@@ -107,13 +107,13 @@ namespace Rock.Pdf
         }
 
         /// <summary>
-        /// Gets or sets CSS @media. Defaults to <see cref="MediaType.Print"/>
+        /// Gets or sets CSS @media. Defaults to <see cref="MediaType.Screen"/>
         /// </summary>
         /// <value>The type of the PDF media.</value>
         public MediaType PDFMediaType { get; set; } = MediaType.Screen;
 
         /// <summary>
-        /// Gets or sets the paper format (Letter, Legal, A4)
+        /// Gets or sets the paper format (Letter, Legal, A4). Defaults to <see cref="PaperFormat.Letter"/>
         /// </summary>
         /// <value>The paper format.</value>
         public PaperFormat PaperFormat { get; set; } = PaperFormat.Letter;
@@ -190,7 +190,7 @@ namespace Rock.Pdf
         }
 
         /// <summary>
-        /// Renders the PDF document from URL.
+        /// Generates the PDF document from URL.
         /// </summary>
         /// <param name="url">The URL.</param>
         /// <returns>Stream.</returns>
@@ -200,7 +200,7 @@ namespace Rock.Pdf
         }
 
         /// <summary>
-        /// Renders the PDF document from HTML.
+        /// Generates the PDF document from HTML.
         /// </summary>
         /// <param name="html">The HTML.</param>
         /// <returns>Stream.</returns>
@@ -210,7 +210,7 @@ namespace Rock.Pdf
         }
 
         /// <summary>
-        /// Generates the PDF as a BinaryFile from HTML.
+        /// Creates a new BinaryFile record that has the PDF in it.
         /// </summary>
         /// <param name="binaryFileTypeId">The binary file type identifier.</param>
         /// <param name="fileName">Name of the file.</param>
@@ -222,11 +222,11 @@ namespace Rock.Pdf
         }
 
         /// <summary>
-        /// Generates the PDF as a BinaryFile from URL.
+        /// Creates a new BinaryFile record that has the PDF in it.
         /// </summary>
         /// <param name="binaryFileTypeId">The binary file type identifier.</param>
         /// <param name="fileName">Name of the file.</param>
-        /// <param name="url">The URL.</param>
+        /// <param name="url">The URL of the Html Page</param>
         /// <returns>Rock.Model.BinaryFile.</returns>
         public Rock.Model.BinaryFile GetAsBinaryFileFromUrl( int binaryFileTypeId, string fileName, string url )
         {
@@ -251,7 +251,8 @@ namespace Rock.Pdf
                 binaryFile.FileSize = pdfStream.Length;
                 binaryFile.MimeType = "application/pdf";
 
-                binaryFile.ContentStream = pdfStream;
+                // copy the pdfStream into a new binaryfile.ContentStream so that it doesn't get disposed when we dispose the pdfStream.
+                binaryFile.ContentStream = new MemoryStream( pdfStream.ReadBytesToEnd() );
                 binaryFile.FileName = fileName.Replace( " ", "_" ).MakeValidFileName() + ".pdf";
                 binaryFile.BinaryFileTypeId = binaryFileTypeId;
             }
@@ -260,7 +261,7 @@ namespace Rock.Pdf
         }
 
         /// <summary>
-        /// Renders the PDF document.
+        /// Generates the PDF document.
         /// </summary>
         /// <param name="html">The HTML.</param>
         /// <param name="url">The URL.</param>
