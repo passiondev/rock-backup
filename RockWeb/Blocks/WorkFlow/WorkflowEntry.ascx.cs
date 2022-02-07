@@ -1962,7 +1962,7 @@ namespace RockWeb.Blocks.WorkFlow
             }
 
             var appliesToPersonAliasId = electronicSignatureWorkflowAction.GetAppliesToPersonAliasId( rockContext, workflowAction );
-            if (!appliesToPersonAliasId.HasValue)
+            if ( !appliesToPersonAliasId.HasValue )
             {
                 ShowMessage( NotificationBoxType.Danger, "Configuration Error", "Unable to determine which person the signature applies to." );
                 return;
@@ -1976,7 +1976,7 @@ namespace RockWeb.Blocks.WorkFlow
             {
                 signatureDocumentName = "Signed Document";
             }
-            
+
             var assignedToPersonAliasId = electronicSignatureWorkflowAction.GetAssignedToPersonAliasId( rockContext, workflowAction );
 
             // Glue stuff into the signature document
@@ -2005,7 +2005,7 @@ namespace RockWeb.Blocks.WorkFlow
             // From System.Web            
             signatureDocument.SignedClientIp = this.GetClientIpAddress();
             signatureDocument.SignedClientUserAgent = Request.UserAgent;
-            
+
             // Needed before determing SignatureInformation (Signed Name, metadata)
             signatureDocument.SignatureVerificationHash = signatureDocument.CalculateSignatureVerificationHash();
 
@@ -2057,8 +2057,7 @@ namespace RockWeb.Blocks.WorkFlow
             // Send Communication
             if ( signatureDocumentTemplate.CompletionSystemCommunication != null )
             {
-                mergeFields.Add( "SignatureDocument", signatureDocument );
-                ElectronicSignatureHelper.SendSignatureCompletionCommunication( signatureDocumentTemplate.CompletionSystemCommunication, mergeFields, signedByPerson, signatureDocument.SignedByEmail, pdfFile );
+                ElectronicSignatureHelper.SendSignatureCompletionCommunication( signatureDocument.Id, mergeFields, out _ );
             }
 
             // Workflow

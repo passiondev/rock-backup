@@ -16,9 +16,13 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
 
 using Rock.Communication;
+using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 
 namespace Rock.ElectronicSignature
 {
@@ -141,15 +145,59 @@ namespace Rock.ElectronicSignature
         }
 
         /// <summary>
+        /// Sends the signature completion communication.
+        /// </summary>
+        /// <param name="signatureDocumentId">The signature document identifier.</param>
+        /// <param name="errorMessages">The error messages.</param>
+        public static bool SendSignatureCompletionCommunication( int signatureDocumentId, out List<string> errorMessages )
+        {
+            return SendSignatureCompletionCommunication( signatureDocumentId, ( Dictionary<string, object> ) null, out errorMessages );
+        }
+
+        /// <summary>
         /// Sends the signature completion document communication.
         /// </summary>
-        /// <param name="completionSystemCommunication">The completion system communication.</param>
+        /// <param name="signatureDocumentId">The signature document identifier.</param>
         /// <param name="mergeFields">The merge fields.</param>
-        /// <param name="signedByPerson">The signed by person.</param>
-        /// <param name="signedByEmail">The signed by email.</param>
-        /// <param name="pdfFile">The PDF file which will be attached to the email</param>
-        public static void SendSignatureCompletionCommunication( SystemCommunication completionSystemCommunication, Dictionary<string, object> mergeFields, Person signedByPerson, string signedByEmail, BinaryFile pdfFile )
+        /// <param name="errorMessages">The error messages.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
+        public static bool SendSignatureCompletionCommunication( int signatureDocumentId, Dictionary<string, object> mergeFields, out List<string> errorMessages )
         {
+            errorMessages = new List<string>();
+            var rockContext = new RockContext();
+            var signatureDocument = new SignatureDocumentService( rockContext ).Queryable()
+                .Where( a => a.Id == signatureDocumentId )
+                .Include( s => s.SignatureDocumentTemplate.CompletionSystemCommunication )
+                .Include( s => s.SignedByPersonAlias.Person )
+                .Include( s => s.BinaryFile )
+                .FirstOrDefault();
+
+            var completionSystemCommunication = signatureDocument.SignatureDocumentTemplate?.CompletionSystemCommunication;
+
+            if ( completionSystemCommunication == null )
+            {
+                errorMessages.Add( "Signature Document doesn't have a CompletionSystemCommunication." );
+                return false;
+            }
+
+            if ( mergeFields == null )
+            {
+                mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
+            }
+
+            mergeFields.AddOrIgnore( "SignatureDocument", signatureDocument );
+
+            if ( signatureDocument.EntityTypeId.HasValue && signatureDocument.EntityId.HasValue )
+            {
+                var entityTypeType = EntityTypeCache.Get( signatureDocument.EntityTypeId.Value )?.GetEntityType();
+                var entity = Reflection.GetIEntityForEntityType( entityTypeType, signatureDocument.EntityId.Value );
+                mergeFields.AddOrIgnore( "Entity", entity );
+            }
+
+            var signedByPerson = signatureDocument.SignedByPersonAlias?.Person;
+            var signedByEmail = signatureDocument.SignedByEmail;
+            var pdfFile = signatureDocument.BinaryFile;
+
             var emailMessage = new RockEmailMessage( completionSystemCommunication );
             RockEmailMessageRecipient rockEmailMessageRecipient;
             if ( signedByPerson.Email.Equals( signedByEmail, StringComparison.OrdinalIgnoreCase ) )
@@ -168,56 +216,14 @@ namespace Rock.ElectronicSignature
             emailMessage.AddRecipient( rockEmailMessageRecipient );
 
             // errors will be logged by send
-            emailMessage.Send( out _ );
+            var successfullySent = emailMessage.Send( out errorMessages );
+            if ( successfullySent )
+            {
+                signatureDocument.CompletionEmailSentDateTime = RockDateTime.Now;
+                rockContext.SaveChanges();
+            }
+
+            return successfullySent;
         }
-    }
-
-    /// <summary>
-    /// Class GetSignatureInformationHtmlArgs. This class cannot be inherited.
-    /// </summary>
-    public sealed class GetSignatureInformationHtmlArgs
-    {
-        /// <summary>
-        /// Gets or sets the type of the signature.
-        /// </summary>
-        /// <value>The type of the signature.</value>
-        public SignatureType SignatureType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the typed signature when SignatureType is <see cref="SignatureType.Typed"/>
-        /// or full legal name when SignatureType is <see cref="SignatureType.Drawn"/>
-        /// </summary>
-        /// <value>The typed signature.</value>
-        public string SignedName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the drawn signature data URL.
-        /// </summary>
-        /// <value>The drawn signature data URL.</value>
-        public string DrawnSignatureDataUrl { get; set; }
-
-        /// <summary>
-        /// Gets or sets the signed by person.
-        /// </summary>
-        /// <value>The signed by person.</value>
-        public Person SignedByPerson { get; set; }
-
-        /// <summary>
-        /// Gets or sets the signed date time.
-        /// </summary>
-        /// <value>The signed date time.</value>
-        public DateTime? SignedDateTime { get; set; }
-
-        /// <summary>
-        /// Gets or sets the client ip address.
-        /// </summary>
-        /// <value>The client ip address.</value>
-        public string SignedClientIp { get; set; }
-
-        /// <summary>
-        /// Gets or sets the signature hash.
-        /// </summary>
-        /// <value>The signature hash.</value>
-        public string SignatureVerificationHash { get; set; }
     }
 }

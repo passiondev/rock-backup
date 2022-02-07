@@ -16,9 +16,7 @@
 //
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
-using System.Reflection;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
@@ -598,14 +596,7 @@ $('.workflow-action > .panel-body').on('validation-error', function() {
                             var descAttribute = propAttribute as System.ComponentModel.DescriptionAttribute;
                             if ( descAttribute != null )
                             {
-                                // Current Code
                                 _rlEntityTypeOverview.Label = string.Format( "'{0}' Overview", entityType.FriendlyName );
-
-                                // Proposed Change
-                                var actionTypeName = ActionContainer.GetComponentName( entityType.Name );
-                                _rlEntityTypeOverview.Label = string.Format( "'{0}' Overview", actionTypeName );
-
-
                                 _rlEntityTypeOverview.Text = descAttribute.Description;
                                 _rlEntityTypeOverview.RenderControl( writer );
                             }

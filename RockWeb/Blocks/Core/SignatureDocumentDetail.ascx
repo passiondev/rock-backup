@@ -19,7 +19,7 @@
                 <div id="pnlEditLegacyProviderDocumentDetails" runat="server">
 
                     <asp:ValidationSummary ID="vsDetails" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation" />
-                    <Rock:NotificationBox ID="nbErrorMessage" runat="server" Visible="false" />
+                    <Rock:NotificationBox ID="nbLegacyProviderErrorMessage" runat="server" Visible="false" />
 
                     <div class="row">
                         <div class="col-md-6">
@@ -64,8 +64,9 @@
                             <Rock:RockLiteral ID="lSignedBy" runat="server" Label="Signed By" />
                             <Rock:RockControlWrapper ID="rcwCompletionEmailInfo" runat="server" Label="Completion Email">
                                 <asp:Literal ID="lCompletionSignedByPersonEmailAddress" runat="server" /><br />
-                                <asp:Literal ID="lCompletionLastSentDateTime" runat="server" />
-                                <asp:LinkButton ID="btnResendCompletionEmail" runat="server" CssClass="btn btn-sm btn-default" Text="Resend" OnClick="btnResendCompletionEmail_Click" />
+                                <asp:Literal ID="lCompletionLastSentDateTime" runat="server" /><br />
+                                <asp:LinkButton ID="btnResendCompletionEmail" runat="server" CssClass="btn btn-xs btn-default" Text="Resend" OnClick="btnResendCompletionEmail_Click" />
+                                <Rock:NotificationBox ID="nbCompletionEmailResult" runat="server" Visible="false" />
                             </Rock:RockControlWrapper>
 
                             <Rock:RockLiteral ID="lAppliesTo" runat="server" Label="Applies To" />

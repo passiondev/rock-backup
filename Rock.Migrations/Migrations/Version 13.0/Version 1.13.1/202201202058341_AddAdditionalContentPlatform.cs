@@ -30,7 +30,7 @@ namespace Rock.Migrations
         public override void Up()
         {
             // Add Personal Device Type of TV
-            RockMigrationHelper.UpdateDefinedValue( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_TYPE, "TV", "Personal Device Type TV", SystemGuid.DefinedValue.PERSONAL_DEVICE_TYPE_TV );
+            RockMigrationHelper.AddDefinedValue( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_TYPE, "TV", "Personal Device Type TV", SystemGuid.DefinedValue.PERSONAL_DEVICE_TYPE_TV );
 
             // Add Page Apple TV Apps to Site:Rock RMS
             RockMigrationHelper.AddPage( true, "b4a24ab7-9369-4055-883f-4f4892c39ae3", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Apple TV Apps", "", "C8B81EBE-E98F-43EF-9E39-0491685145E2", "fa fa-tv" );

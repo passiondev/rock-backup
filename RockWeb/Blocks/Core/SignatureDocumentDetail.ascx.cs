@@ -23,6 +23,7 @@ using System.Web.UI.WebControls;
 using Rock;
 using Rock.Constants;
 using Rock.Data;
+using Rock.ElectronicSignature;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web;
@@ -81,7 +82,7 @@ namespace RockWeb.Blocks.Core
         {
             base.OnLoad( e );
 
-            nbErrorMessage.Visible = false;
+            nbLegacyProviderErrorMessage.Visible = false;
 
             if ( !Page.IsPostBack )
             {
@@ -266,7 +267,26 @@ namespace RockWeb.Blocks.Core
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnResendCompletionEmail_Click( object sender, EventArgs e )
         {
-            // TODO
+            var signatureDocumentId = hfSignatureDocumentId.Value.AsInteger();
+            List<string> errorMessages;
+            bool successfullySent = ElectronicSignatureHelper.SendSignatureCompletionCommunication( signatureDocumentId, out errorMessages );
+
+            if ( successfullySent )
+            {
+                nbCompletionEmailResult.Title = string.Empty;
+                nbCompletionEmailResult.Text = "Signature completion email was successfully sent";
+                nbCompletionEmailResult.NotificationBoxType = NotificationBoxType.Success;
+                nbCompletionEmailResult.Visible = true;
+            }
+            else
+            {
+                nbCompletionEmailResult.Title = "Error sending signature completion email";
+                nbCompletionEmailResult.Text = string.Format( "<ul><li>{0}</li></ul>", errorMessages.AsDelimited( "</li><li>" ) );
+                nbCompletionEmailResult.NotificationBoxType = NotificationBoxType.Danger;
+                nbCompletionEmailResult.Visible = true;
+            }
+
+            lCompletionLastSentDateTime.Text = new SignatureDocumentService( new RockContext() ).GetSelect( signatureDocumentId, s => s.CompletionEmailSentDateTime )?.ToString();
         }
 
         /// <summary>
@@ -304,10 +324,10 @@ namespace RockWeb.Blocks.Core
             int? documentTemplateId = ddlDocumentType.SelectedValueAsInt();
             if ( !documentTemplateId.HasValue )
             {
-                nbErrorMessage.Title = string.Empty;
-                nbErrorMessage.Text = "Document Template is Required";
-                nbErrorMessage.NotificationBoxType = NotificationBoxType.Danger;
-                nbErrorMessage.Visible = true;
+                nbLegacyProviderErrorMessage.Title = string.Empty;
+                nbLegacyProviderErrorMessage.Text = "Document Template is Required";
+                nbLegacyProviderErrorMessage.NotificationBoxType = NotificationBoxType.Danger;
+                nbLegacyProviderErrorMessage.Visible = true;
                 return;
             }
 
@@ -423,17 +443,17 @@ namespace RockWeb.Blocks.Core
 
                             ShowLegacyDocumentEditDetails( signatureDocument, true );
 
-                            nbErrorMessage.Title = string.Empty;
-                            nbErrorMessage.Text = "Signature Invite Was Successfully Sent";
-                            nbErrorMessage.NotificationBoxType = NotificationBoxType.Success;
-                            nbErrorMessage.Visible = true;
+                            nbLegacyProviderErrorMessage.Title = string.Empty;
+                            nbLegacyProviderErrorMessage.Text = "Signature Invite Was Successfully Sent";
+                            nbLegacyProviderErrorMessage.NotificationBoxType = NotificationBoxType.Success;
+                            nbLegacyProviderErrorMessage.Visible = true;
                         }
                         else
                         {
-                            nbErrorMessage.Title = "Error Sending Signature Invite";
-                            nbErrorMessage.Text = string.Format( "<ul><li>{0}</li></ul>", errorMessages.AsDelimited( "</li><li>" ) );
-                            nbErrorMessage.NotificationBoxType = NotificationBoxType.Danger;
-                            nbErrorMessage.Visible = true;
+                            nbLegacyProviderErrorMessage.Title = "Error Sending Signature Invite";
+                            nbLegacyProviderErrorMessage.Text = string.Format( "<ul><li>{0}</li></ul>", errorMessages.AsDelimited( "</li><li>" ) );
+                            nbLegacyProviderErrorMessage.NotificationBoxType = NotificationBoxType.Danger;
+                            nbLegacyProviderErrorMessage.Visible = true;
                         }
                     }
                 }

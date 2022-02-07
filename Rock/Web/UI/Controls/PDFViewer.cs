@@ -25,6 +25,14 @@ namespace Rock.Web.UI.Controls
     /// </summary>
     public class PDFViewer : CompositeControl, INamingContainer
     {
+        private static class ViewStateKey
+        {
+            public const string SourceUrl = "SourceUrl";
+            public const string ViewerHeight = "ViewerHeight";
+            public const string FitView = "FitView";
+            public const string PageMode = "PageMode";
+        }
+
         #region Controls
 
         private Literal _lPDFContainer;
@@ -35,13 +43,21 @@ namespace Rock.Web.UI.Controls
         /// Gets or sets the URL of the PDF File.
         /// </summary>
         /// <value>The source URL.</value>
-        public string SourceUrl { get; set; }
+        public string SourceUrl
+        {
+            get => ViewState[ViewStateKey.SourceUrl] as string;
+            set => ViewState[ViewStateKey.SourceUrl] = value;
+        }
 
         /// <summary>
         /// The Height of the PDF Viewer
         /// </summary>
         /// <value>The height of the view.</value>
-        public string ViewerHeight { get; set; } = "600px";
+        public string ViewerHeight
+        {
+            get => ViewState[ViewStateKey.ViewerHeight] as string ?? "600px";
+            set => ViewState[ViewStateKey.ViewerHeight] = value;
+        }
 
         /// <summary>
         /// The initial Fit View.
@@ -51,13 +67,21 @@ namespace Rock.Web.UI.Controls
         /// <p><c>FitV</c> = fit to the height of the PDF</p>
         /// </summary>
         /// <value>The fit view.</value>
-        public string FitView { get; set; } = "FitH";
+        public string FitView
+        {
+            get => ViewState[ViewStateKey.FitView] as string ?? "FitH";
+            set => ViewState[ViewStateKey.FitView] = value;
+        }
 
         /// <summary>
         /// Gets or sets Pdf PageMode option: 'bookmarks, thumbs, none'
         /// </summary>
         /// <value>The page mode.</value>
-        public string PageMode { get; set; } = "none";
+        public string PageMode
+        {
+            get => ViewState[ViewStateKey.PageMode] as string ?? "none";
+            set => ViewState[ViewStateKey.PageMode] = value;
+        }
 
         /// <summary>
         /// Gets the <see cref="T:System.Web.UI.HtmlTextWriterTag" /> value that corresponds to this Web server control. This property is used primarily by control developers.

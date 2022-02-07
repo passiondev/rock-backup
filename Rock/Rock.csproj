@@ -784,6 +784,7 @@
     <Compile Include="Data\RockContextReadOnly.cs" />
     <Compile Include="Data\RockGuidAttribute.cs" />
     <Compile Include="ElectronicSignature\ElectronicSignatureHelper.cs" />
+    <Compile Include="ElectronicSignature\GetSignatureInformationHtmlArgs.cs" />
     <Compile Include="Field\FieldTypeUsage.cs" />
     <Compile Include="Field\Types\MediaWatchFieldType.cs" />
     <Compile Include="Field\Types\SignatureDocumentTemplateFieldType.cs" />
