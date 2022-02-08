@@ -63,7 +63,7 @@ namespace RockWeb.Blocks.Core
         public static class AttributeKey
         {
             public const string DefaultFileType = "DefaultFileType";
-            public const string ShowLegacyExternalProviders = "ShowLegacyExternalProviderOptions";
+            public const string ShowLegacyExternalProviders = "ShowLegacyExternalProviders";
         }
 
         #region Base Control Methods

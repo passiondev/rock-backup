@@ -26,7 +26,6 @@ using Rock.Data;
 using Rock.ElectronicSignature;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -434,8 +433,6 @@ namespace RockWeb.Blocks.Core
                     var signatureDocument = new SignatureDocumentService( rockContext ).Get( signatureDocumentId.Value );
                     if ( signatureDocument != null )
                     {
-                        _ = new List<string>();
-
                         List<string> errorMessages;
                         if ( new SignatureDocumentTemplateService( rockContext ).SendLegacyProviderDocument( signatureDocument, string.Empty, out errorMessages ) )
                         {
