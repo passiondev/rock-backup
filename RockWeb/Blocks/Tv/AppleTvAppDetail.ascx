@@ -59,7 +59,7 @@
                         </div>
                     </div>
 
-                    <Rock:PagePicker ID="ppLoginPage" runat="server" Label="Login Page" />
+                    <Rock:PagePicker ID="ppLoginPage" runat="server" Label="Authentication Page" Help="The page on your public website that will be used in the authenication process." />
 
                     <asp:Button ID="btnSave" runat="server" Text="Save" CssClass="btn btn-primary" OnClick="btnSave_Click" />
                     <asp:Button ID="btnCancel" runat="server" Text="Cancel" CssClass="btn btn-link" OnClick="btnCancel_Click" />
