@@ -17,7 +17,7 @@
 
 import PaneledBlockTemplate from "../../Templates/paneledBlockTemplate";
 import { Component, computed, defineComponent, PropType, ref } from "vue";
-import FieldVisibilityRulesEditor from "../../Controls/fieldVisibilityRuleEditor";
+import FieldVisibilityRulesEditor, {FieldVisibilityRuleList, FilterExpressionType} from "../../Controls/fieldVisibilityRuleEditor";
 import TextBox from "../../Elements/textBox";
 import EmailBox from "../../Elements/emailBox";
 import CurrencyBox from "../../Elements/currencyBox";
@@ -104,21 +104,20 @@ const aaafilter = defineComponent({
         FieldVisibilityRulesEditor
     },
     setup() {
-        const rules = ref([]);
+        const rules = ref<FieldVisibilityRuleList>([]);
+        const filterType = ref<FilterExpressionType>(1);
         const json = computed(() => {
-            return JSON.stringify(rules.value, null, 4);
+            return JSON.stringify({ruleList: rules.value, filterExpressionType: filterType.value}, null, 4);
         });
 
-        return { rules, json };
+        return { rules, filterType, json };
     },
     template: `
 <Panel :hasCollapse="false" title="Form Field Filter">
-    <template #default>
-        <div>
-            <FieldVisibilityRulesEditor field-name="Position Title" v-model="rules" />
-        </div>
-        <pre class="mt-3">{{json}}</pre>
-    </template>
+    <div>
+        <FieldVisibilityRulesEditor field-name="Position Title" v-model:rules="rules" v-model:filterExpressionType="filterType" />
+    </div>
+    <pre class="mt-3">{{json}}</pre>
 </Panel>`
 });
 

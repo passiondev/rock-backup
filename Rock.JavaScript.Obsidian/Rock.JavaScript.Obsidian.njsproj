@@ -60,6 +60,7 @@
     <Folder Include="Framework\Blocks\Security\" />
     <Folder Include="Framework\Blocks\Utility\" />
     <Folder Include="Framework\Controls\" />
+    <Folder Include="Framework\Controls\FieldVisibilityComparators\" />
     <Folder Include="Framework\Elements\" />
     <Folder Include="Framework\Fields\" />
     <Folder Include="Framework\Directives\" />
