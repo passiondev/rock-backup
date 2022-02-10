@@ -179,7 +179,7 @@
                                     <asp:Panel ID="pnlLocationFilter" CssClass="btn-group" runat="server">
 
                                             <div class="dropdown-toggle btn btn-xs btn-tool" data-toggle="dropdown">
-                                                <asp:HiddenField ID="hfPickedLocationIds" runat="server" />
+                                                <Rock:HiddenFieldWithClass ID="hfPickedLocationIds" runat="server" class="js-attendance-occurrence-location-ids"/>
                                                 <asp:Literal ID="lSelectedLocationFilterText" runat="server" Text="Locations...." />
                                             </div>
 

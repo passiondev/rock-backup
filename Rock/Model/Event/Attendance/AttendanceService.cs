@@ -1334,10 +1334,17 @@ namespace Rock.Model
                         } )
                 } );
 
-                if ( schedulerResourceParameters.GroupMemberFilterType == SchedulerResourceGroupMemberFilterType.ShowMatchingPreference )
+                //if ( schedulerResourceParameters.GroupMemberFilterType == SchedulerResourceGroupMemberFilterType.ShowMatchingPreference )
+                //{
+                //    // if using the MatchingPreference filter, limit to people that have ScheduleTemplates that would include the scheduled date
+                //    resourceListQuery = resourceListQuery.Where( a => a.ScheduleTemplateId.HasValue && a.ScheduleStartDate.HasValue );
+                //}
+
+                // 
+                if ( schedulerResourceParameters.ResourceListSourceType == GroupSchedulerResourceListSourceType.GroupMatchingPreference
+                    || schedulerResourceParameters.ResourceListSourceType == GroupSchedulerResourceListSourceType.GroupMatchingAssignment )
                 {
-                    // if using the MatchingPreference filter, limit to people that have ScheduleTemplates that would include the scheduled date
-                    resourceListQuery = resourceListQuery.Where( a => a.ScheduleTemplateId.HasValue && a.ScheduleStartDate.HasValue );
+
                 }
 
                 var resourceList = resourceListQuery.ToList();
@@ -3313,6 +3320,12 @@ namespace Rock.Model
         /// The attendance occurrence schedules
         /// </value>
         public int[] AttendanceOccurrenceScheduleIds { get; set; }
+
+        /// <summary>
+        /// Gets or sets the attendance occurrence location ids.
+        /// </summary>
+        /// <value>The attendance occurrence location ids.</value>
+        public int[] AttendanceOccurrenceLocationIds { get; set; }
 
         /// <summary>
         /// Gets or sets the attendance occurrence sunday date.
