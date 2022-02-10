@@ -298,7 +298,7 @@ namespace Rock.Field.Types
         {
             if ( control is CategorizedValuePicker cvp )
             {
-                return cvp.Value;
+                return cvp.SelectedValue;
             }
 
             return null;
@@ -309,7 +309,7 @@ namespace Rock.Field.Types
         {
             if ( control is CategorizedValuePicker cvp )
             {
-                cvp.Value = value;
+                cvp.SelectedValue = value;
             }
         }
 
@@ -391,7 +391,7 @@ namespace Rock.Field.Types
             {
                 var listItem = new DefinedValueTreeNode
                 {
-                    Value = $"C{category.Id}",
+                    Key = $"C{category.Id}",
                     Text = category.Name,
                     CategoryLabel = "*"
                 };
@@ -404,13 +404,13 @@ namespace Rock.Field.Types
                 listItems.Add( listItem );
             }
 
-            var rootNodes = TreeNode.BuildTree( listItems, cv => cv.Value, cv => cv.ParentKey );
+            var rootNodes = TreeNode.BuildTree( listItems, cv => cv.Key, cv => cv.ParentKey );
 
             // Add the Defined Type as the root of the selection tree.
             var rootKey = $"T{definedType.Id}";
             var definedTypeItem = new DefinedValueTreeNode
             {
-                Value = rootKey,
+                Key = rootKey,
                 Text = definedType.Name,
                 CategoryLabel = "*"
             };
@@ -420,11 +420,12 @@ namespace Rock.Field.Types
             // Now that the tree structure is built, convert the tree nodes to picker items.
             var definedTypeNode = TreeNode.Convert( rootNode, x => ( CategorizedValuePickerItem ) x );
 
-            // Add the Defined Values to the selection tree.
-            // Defined Values are available for selection in the Category they are defined, and also in every child Category.
-            // Defined Values having no parent Category are available at all selection levels.
+            // Add the Defined Values to the selection tree by applying the following rules:
+            // * Defined Values can only be added to Value selection nodes, not Category selection nodes.
+            // * Defined Values are added to all Value nodes that are descendants of the Category to which the Defined Value belongs.
+            // * Defined Values having no parent Category are added to all Value selection nodes.
             var nodeMapByKey = definedTypeNode.Flatten()
-                .ToDictionary( k => k.Value.Value, v => v );
+                .ToDictionary( k => k.Value.Key, v => v );
 
             foreach ( var definedValue in definedValues )
             {
@@ -445,7 +446,7 @@ namespace Rock.Field.Types
             // Finally, apply the node naming rules to the selection tree.
             // 1. Top-level node is given the name of the Defined Type with "Category" appended.
             // 2. Intermediate nodes are given the name of the Category with "Category" appended.
-            // 3. Nodes that have no children are given the name of the Defined Type.
+            // 3. Value selection nodes are given the name of the Defined Type.
             definedTypeNode.Value.CategoryLabel = $"{definedType.Name} Category";
 
             foreach ( var node in nodeMapByKey.Values )
@@ -473,14 +474,49 @@ namespace Rock.Field.Types
                 return;
             }
 
+            // If this node contains child categories, add an "All Categories" node to provide access to
+            // values defined by an ancestor category.
+            var childCategoryNodes = parentNode.Children.Where( x => x.Value.IsCategory() );
+
+            if ( childCategoryNodes.Any() )
+            {
+                var allCategoriesNode = childCategoryNodes.FirstOrDefault( x => x.Value.Text == "(All Categories)" );
+
+                if ( allCategoriesNode == null )
+                {
+                    var allCategoriesItem = new DefinedValueTreeNode
+                    {
+                        Key = parentNode.Value.Key + "_all",
+                        Text = "(All Categories)",
+                        CategoryLabel = definedValue.DefinedType.Name,
+                        IsDefaultSelection = true
+                    };
+                    allCategoriesNode = parentNode.InsertChild( 0, allCategoriesItem );
+                }
+                parentNode = allCategoriesNode;
+            }
+
+            // Determine the key to uniquely identify this node.
+            var ancestors = parentNode.GetAncestors();
+            ancestors.Insert( 0, parentNode );
+
+            var keyPrefix = string.Empty;
+            foreach ( var ancestor in ancestors )
+            {
+                keyPrefix = keyPrefix + ancestor.Value.Key + "_";
+            }
             var listItem = new DefinedValueTreeNode
             {
+                Key = keyPrefix + definedValue.Id.ToString(),
                 Value = definedValue.Id.ToString(),
                 Text = definedValue.Value,
             };
-            parentNode.AddChild( listItem );
 
-            var childCategoryNodes = parentNode.Children.Where( x => x.Value.CategoryLabel != null );
+            if ( !parentNode.Children.Any( x => x.Value.Value == listItem.Value ) )
+            {
+                parentNode.AddChild( listItem );
+            }
+
             foreach ( var childNode in childCategoryNodes )
             {
                 AddDefinedValueToCategoryAndChildCategories( definedValue, childNode );

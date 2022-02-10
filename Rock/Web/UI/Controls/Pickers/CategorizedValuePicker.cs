@@ -253,7 +253,7 @@ namespace Rock.Web.UI.Controls
         /// <summary>
         /// Stores the current selection of the control.
         /// </summary>
-        private HiddenField _hfSelection;
+        private HiddenField _hfSelectedKey;
 
         #endregion
 
@@ -284,17 +284,47 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Gets or sets the value.
+        /// Gets or sets the selected value.
         /// </summary>
         /// <value>
-        /// The value.
+        /// The selected value.
         /// </value>
-        public string Value
+        public string SelectedValue
         {
             get
             {
                 EnsureChildControls();
                 return _hfValue.Value;
+            }
+            set
+            {
+                EnsureChildControls();
+
+                // Find the first node in the selection tree with a matching value, and set it as the selected node.
+                var selectedNodeKey = ValueTree?.Find( x => x.Value.Value == value ).Select( x => x.Value.Key ).FirstOrDefault();
+
+                SetSelection( selectedNodeKey, out bool isChanged );
+                CreateSelectionControls( selectedNodeKey );
+
+                if ( isChanged )
+                {
+                    ValueChanged?.Invoke( this, new EventArgs() );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the selected item by key.
+        /// </summary>
+        /// <value>
+        /// The item key.
+        /// </value>
+        public string SelectedKey
+        {
+            get
+            {
+                EnsureChildControls();
+                return _hfSelectedKey.Value;
             }
             set
             {
@@ -309,7 +339,6 @@ namespace Rock.Web.UI.Controls
                 }
             }
         }
-
         /// <summary>
         /// Set the currently selected item for the control.
         /// </summary>
@@ -317,16 +346,16 @@ namespace Rock.Web.UI.Controls
         /// <param name="isValueChanged"></param>
         private void SetSelection( string itemKey, out bool isValueChanged )
         {
-            var selectedNode = ValueTree?.Find( x => x.Value.Value == itemKey ).FirstOrDefault();
+            var selectedNode = ValueTree?.Find( x => x.Value.Key == itemKey ).FirstOrDefault();
             var isValue = selectedNode?.Value.IsValue() ?? false;
-            var isChanged = _hfSelection.Value != itemKey;
+            var isChanged = _hfSelectedKey.Value != itemKey;
 
             if ( isChanged )
             {
                 // Set the selected item and value properties.
                 // The Value property is only set if the selected item is a Value type.
-                _hfSelection.Value = itemKey;
-                _hfValue.Value = isValue ? itemKey : string.Empty;
+                _hfSelectedKey.Value = itemKey;
+                _hfValue.Value = isValue ? selectedNode?.Value?.Value : string.Empty;
 
                 isValueChanged = isValue;
             }
@@ -350,9 +379,9 @@ namespace Rock.Web.UI.Controls
             _hfValue = new HiddenField();
             _hfValue.ID = this.ID + "_hfValue";
             Controls.Add( _hfValue );
-            _hfSelection = new HiddenField();
-            _hfSelection.ID = this.ID + "_hfSelection";
-            Controls.Add( _hfSelection );
+            _hfSelectedKey = new HiddenField();
+            _hfSelectedKey.ID = this.ID + "_hfSelection";
+            Controls.Add( _hfSelectedKey );
 
             // Link the RequiredFieldValidator to the hidden field that stores the selected value.
             this.RequiredFieldValidator.ControlToValidate = _hfValue.ID;
@@ -373,10 +402,11 @@ namespace Rock.Web.UI.Controls
 
             if ( !this.Page.IsPostBack )
             {
-                CreateSelectionControls( this.Value );
+                CreateSelectionControls( this.SelectedKey );
             }
 
         }
+
         /// <summary>
         /// Outputs server control content to a provided <see cref="T:System.Web.UI.HtmlTextWriter" /> object and stores tracing information about the control if tracing is enabled.
         /// </summary>
@@ -418,7 +448,7 @@ namespace Rock.Web.UI.Controls
             {
                 foreach ( var item in controlInfo.Items )
                 {
-                    ddlSelector.Items.Add( new ListItem( item.Text, item.Value ) );
+                    ddlSelector.Items.Add( new ListItem( item.Text, item.Key ) );
                 }
             }
             ddlSelector.Required = this.Required;
@@ -431,49 +461,13 @@ namespace Rock.Web.UI.Controls
 
             if ( ValueTree != null )
             {
-                // Get the currently selected node.
-                // If there is more than one match for the selected value, get the node at the highest level.
-                var selectedNode = ValueTree.Find( x => x.Value.Value == selectedNodeKey )
-                    .OrderBy( x => x.GetDepth() )
+                var selectedNode = ValueTree.Find( x => x.Value.Key == selectedNodeKey )
+                    .OrderBy( x => x.GetAncestors().Count )
                     .FirstOrDefault();
 
-                // If no selected node, find the first child node that requires a decision.
-                var candidateNode = this.ValueTree;
-                var selectorNode = selectedNode;
-
-                while ( candidateNode != null && selectorNode == null )
-                {
-                    var selectableNodes = candidateNode.Children
-                        .Where( x => x.Value.IsValue() || x.Value.IsCategory() )
-                        .ToList();
-                    if ( selectableNodes.Count > 1 )
-                    {
-                        // If this node has multiple child nodes, make it the final selector.
-                        selectorNode = candidateNode;
-                    }
-                    else if ( selectableNodes.Count == 1 )
-                    {
-                        var childValue = candidateNode.Children[0].Value;
-                        if ( childValue.IsValue() )
-                        {
-                            // If this node has a single child value, make it the final selector.
-                            // This is a decision node because an empty selection is also possible.
-                            selectorNode = candidateNode;
-                        }
-                        else
-                        {
-                            // If this node has a single child category, drill down further.
-                            candidateNode = candidateNode[0];
-                        }
-                    }
-                    else
-                    {
-                        // If this node has no child nodes, no selection is possible.
-                        candidateNode = null;
-                    }
-                }
-
-                selectorNode = selectorNode ?? this.ValueTree;
+                // Get the currently selected node.
+                // If there is more than one match for the selected value, get the node at the highest level.
+                var selectorNode = GetFirstDecisionNode( selectedNodeKey );
 
                 // Create a selection control for each decision node, working back from the selected node to the root node.
                 var selectorNodeKey = selectedNodeKey;
@@ -496,7 +490,7 @@ namespace Rock.Web.UI.Controls
                     }
 
                     // Set the value of the parent selector control to select the current node.
-                    selectorNodeKey = selectorNode.Value.Value;
+                    selectorNodeKey = selectorNode.Value.Key;
                     // Move to the parent node
                     selectorNode = selectorNode.Parent;
                 }
@@ -508,7 +502,7 @@ namespace Rock.Web.UI.Controls
                 if ( selectedNode != null
                      && selectedNode.Value.IsCategory() )
                 {
-                    var finalSelectionNode = selectedNode.Children.FirstOrDefault( x => x.Value.Value == selectedNodeKey );
+                    var finalSelectionNode = selectedNode.Children.FirstOrDefault( x => x.Value.Key == selectedNodeKey );
                     if ( finalSelectionNode != null )
                     {
                         var info = GetSelectorInfo( finalSelectionNode, null );
@@ -531,22 +525,95 @@ namespace Rock.Web.UI.Controls
             SetSelection( selectedNodeKey, out bool _ );
         }
 
+        private TreeNode<CategorizedValuePickerItem> GetFirstDecisionNode( string startNodeKey )
+        {
+            var selectedNode = ValueTree.Find( x => x.Value.Key == startNodeKey )
+                .OrderBy( x => x.GetAncestors().Count )
+                .FirstOrDefault();
+
+            // If no selected node, find the first child node that requires a decision.
+            var candidateNode = selectedNode ?? this.ValueTree;
+            TreeNode<CategorizedValuePickerItem> decisionNode = null;
+
+            while ( candidateNode != null && decisionNode == null )
+            {
+                // If the candidate node is a Value, select it.
+                if ( candidateNode.Value.IsValue() )
+                {
+                    decisionNode = candidateNode;
+                    continue;
+                }
+
+                // Get the selectable child nodes of the candidate node.
+                var selectableNodes = candidateNode.Children
+                    .Where( x => x.Value.IsValue() || x.Value.IsCategory() )
+                    .ToList();
+                if ( selectableNodes.Count > 1 )
+                {
+                    // If a default selection is available, select it and continue.
+                    var defaultNode = selectableNodes.FirstOrDefault( x => x.Value.IsDefaultSelection );
+                    if ( defaultNode != null )
+                    {
+                        candidateNode = defaultNode;
+                        continue;
+                    }
+                }
+
+                if ( selectableNodes.Count > 1 )
+                {
+                    // If this node has multiple child nodes, make it the final selector.
+                    decisionNode = candidateNode;
+                }
+                else if ( selectableNodes.Count == 1 )
+                {
+                    var childValue = candidateNode.Children[0].Value;
+                    if ( childValue.IsValue() )
+                    {
+                        // If this node has a single child value, make it the final selector.
+                        // This is a decision node because an empty selection is also possible.
+                        decisionNode = candidateNode;
+                    }
+                    else
+                    {
+                        // If this node has a single child category, drill down further.
+                        candidateNode = candidateNode[0];
+                    }
+                }
+                else
+                {
+                    // If this node has no child nodes, no selection is possible.
+                    candidateNode = null;
+                }
+            }
+
+            decisionNode = decisionNode ?? this.ValueTree;
+
+            return decisionNode;
+        }
+
         private SelectionControlInfo GetSelectorInfo( TreeNode<CategorizedValuePickerItem> selectorNode, string selectedNodeKey )
         {
             var availableNodes = GetSelectableNodesFromParentNode( selectorNode );
 
-            var emptyItem = new CategorizedValuePickerItem { Value = CategorizedValuePickerItem.EmptyValue };
+            var emptyItem = new CategorizedValuePickerItem { Key = CategorizedValuePickerItem.EmptyValue };
             availableNodes.Add( emptyItem );
 
             var info = new SelectionControlInfo
             {
-                NodeKey = selectorNode.Value.Value,
+                NodeKey = selectorNode.Value.Key,
                 Label = selectorNode.Value.CategoryLabel,
                 Items = availableNodes
             };
-            if ( availableNodes.Any( x => x.Value == selectedNodeKey ) )
+
+            if ( availableNodes.Any( x => x.Key == selectedNodeKey ) )
             {
                 info.SelectedItemKey = selectedNodeKey;
+            }
+            else
+            {
+                var defaultNode = availableNodes.FirstOrDefault( x => x.IsDefaultSelection );
+
+                info.SelectedItemKey = defaultNode?.Key;
             }
 
             return info;
@@ -564,7 +631,7 @@ namespace Rock.Web.UI.Controls
             writer.WriteLine();
 
             _hfValue.RenderControl( writer );
-            _hfSelection.RenderControl( writer );
+            _hfSelectedKey.RenderControl( writer );
 
             writer.WriteLine();
 
@@ -646,17 +713,18 @@ namespace Rock.Web.UI.Controls
                     return;
                 }
 
-                var newValue = ddlSelector.SelectedValue;
-                if ( newValue == CategorizedValuePickerItem.EmptyValue )
+                // Get the currently selected node key, which is stored in the Value property of the list item.
+                var newKey = ddlSelector.SelectedValue;
+                if ( newKey == CategorizedValuePickerItem.EmptyValue )
                 {
-                    var selectorNode = picker.ValueTree.Find( x => x.Value.Value == hfNodeKey.Value ).FirstOrDefault();
+                    var selectorNode = picker.ValueTree.Find( x => x.Value.Key == hfNodeKey.Value ).FirstOrDefault();
                     if ( selectorNode != null )
                     {
-                        newValue = hfNodeKey.Value;
+                        newKey = hfNodeKey.Value;
                     }
                 }
 
-                picker.CreateSelectionControls( newValue );
+                picker.CreateSelectionControls( newKey );
             }
         }
 
@@ -664,6 +732,9 @@ namespace Rock.Web.UI.Controls
 
         #region Support classes
 
+        /// <summary>
+        /// Represents a selection control in the user interface.
+        /// </summary>
         private class SelectionControlInfo
         {
             public string NodeKey;
@@ -687,7 +758,15 @@ namespace Rock.Web.UI.Controls
     /// </summary>
     public class CategorizedValuePickerItem
     {
+        /// <summary>
+        /// Represents the value of an empty selection.
+        /// </summary>
         public const string EmptyValue = "";
+
+        /// <summary>
+        /// The unique identifier for this item.
+        /// </summary>
+        public string Key { get; set; }
 
         /// <summary>
         /// The value associated with this item.
@@ -700,9 +779,14 @@ namespace Rock.Web.UI.Controls
         public string Text { get; set; } = null;
 
         /// <summary>
-        /// If this item represents a Category, The label for the category this item represents, or empty if the item represents a value.
+        /// The label for the category this item represents, or empty if the item represents a value.
         /// </summary>
         public string CategoryLabel { get; set; } = null;
+
+        /// <summary>
+        /// Is this item selected by default?
+        /// </summary>
+        public bool IsDefaultSelection { get; set; }
 
         /// <summary>
         /// Does this item represent a category?
@@ -728,13 +812,13 @@ namespace Rock.Web.UI.Controls
         /// <returns></returns>
         public bool IsEmpty()
         {
-            return Value == CategorizedValuePickerItem.EmptyValue;
+            return Key == CategorizedValuePickerItem.EmptyValue;
         }
 
         /// <inheritdoc/>
         public override string ToString()
         {
-            return $"[{Value}] {Text} [{CategoryLabel}]";
+            return $"[{Key}] {Text} [{CategoryLabel}]";
         }
     }
 
@@ -913,6 +997,20 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Inserts a child node of this node.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public TreeNode<T> InsertChild( int index, T value )
+        {
+            // Create a new node and add it to the collection of child nodes.
+            var node = new TreeNode<T>( value ) { Parent = this };
+            _children.Insert( index, node );
+            return node;
+        }
+
+        /// <summary>
         /// Remove a child node from this node.
         /// </summary>
         /// <param name="node"></param>
@@ -948,21 +1046,22 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
-        /// Gets the depth of the current tree node.
+        /// Gets the ancestor nodes of the current tree node.
         /// </summary>
-        /// <returns>The number of ancestors preceding the current node in the tree.</returns>
-        public int GetDepth()
+        /// <returns>The ancestor nodes preceding the current node in the tree.</returns>
+        public List<TreeNode<T>> GetAncestors()
         {
-            var depth = 0;
-
+            var ancestors = new List<TreeNode<T>>();
             var parent = this.Parent;
+
             while ( parent != null )
             {
-                depth++;
+                ancestors.Add( parent );
                 parent = parent.Parent;
             }
+            ancestors.Reverse();
 
-            return depth;
+            return ancestors;
         }
 
         /// <inheritdoc/>
