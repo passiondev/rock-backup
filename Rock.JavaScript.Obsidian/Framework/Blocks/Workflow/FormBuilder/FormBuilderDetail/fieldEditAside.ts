@@ -84,8 +84,7 @@ export default defineComponent({
 
     emits: [
         "update:modelValue",
-        "close",
-        "delete"
+        "close"
     ],
 
     methods: {
@@ -142,15 +141,6 @@ export default defineComponent({
          * Event handler for when the back button is clicked.
          */
         const onBackClick = (): void => emit("close");
-
-        /**
-         * Event handler for when the delete button is clicked.
-         */
-        const onDeleteClick = async (): Promise<void> => {
-            if (await confirmDelete("field")) {
-                emit("delete");
-            }
-        };
 
         /**
          * Event handler for when the field type editor has updated any configuration
@@ -230,7 +220,6 @@ export default defineComponent({
             isFieldRequired,
             isShowOnGrid,
             onBackClick,
-            onDeleteClick,
             onFieldTypeModelValueUpdate,
             onValidationChanged,
             validationErrors
@@ -247,10 +236,6 @@ export default defineComponent({
         <div class="p-2 aside-header" style="flex-grow: 1;">
             <i v-if="asideIconClass" :class="asideIconClass"></i>
             <span class="title">{{ fieldName }}</span>
-        </div>
-
-        <div class="d-flex aside-header clickable aside-danger" style="align-items: center; justify-content: center; width: 40px;" @click="onDeleteClick">
-            <i class="fa fa-trash"></i>
         </div>
     </div>
 

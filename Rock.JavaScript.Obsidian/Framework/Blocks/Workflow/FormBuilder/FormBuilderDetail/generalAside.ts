@@ -86,6 +86,12 @@ export default defineComponent({
             return fieldTypes.filter(f => f.isCommon);
         });
 
+        /** The field types to display in the advanced fiel types section. */
+        const advancedFieldTypes = computed((): FormFieldType[] => {
+            return fieldTypes.filter(f => !f.isCommon);
+        });
+
+
         /** Used to temporarily disable emitting the modelValue when something changes. */
         let autoSyncModelValue = true;
 
@@ -112,9 +118,10 @@ export default defineComponent({
         });
 
         return {
+            advancedFieldTypes,
             campusSetFrom,
+            commonFieldTypes,
             hasPersonEntry,
-            commonFieldTypes
         };
     },
 
@@ -135,8 +142,17 @@ export default defineComponent({
         <div class="mt-3" style="flex-grow: 1;">
             <RockLabel>Field Types</RockLabel>
 
-            <div class="d-flex flex-wrap" style="overflow-x: clip; margin-right: -5px;" v-drag-source="fieldDragOptions">
+            <div class="d-flex flex-wrap mt-1" style="overflow-x: clip; margin-right: -5px;" v-drag-source="fieldDragOptions">
                 <div v-for="field in commonFieldTypes" class="form-template-item form-template-item-field" :data-field-type="field.guid">
+                    <i :class="field.icon + ' fa-fw'"></i>
+                    <div class="text">{{ field.text }}</div>
+                </div>
+            </div>
+
+            <div class="text-semibold text-sm mt-2">More Fields</div>
+
+            <div class="d-flex flex-wrap mt-1" style="overflow-x: clip; margin-right: -5px;" v-drag-source="fieldDragOptions">
+                <div v-for="field in advancedFieldTypes" class="form-template-item form-template-item-field" :data-field-type="field.guid">
                     <i :class="field.icon + ' fa-fw'"></i>
                     <div class="text">{{ field.text }}</div>
                 </div>

@@ -49,7 +49,6 @@ export default defineComponent({
 
     emits: [
         "close",
-        "delete",
         "update:modelValue"
     ],
 
@@ -94,15 +93,6 @@ export default defineComponent({
          */
         const onBackClick = (): void => emit("close");
 
-        /**
-         * Event handler for when the delete button is clicked.
-         */
-        const onDeleteClick = async (): Promise<void> => {
-            if (await confirmDelete("section", "This will also delete all fields in this section.")) {
-                emit("delete");
-            }
-        };
-
         // Watch for changes in the model value and update our internal values.
         watch(() => props.modelValue, () => {
             autoSyncModelValue = false;
@@ -134,7 +124,6 @@ export default defineComponent({
             description,
             formSubmit,
             onBackClick,
-            onDeleteClick,
             title,
             sectionType,
             sectionTypeOptions,
@@ -152,10 +141,6 @@ export default defineComponent({
 
         <div class="p-2 aside-header" style="flex-grow: 1;">
             <span class="title">Section</span>
-        </div>
-
-        <div class="d-flex aside-header clickable aside-danger" style="align-items: center; justify-content: center; width: 40px;" @click="onDeleteClick">
-            <i class="fa fa-trash"></i>
         </div>
     </div>
 

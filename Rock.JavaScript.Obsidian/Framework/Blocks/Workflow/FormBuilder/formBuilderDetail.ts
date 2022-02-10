@@ -228,11 +228,6 @@ export default defineComponent({
                 padding: 15px;
             }
 
-            .form-builder-detail .aside-danger:hover {
-                background-color: var(--brand-danger);
-                color: #fff;
-            }
-
             /*** Configurable Zones ***/
             .form-builder-detail .configurable-zone {
                 display: flex;
@@ -269,10 +264,24 @@ export default defineComponent({
                 width: 40px;
                 flex-shrink: 0;
                 display: flex;
+                flex-direction: column;
                 justify-content: center;
                 align-items: center;
                 color: var(--zone-action-text-color);
+            }
+
+            .form-builder-detail .configurable-zone > .zone-actions > .zone-action-pad {
+                flex-grow: 1;
+            }
+
+            .form-builder-detail .configurable-zone > .zone-actions > .zone-action {
+                display: none;
+                margin: 5px 0px;
                 cursor: pointer;
+            }
+
+            .form-builder-detail .configurable-zone > .zone-actions > .zone-action-move {
+                cursor: grab;
             }
 
             .form-builder-detail .configurable-zone.active > .zone-content-container {
@@ -288,6 +297,11 @@ export default defineComponent({
             .form-builder-detail .configurable-zone.highlight > .zone-content-container {
                 border-color: var(--zone-highlight-color);
                 border-right-style: dashed;
+            }
+
+            .form-builder-detail .configurable-zone.active > .zone-actions > .zone-action,
+            .form-builder-detail .configurable-zone:hover > .zone-actions > .zone-action {
+                display: initial;
             }
 
             /*** Form Sections ***/

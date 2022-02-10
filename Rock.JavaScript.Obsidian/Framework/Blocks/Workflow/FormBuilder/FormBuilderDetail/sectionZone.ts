@@ -112,7 +112,9 @@ export default defineComponent({
     },
 
     emits: [
-        "configureField"
+        "configureField",
+        "delete",
+        "deleteField"
     ],
 
     setup(props, { emit }) {
@@ -180,6 +182,22 @@ export default defineComponent({
             emit("configureField", field);
         };
 
+        /**
+         * Event handler for when the delete button of the section is clicked.
+         */
+        const onDelete = (): void => {
+            emit("delete", props.modelValue.guid);
+        };
+
+        /**
+         * Event handler for when the delete button of a field is clicked.
+         * 
+         * @param field The field to be deleted.
+         */
+        const onDeleteField = (field: FormField): void => {
+            emit("deleteField", field.guid);
+        };
+
         // Watch for changes in the model properties. We don't do a deep watch
         // on props.modelValue because we don't want to re-render everything
         // if, for example, a field configuration value changes. That is handled
@@ -201,6 +219,8 @@ export default defineComponent({
             isFieldActive,
             isSectionActive,
             onConfigureField,
+            onDelete,
+            onDeleteField,
             sectionGuid,
             sectionTypeClass,
             showSeparator,
@@ -223,10 +243,25 @@ export default defineComponent({
                     <div class="zone-body">
                         <FieldWrapper :modelValue="field" />
                     </div>
+
+                    <template #preActions>
+                        <i class="fa fa-bars fa-fw zone-action zone-action-move"></i>
+                        <span class="zone-action-pad"></span>
+                    </template>
+                    <template #postActions>
+                        <i class="fa fa-times fa-fw zone-action" @click.stop="onDeleteField(field)"></i>
+                    </template>
                 </ConfigurableZone>
             </div>
         </div>
     </div>
+    <template #preActions>
+        <i class="fa fa-bars fa-fw zone-action zone-action-move"></i>
+        <span class="zone-action-pad"></span>
+    </template>
+    <template #postActions>
+        <i class="fa fa-times fa-fw zone-action" @click.stop="onDelete"></i>
+    </template>
 </ConfigurableZone>
 `
 });

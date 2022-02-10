@@ -33,11 +33,12 @@ import PersonEntryEditAside from "./personEntryEditAside";
 import SectionEditAside from "./sectionEditAside";
 import SectionZone from "./sectionZone";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../../../Directives/dragDrop";
-import { areEqual, newGuid } from "../../../../Util/guid";
+import { areEqual, Guid, newGuid } from "../../../../Util/guid";
 import { List } from "../../../../Util/linq";
 import { FormBuilderSettings, FormField, FormFieldType, FormPersonEntry, FormSection, GeneralAsideSettings, IAsideProvider, SectionAsideSettings } from "./types";
 import { PropType } from "vue";
 import { useFormSources } from "./utils";
+import { confirmDelete } from "../../../../Util/dialogs";
 
 /**
  * Get the drag source options for the section zones. This allows the user to
@@ -136,7 +137,7 @@ function getFieldReorderDragSourceOptions(sections: FormSection[]): IDragSourceO
     return {
         id: newGuid(),
         copyElement: false,
-        handleSelector: ".zone-actions",
+        handleSelector: ".zone-actions > .zone-action-move",
         dragOver(operation) {
             if (operation.targetContainer && operation.targetContainer instanceof HTMLElement) {
                 operation.targetContainer.closest(".zone-section")?.classList.add("highlight");
@@ -175,7 +176,7 @@ function getSectionReorderDragSourceOptions(sections: FormSection[]): IDragSourc
     return {
         id: newGuid(),
         copyElement: false,
-        handleSelector: ".zone-section > .zone-actions",
+        handleSelector: ".zone-section > .zone-actions > .zone-action-move",
         dragDrop(operation) {
             if (operation.targetIndex !== undefined) {
                 const section = sections[operation.sourceIndex];
@@ -532,17 +533,15 @@ export default defineComponent({
          * Event handler for when the edit field aside wants to delete the field
          * from the section.
          */
-        const onFieldDelete = (): void => {
-            const fieldGuid = editField.value?.guid;
-
-            if (!fieldGuid) {
+        const onFieldDelete = async (guid: Guid): Promise<void> => {
+            if (!(await confirmDelete("field"))) {
                 return;
             }
 
             // Find the original field and delete it.
             for (const section of sections) {
                 if (section.fields) {
-                    const existingFieldIndex = section.fields.findIndex(f => areEqual(f.guid, fieldGuid));
+                    const existingFieldIndex = section.fields.findIndex(f => areEqual(f.guid, guid));
 
                     if (existingFieldIndex !== -1) {
                         section.fields.splice(existingFieldIndex, 1);
@@ -551,7 +550,9 @@ export default defineComponent({
                 }
             }
 
-            closeAside();
+            if (areEqual(guid, editField.value?.guid ?? null)) {
+                closeAside();
+            }
         };
 
         /**
@@ -580,21 +581,21 @@ export default defineComponent({
         /**
          * Event handler for when the edit section aside wants to delete the section.
          */
-        const onSectionDelete = (): void => {
-            const sectionGuid = sectionAsideSettings.value?.guid;
-
-            if (!sectionGuid) {
+        const onSectionDelete = async (guid: Guid): Promise<void> => {
+            if (!(await confirmDelete("section"))) {
                 return;
             }
 
             // Find the original section and delete it.
-            const existingSectionIndex = sections.findIndex(s => areEqual(s.guid, sectionGuid));
+            const existingSectionIndex = sections.findIndex(s => areEqual(s.guid, guid));
 
             if (existingSectionIndex !== -1) {
                 sections.splice(existingSectionIndex, 1);
             }
 
-            closeAside();
+            if (areEqual(guid, sectionAsideSettings.value?.guid ?? null)) {
+                closeAside();
+            }
         };
 
         /**
@@ -711,15 +712,13 @@ export default defineComponent({
             ref="fieldEditAsideComponentInstance"
             :fieldTypes="availableFieldTypes"
             @update:modelValue="onEditFieldUpdate"
-            @close="onAsideClose"
-            @delete="onFieldDelete" />
+            @close="onAsideClose" />
 
         <SectionEditAside v-else-if="showSectionAside"
             :modelValue="sectionAsideSettings"
             ref="sectionEditAsideComponentInstance"
             @update:modelValue="onEditSectionUpdate"
-            @close="onAsideClose"
-            @delete="onSectionDelete" />
+            @close="onAsideClose" />
 
         <PersonEntryEditAside v-else-if="showPersonEntryAside"
             :modelValue="personEntryAsideSettings"
@@ -746,7 +745,10 @@ export default defineComponent({
                 :reorderDragOptions="fieldReorderDragSourceOptions"
                 :sectionTypeOptions="sectionTypeOptions"
                 @configure="onConfigureSection(section)"
-                @configureField="onConfigureField" />
+                @configureField="onConfigureField"
+                @delete="onSectionDelete"
+                @deleteField="onFieldDelete">
+            </SectionZone>
         </div>
 
         <FormContentZone :modelValue="formFooterContent" :isActive="isFormFooterActive" @configure="onConfigureFormFooter" placeholder="Form Footer" />
