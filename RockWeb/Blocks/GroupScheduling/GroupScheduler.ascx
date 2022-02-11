@@ -179,7 +179,7 @@
                                     <asp:Panel ID="pnlLocationFilter" CssClass="btn-group" runat="server">
 
                                             <div class="dropdown-toggle btn btn-xs btn-tool" data-toggle="dropdown">
-                                                <Rock:HiddenFieldWithClass ID="hfPickedLocationIds" runat="server" class="js-attendance-occurrence-location-ids"/>
+                                                <%--<Rock:HiddenFieldWithClass ID="hfPickedLocationIds" runat="server" CssClass="js-attendance-occurrence-location-ids"/>--%>
                                                 <asp:Literal ID="lSelectedLocationFilterText" runat="server" Text="Locations...." />
                                             </div>
 
@@ -262,6 +262,7 @@
                                             <Rock:HiddenFieldWithClass ID="hfSchedulerResourceListSourceType" CssClass="js-resource-scheduler-resource-list-source-type" runat="server" />
                                             <Rock:HiddenFieldWithClass ID="hfResourceDataViewId" CssClass="js-resource-dataview-id" runat="server" />
                                             <Rock:HiddenFieldWithClass ID="hfResourceAdditionalPersonIds" CssClass="js-resource-additional-person-ids" runat="server" />
+                                            <Rock:HiddenFieldWithClass ID="hfPickedLocationIds" runat="server" CssClass="js-attendance-occurrence-location-ids"/>
                                             </div>
                                             <div class="js-unscheduled-resource-template" style="display: none">
                                                 <%-- template that groupScheduler.js uses to populate unscheduled resources, data-status will always be "unscheduled" when it is in the list of unscheduled resources --%>

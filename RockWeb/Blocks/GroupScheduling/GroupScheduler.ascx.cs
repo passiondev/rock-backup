@@ -1065,6 +1065,7 @@ btnCopyToClipboard.ClientID );
             {
                 case GroupSchedulerResourceListSourceType.GroupMembers:
                 case GroupSchedulerResourceListSourceType.GroupMatchingPreference:
+                case GroupSchedulerResourceListSourceType.GroupMatchingAssignment:
                     {
                         resourceGroupId = groupId;
                         break;

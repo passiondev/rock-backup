@@ -1334,17 +1334,28 @@ namespace Rock.Model
                         } )
                 } );
 
-                //if ( schedulerResourceParameters.GroupMemberFilterType == SchedulerResourceGroupMemberFilterType.ShowMatchingPreference )
-                //{
-                //    // if using the MatchingPreference filter, limit to people that have ScheduleTemplates that would include the scheduled date
-                //    resourceListQuery = resourceListQuery.Where( a => a.ScheduleTemplateId.HasValue && a.ScheduleStartDate.HasValue );
-                //}
-
-                // 
-                if ( schedulerResourceParameters.ResourceListSourceType == GroupSchedulerResourceListSourceType.GroupMatchingPreference
+                // if using thes filters, limit to people that have ScheduleTemplates that would include the scheduled date
+                if ( schedulerResourceParameters.GroupMemberFilterType == SchedulerResourceGroupMemberFilterType.ShowMatchingPreference
+                    || schedulerResourceParameters.ResourceListSourceType == GroupSchedulerResourceListSourceType.GroupMatchingPreference
                     || schedulerResourceParameters.ResourceListSourceType == GroupSchedulerResourceListSourceType.GroupMatchingAssignment )
                 {
+                    resourceListQuery = resourceListQuery.Where( a => a.ScheduleTemplateId.HasValue && a.ScheduleStartDate.HasValue );
+                }
 
+                // For the GroupMatchingAssignment option filter by the provided location and schedule criteria.
+                if ( schedulerResourceParameters.ResourceListSourceType == GroupSchedulerResourceListSourceType.GroupMatchingAssignment )
+                {
+                    var locationParam = schedulerResourceParameters.AttendanceOccurrenceLocationIds?.ToList() ?? new List<int>();
+                    if ( locationParam.Any() )
+                    {
+                        resourceListQuery = resourceListQuery.Where( a => a.MemberAssignments.All( ma => locationParam.Contains( ma.LocationId.Value ) ) || a.MemberAssignments.All( ma => ma.LocationId == null ) );
+                    }
+
+                    var scheduleParam = schedulerResourceParameters.AttendanceOccurrenceScheduleIds?.ToList() ?? new List<int>();
+                    if ( scheduleParam.Any() )
+                    {
+                        resourceListQuery = resourceListQuery.Where( a => a.MemberAssignments.All( ma => scheduleParam.Contains( ma.Schedule.Id ) ) || a.MemberAssignments.All( ma => ma.Schedule == null ) );
+                    }
                 }
 
                 var resourceList = resourceListQuery.ToList();
