@@ -1,4 +1,4 @@
-import { defineComponent, PropType, ref, watch, computed } from "vue";
+import { defineComponent, PropType, ref, watch, computed, defineAsyncComponent } from "vue";
 import DropDownList from "../Elements/dropDownList";
 import TextBox from "../Elements/textBox";
 import { useVModelPassthrough } from "../Util/component";
@@ -111,15 +111,31 @@ export const FieldVisibilityRuleItemComponent = defineComponent({
         rule.value.comparedToValue = rule.value.comparedToValue ?? '';
         //#endregion
 
-        async function getFieldComponent() {
-            const components = await import(`../Fields/${currentAttribute.value.type.toLowerCase()}FieldComponents`);
+        const isFieldLoaded = ref(false);
+        const fieldComponent = computed(() => {
+            const fieldType = currentAttribute.value.type.toLowerCase();
+            isFieldLoaded.value = false;
 
-            if (components && components.EditComponent) {
-                return components.EditComponent;
-            } else {
-                return defineComponent({});
-            }
-        }
+            return defineAsyncComponent(async () => {
+                try {
+                    // console.log('start import')
+                    const components = await import(`../Fields/${fieldType}FieldComponents`);
+                    // console.log('import finished')
+                    
+                    if (components && components.EditComponent) {
+                        // console.log("is edit component")
+                        isFieldLoaded.value = true;
+                        return components.EditComponent;
+                    }
+                } catch(e) {}
+
+                // console.log('component catchall')
+                isFieldLoaded.value = true;
+                return defineComponent({
+                    template: `<div class="mt-2">Error: Failed to load the form field</div>`
+                });
+            });
+        });
 
         function removeRule(): void {
             emit("removeRule", props.modelValue);
@@ -127,10 +143,11 @@ export const FieldVisibilityRuleItemComponent = defineComponent({
 
         return {
             removeRule,
-            getFieldComponent,
+            fieldComponent,
             rule,
             fieldList,
             comparisonTypes,
+            isFieldLoaded
         };
     },
 
@@ -143,12 +160,16 @@ export const FieldVisibilityRuleItemComponent = defineComponent({
             </div>
             <div class="filter-rule-fieldfilter col-md-8">
                 <div class="row form-row field-criteria">
-                    <div class="col-md-4">
-                    <DropDownList :options="comparisonTypes" v-model="rule.comparisonType" />
+                    <div class="col-md-4" v-if="isFieldLoaded">
+                        <DropDownList :options="comparisonTypes" v-model="rule.comparisonType" />
                     </div>
                     <div class="col-md-8">
-                        <!-- {{ '<TextBox v-model="rule.comparedToValue" class="js-filter-control form-control" />' }} -->
-                        <component :is="getFieldComponent()" v-bind="currentAttribute?.componentProps" v-model="rule.comparedToValue" />
+                        <Suspense timeout="100">
+                            <component :is="fieldComponent" v-bind="currentAttribute?.componentProps" v-model="rule.comparedToValue" />
+                            <template #fallback>
+                                <div class="mt-2">Loading...</div>
+                            </template>
+                        </Suspense>
                     </div>
                 </div>
             </div>
