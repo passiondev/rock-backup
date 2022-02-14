@@ -15,7 +15,7 @@
 // </copyright>
 //
 import { Component, defineAsyncComponent } from "vue";
-import { stringComparisonTypes } from "../Reporting/comparisonType";
+import { ComparisonType, stringComparisonTypes } from "../Reporting/comparisonType";
 import { PublicAttributeValue } from "../ViewModels";
 import { FieldTypeBase } from "./fieldType";
 
