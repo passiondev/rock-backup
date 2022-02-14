@@ -23,7 +23,7 @@ import StaticFormControl from "../Elements/staticFormControl";
 import { getFieldType } from "../Fields/index";
 import { get, post } from "../Util/http";
 import { areEqual } from "../Util/guid";
-import { ClientEditableAttributeValue, ListItem } from "../ViewModels";
+import { PublicEditableAttributeValue, ListItem } from "../ViewModels";
 import { FieldTypeConfigurationPropertiesViewModel, FieldTypeConfigurationViewModel } from "../ViewModels/Controls/fieldTypeEditor";
 
 export default defineComponent({
@@ -60,7 +60,7 @@ export default defineComponent({
         let resetToDefaultsTimer: number | null = null;
 
         /** The details about the default value used for the field. */
-        const defaultValue = ref<ClientEditableAttributeValue | null>(null);
+        const defaultValue = ref<PublicEditableAttributeValue | null>(null);
 
         /** The current configuration properties that describe the field type options. */
         const configurationProperties = ref<Record<string, string>>({});

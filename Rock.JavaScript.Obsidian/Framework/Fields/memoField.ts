@@ -16,7 +16,6 @@
 //
 import { Component, defineAsyncComponent } from "vue";
 import { FieldTypeBase } from "./fieldType";
-import { ClientAttributeValue } from "../ViewModels";
 
 export const enum ConfigurationValueKey {
     NumberOfRows = "numberofrows",
@@ -39,7 +38,7 @@ const configurationComponent = defineAsyncComponent(async () => {
  * The field type handler for the Memo field.
  */
 export class MemoFieldType extends FieldTypeBase {
-    public override getEditComponent(_value: ClientAttributeValue): Component {
+    public override getEditComponent(): Component {
         return editComponent;
     }
 

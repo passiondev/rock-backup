@@ -15,9 +15,8 @@
 // </copyright>
 //
 import { Component, defineAsyncComponent } from "vue";
-import { FieldTypeBase } from "./fieldType";
-import { ClientAttributeValue, ClientEditableAttributeValue } from "../ViewModels";
 import { toNumberOrNull } from "../Services/number";
+import { FieldTypeBase } from "./fieldType";
 
 
 // The edit component can be quite large, so load it only as needed.
@@ -34,11 +33,11 @@ const configurationComponent = defineAsyncComponent(async () => {
  * The field type handler for the Decimal field.
  */
 export class DecimalFieldType extends FieldTypeBase {
-    public override updateTextValue(value: ClientEditableAttributeValue): void {
-        value.textValue = toNumberOrNull(value.value)?.toString() ?? "";
+    public override getTextValueFromConfiguration(value: string, _configurationValues: Record<string, string>): string | null {
+        return toNumberOrNull(value)?.toString() ?? "";
     }
 
-    public override getEditComponent(_value: ClientAttributeValue): Component {
+    public override getEditComponent(): Component {
         return editComponent;
     }
 

@@ -15,8 +15,8 @@
 // </copyright>
 //
 import { Component, defineAsyncComponent } from "vue";
+import { PublicAttributeValue } from "../ViewModels";
 import { FieldTypeBase } from "./fieldType";
-import { ClientAttributeValue } from "../ViewModels";
 
 // The edit component can be quite large, so load it only as needed.
 const editComponent = defineAsyncComponent(async () => {
@@ -32,13 +32,13 @@ const configurationComponent = defineAsyncComponent(async () => {
  * The field type handler for the Email field.
  */
 export class EmailFieldType extends FieldTypeBase {
-    public override getHtmlValue(value: ClientAttributeValue): string {
+    public override getHtmlValue(value: PublicAttributeValue): string {
         const textValue = this.getTextValue(value);
 
         return textValue ? `<a href="mailto:${textValue}">${textValue}</a>` : "";
     }
 
-    public override getEditComponent(_value: ClientAttributeValue): Component {
+    public override getEditComponent(): Component {
         return editComponent;
     }
 
