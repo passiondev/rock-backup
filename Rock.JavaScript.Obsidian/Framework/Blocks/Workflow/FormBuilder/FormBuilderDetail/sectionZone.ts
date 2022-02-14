@@ -19,11 +19,11 @@ import { computed, defineComponent, PropType, ref, watch } from "vue";
 import RockField from "../../../../Controls/rockField";
 import { DragSource, DragTarget, IDragSourceOptions } from "../../../../Directives/dragDrop";
 import { areEqual, Guid, newGuid } from "../../../../Util/guid";
-import { ClientEditableAttributeValue, ListItem } from "../../../../ViewModels";
+import { PublicEditableAttributeValue, ListItem } from "../../../../ViewModels";
 import ConfigurableZone from "./configurableZone";
 import { FormField, FormSection } from "./types";
 
-function getAttributeValueFromField(field: FormField): ClientEditableAttributeValue {
+function getAttributeValueFromField(field: FormField): PublicEditableAttributeValue {
     return {
         attributeGuid: newGuid(),
         fieldTypeGuid: field.fieldTypeGuid,
@@ -53,7 +53,7 @@ const fieldWrapper = defineComponent({
     },
 
     setup(props) {
-        const attributeValue = ref<ClientEditableAttributeValue>(getAttributeValueFromField(props.modelValue));
+        const attributeValue = ref<PublicEditableAttributeValue>(getAttributeValueFromField(props.modelValue));
 
         watch(() => props.modelValue, () => {
             attributeValue.value = getAttributeValueFromField(props.modelValue);
