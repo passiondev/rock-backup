@@ -68,4 +68,8 @@ export class DateRangeFieldType extends FieldTypeBase {
     public override getConfigurationComponent(): Component {
         return configurationComponent;
     }
+
+    public override isFilterable(): boolean {
+        return false;
+    }
 }

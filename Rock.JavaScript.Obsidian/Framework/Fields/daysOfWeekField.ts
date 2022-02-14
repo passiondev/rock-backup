@@ -15,6 +15,7 @@
 // </copyright>
 //
 import { Component, defineAsyncComponent } from "vue";
+import { ComparisonType, containsComparisonTypes } from "../Reporting/comparisonType";
 import { toNumberOrNull } from "../Services/number";
 import { DayOfWeek } from "./dayOfWeekField";
 import { FieldTypeBase } from "./fieldType";
@@ -84,5 +85,9 @@ export class DaysOfWeekFieldType extends FieldTypeBase {
 
     public override getConfigurationComponent(): Component {
         return configurationComponent;
+    }
+
+    public override getSupportedComparisonTypes(): ComparisonType {
+        return containsComparisonTypes;
     }
 }

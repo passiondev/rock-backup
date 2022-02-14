@@ -15,6 +15,7 @@
 // </copyright>
 //
 import { Component, defineAsyncComponent } from "vue";
+import { stringComparisonTypes } from "../Reporting/comparisonType";
 import { PublicAttributeValue } from "../ViewModels";
 import { FieldTypeBase } from "./fieldType";
 
@@ -40,5 +41,9 @@ export class UrlLinkFieldType extends FieldTypeBase {
 
     public override getEditComponent(): Component {
         return editComponent;
+    }
+
+    public override getSupportedComparisonTypes(): ComparisonType {
+        return stringComparisonTypes;
     }
 }

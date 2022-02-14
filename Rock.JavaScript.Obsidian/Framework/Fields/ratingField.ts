@@ -15,6 +15,7 @@
 // </copyright>
 //
 import { Component, defineAsyncComponent } from "vue";
+import { ComparisonType, numericComparisonTypes } from "../Reporting/comparisonType";
 import { PublicAttributeValue } from "../ViewModels";
 import { FieldTypeBase } from "./fieldType";
 
@@ -87,5 +88,9 @@ export class RatingFieldType extends FieldTypeBase {
 
     public override getConfigurationComponent(): Component {
         return configurationComponent;
+    }
+
+    public override getSupportedComparisonTypes(): ComparisonType {
+        return numericComparisonTypes;
     }
 }

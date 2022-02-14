@@ -110,4 +110,8 @@ export class DefinedValueRangeFieldType extends FieldTypeBase {
     public override getEditComponent(): Component {
         return editComponent;
     }
+
+    public override isFilterable(): boolean {
+        return false;
+    }
 }

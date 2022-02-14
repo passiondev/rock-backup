@@ -64,4 +64,8 @@ export class DecimalRangeFieldType extends FieldTypeBase {
     public override getConfigurationComponent(): Component {
         return configurationComponent;
     }
+
+    public override isFilterable(): boolean {
+        return false;
+    }
 }

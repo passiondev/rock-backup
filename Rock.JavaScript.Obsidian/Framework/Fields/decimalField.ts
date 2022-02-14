@@ -15,6 +15,7 @@
 // </copyright>
 //
 import { Component, defineAsyncComponent } from "vue";
+import { ComparisonType, numericComparisonTypes } from "../Reporting/comparisonType";
 import { toNumberOrNull } from "../Services/number";
 import { FieldTypeBase } from "./fieldType";
 
@@ -43,5 +44,9 @@ export class DecimalFieldType extends FieldTypeBase {
 
     public override getConfigurationComponent(): Component {
         return configurationComponent;
+    }
+
+    public override getSupportedComparisonTypes(): ComparisonType {
+        return numericComparisonTypes;
     }
 }

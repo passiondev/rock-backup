@@ -15,12 +15,19 @@
 // </copyright>
 //
 import { Component, defineAsyncComponent } from "vue";
+import { ComparisonType, stringComparisonTypes } from "../Reporting/comparisonType";
 import { PublicAttributeValue } from "../ViewModels";
 import { FieldTypeBase } from "./fieldType";
+import { getStandardFilterComponent } from "./utils";
 
 // The edit component can be quite large, so load it only as needed.
 const editComponent = defineAsyncComponent(async () => {
     return (await import("./emailFieldComponents")).EditComponent;
+});
+
+// The filter component can be quite large, so load it only as needed.
+const filterComponent = defineAsyncComponent(async () => {
+    return (await import("./emailFieldComponents")).FilterComponent;
 });
 
 // The configuration component can be quite large, so load it only as needed.
@@ -44,5 +51,13 @@ export class EmailFieldType extends FieldTypeBase {
 
     public override getConfigurationComponent(): Component {
         return configurationComponent;
+    }
+
+    public override getFilterComponent(): Component {
+        return getStandardFilterComponent(this.getSupportedComparisonTypes(), filterComponent);
+    }
+
+    public override getSupportedComparisonTypes(): ComparisonType {
+        return stringComparisonTypes;
     }
 }

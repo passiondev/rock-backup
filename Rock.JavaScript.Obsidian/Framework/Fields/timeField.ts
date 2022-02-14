@@ -15,6 +15,7 @@
 // </copyright>
 //
 import { Component, defineAsyncComponent } from "vue";
+import { ComparisonType, dateComparisonTypes } from "../Reporting/comparisonType";
 import { toNumber } from "../Services/number";
 import { padLeft } from "../Services/string";
 import { FieldTypeBase } from "./fieldType";
@@ -57,5 +58,9 @@ export class TimeFieldType extends FieldTypeBase {
 
     public override getConfigurationComponent(): Component {
         return configurationComponent;
+    }
+
+    public override getSupportedComparisonTypes(): ComparisonType {
+        return dateComparisonTypes;
     }
 }
