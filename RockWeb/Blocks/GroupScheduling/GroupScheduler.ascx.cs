@@ -2478,6 +2478,9 @@ btnCopyToClipboard.ClientID );
             }
 
             rockContext.SaveChanges();
+
+            ApplyFilter();
+
         }
 
         #endregion Events
