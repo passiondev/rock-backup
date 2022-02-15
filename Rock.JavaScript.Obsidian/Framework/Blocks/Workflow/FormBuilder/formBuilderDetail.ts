@@ -15,8 +15,8 @@
 // </copyright>
 //
 
-import { computed, defineComponent, reactive, Ref, ref, watch } from "vue";
-import { useConfigurationValues } from "../../../Util/block";
+import { computed, defineComponent, ref, watch } from "vue";
+import { useConfigurationValues, useInvokeBlockAction } from "../../../Util/block";
 import DropDownList from "../../../Elements/dropDownList";
 import Modal from "../../../Controls/modal";
 import Panel from "../../../Controls/panel";
@@ -31,6 +31,9 @@ import CommunicationsTab from "./FormBuilderDetail/communicationsTab";
 import SettingsTab from "./FormBuilderDetail/settingsTab";
 import { FormBuilderDetailConfiguration, FormBuilderSettings, FormCommunication, FormCompletionAction, FormGeneral } from "./FormBuilderDetail/types";
 import { provideFormSources } from "./FormBuilderDetail/utils";
+import { ListItem } from "../../../ViewModels";
+import { areEqual } from "../../../Util/guid";
+import { FieldType } from "../../../SystemGuids";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail",
@@ -53,11 +56,15 @@ export default defineComponent({
     setup() {
         const config = useConfigurationValues<FormBuilderDetailConfiguration>();
 
+        const invokeBlockAction = useInvokeBlockAction();
+
         const form = config.form ?? {};
 
-        let isFormDirty = false;
+        const isFormDirty = ref(false);
 
         const selectedTab = ref(0);
+
+        const recipientOptions = ref<ListItem[]>([]);
 
         const communicationsViewModel = ref<FormCommunication>({
             confirmationEmail: form.confirmationEmail ?? {},
@@ -109,8 +116,74 @@ export default defineComponent({
             selectedTab.value = 2;
         };
 
+        const onSaveClick = async (): Promise<void> => {
+            const result = await invokeBlockAction("SaveForm", {
+                formGuid: config.formGuid,
+                formSettings: form
+            });
+
+            if (!result.isSuccess) {
+                alert(result.errorMessage ?? "Failed to save.");
+            }
+            else {
+                isFormDirty.value = false;
+            }
+        };
+
+        const updateRecipientOptions = (): void => {
+            const options: ListItem[] = [];
+
+            if (config.otherAttributes) {
+                for (const attribute of config.otherAttributes) {
+                    if (!attribute.guid || !attribute.fieldTypeGuid || !attribute.name) {
+                        continue;
+                    }
+
+                    if (areEqual(attribute.fieldTypeGuid, FieldType.Person) || areEqual(attribute.fieldTypeGuid, FieldType.Email)) {
+                        options.push({
+                            value: attribute.guid,
+                            text: attribute.name
+                        });
+                    }
+                }
+            }
+
+            if (!form.sections) {
+                recipientOptions.value = [];
+                return;
+            }
+
+            for (const section of form.sections) {
+                if (!section.fields) {
+                    continue;
+                }
+
+                for (const field of section.fields) {
+                    if (areEqual(field.fieldTypeGuid, FieldType.Person) || areEqual(field.fieldTypeGuid, FieldType.Email)) {
+                        options.push({
+                            value: field.guid,
+                            text: field.name
+                        });
+                    }
+                }
+            }
+
+            options.sort((a, b) => {
+                if (a.text < b.text) {
+                    return -1;
+                }
+                else if (a.text > b.text) {
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            });
+
+            recipientOptions.value = options;
+        };
+
         watch([builderViewModel, communicationsViewModel, generalViewModel, completionViewModel], () => {
-            console.log("dirty");
             form.allowPersonEntry = builderViewModel.value.allowPersonEntry;
             form.footerContent = builderViewModel.value.footerContent;
             form.headerContent = builderViewModel.value.headerContent;
@@ -123,10 +196,12 @@ export default defineComponent({
             form.confirmationEmail = communicationsViewModel.value.confirmationEmail;
             form.notificationEmail = communicationsViewModel.value.notificationEmail;
 
-            isFormDirty = true;
+            updateRecipientOptions();
+            isFormDirty.value = true;
         });
 
         provideFormSources(config.sources ?? {});
+        updateRecipientOptions();
 
         return {
             analyticsPageUrl: config.analyticsPageUrl,
@@ -137,13 +212,16 @@ export default defineComponent({
             formBuilderContainerStyle,
             isCommunicationsTabSelected,
             isFormBuilderTabSelected,
+            isFormDirty,
             isSettingsTabSelected,
             settingsContainerStyle,
             generalViewModel,
             submissionsPageUrl: config.submissionsPageUrl, 
             onCommunicationsTabClick,
             onFormBuilderTabClick,
-            onSettingsTabClick
+            onSaveClick,
+            onSettingsTabClick,
+            recipientOptions
         };
     },
 
@@ -162,7 +240,7 @@ export default defineComponent({
 
             /*** Style Variables ***/
             .form-builder-detail {
-                --zone-color: #e1e1e1;
+                --zone-color: #ebebeb;
                 --zone-action-text-color: #a7a7a7;
                 --zone-active-color: #c9eaf9;
                 --zone-active-action-text-color: #83bad3;
@@ -384,7 +462,7 @@ export default defineComponent({
                 </ul>
 
                 <div>
-                    <RockButton btnType="primary">Save</RockButton>
+                    <RockButton v-if="isFormDirty" btnType="primary" @click="onSaveClick">Save</RockButton>
                 </div>
             </div>
 
@@ -393,7 +471,7 @@ export default defineComponent({
             </div>
 
             <div style="flex-grow: 1; overflow-y: hidden;" :style="communicationsContainerStyle">
-                <CommunicationsTab v-model="communicationsViewModel" />
+                <CommunicationsTab v-model="communicationsViewModel" :recipientOptions="recipientOptions" />
             </div>
 
             <div style="flex-grow: 1; overflow-y: hidden;" :style="settingsContainerStyle">

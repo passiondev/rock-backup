@@ -18,6 +18,7 @@
 import { defineComponent, PropType, ref, watch } from "vue";
 import RockForm from "../../../../Controls/rockForm";
 import Alert from "../../../../Elements/alert";
+import { ListItem } from "../../../../ViewModels";
 import ConfirmationEmail from "./confirmationEmail";
 import NotificationEmail from "./notificationEmail";
 import { FormCommunication } from "./types";
@@ -47,6 +48,11 @@ export default defineComponent({
         notificationEmailForced: {
             type: Boolean as PropType<boolean>,
             default: false
+        },
+
+        recipientOptions: {
+            type: Array as PropType<ListItem[]>,
+            default: []
         }
     },
 
@@ -91,7 +97,7 @@ export default defineComponent({
 <div class="d-flex flex-column" style="flex-grow: 1; overflow-y: auto;">
     <div class="panel-body">
         <RockForm>
-            <ConfirmationEmail v-if="!confirmationEmailForced" v-model="confirmationEmail" :sourceTemplateOptions="sourceTemplateOptions" />
+            <ConfirmationEmail v-if="!confirmationEmailForced" v-model="confirmationEmail" :sourceTemplateOptions="sourceTemplateOptions" :recipientOptions="recipientOptions" />
             <Alert v-else alertType="info">
                 <h4 class="alert-heading">Confirmation Email</h4>
                 <p>
