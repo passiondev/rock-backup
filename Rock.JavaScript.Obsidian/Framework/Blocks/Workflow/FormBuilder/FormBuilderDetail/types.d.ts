@@ -609,6 +609,21 @@ export type FormValueSources = {
 };
 
 /**
+ * Represents a single attribute that came from outside the form that can be
+ * used when the form processes.
+ */
+export type FormOtherAttribute = {
+    /** The unique identifier of the attribute. */
+    guid?: Guid | null;
+
+    /** The unique identifier of the field type. */
+    fieldTypeGuid?: Guid | null;
+
+    /** The name of the attribute. */
+    name?: string | null;
+};
+
+/**
  * The primary view model that contains all the runtime information needed
  * by the FormBuilder block.
  */
@@ -622,8 +637,14 @@ export type FormBuilderDetailConfiguration = {
     /** The source of information for various pickers and controls. */
     sources?: FormValueSources | null;
 
+    /** The unique identifier of the form being edited. */
+    formGuid: Guid;
+
     /** The details about the form that is to be edited. */
     form?: FormSettings | null;
+
+    /** Other attributes that are available for use in the form. */
+    otherAttributes?: FormOtherAttribute[] | null;
 };
 
 // #endregion

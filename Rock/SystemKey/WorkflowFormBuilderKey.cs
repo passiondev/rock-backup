@@ -17,7 +17,7 @@
 
 using Rock.Attribute;
 
-namespace Rock.Workflow.FormBuilder
+namespace Rock.SystemKey
 {
     /// <summary>
     /// The standard attribute keys used in FormBuilder workflows.
@@ -31,7 +31,7 @@ namespace Rock.Workflow.FormBuilder
     ///     </para>
     /// </remarks>
     [RockInternal]
-    public static class AttributeKey
+    public static class WorkflowFormBuilderKey
     {
         /// <summary>
         /// The key for the attribute that stores the Person from either the

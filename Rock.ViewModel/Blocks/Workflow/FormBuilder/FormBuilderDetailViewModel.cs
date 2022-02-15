@@ -15,6 +15,11 @@
 // </copyright>
 //
 
+using System;
+using System.Collections.Generic;
+
+using Rock.ViewModel.NonEntities;
+
 namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
 {
     /// <summary>
@@ -41,8 +46,20 @@ namespace Rock.ViewModel.Blocks.Workflow.FormBuilder
         public FormValueSourcesViewModel Sources { get; set; }
 
         /// <summary>
+        /// The unique identifier of the form being edited.
+        /// </summary>
+        public Guid FormGuid { get; set; }
+
+        /// <summary>
         /// The details about the form that is to be edited.
         /// </summary>
         public FormSettingsViewModel Form { get; set; }
+
+        /// <summary>
+        /// Gets or sets the other attributes that are available to the workflow
+        /// form while running. These include special attributes as well as
+        /// user-defined attributes.
+        /// </summary>
+        public List<FormOtherAttributeViewModel> OtherAttributes { get; set; }
     }
 }

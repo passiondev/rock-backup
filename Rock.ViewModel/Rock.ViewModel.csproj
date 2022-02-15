@@ -58,6 +58,7 @@
     <Compile Include="Blocks\Workflow\FormBuilder\FormGeneralViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormNotificationEmailDestination.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormNotificationEmailViewModel.cs" />
+    <Compile Include="Blocks\Workflow\FormBuilder\FormOtherAttributeViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormPersonEntryViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormSectionViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormSettingsViewModel.cs" />
