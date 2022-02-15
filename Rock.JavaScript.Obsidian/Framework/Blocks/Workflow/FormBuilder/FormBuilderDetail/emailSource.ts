@@ -101,7 +101,7 @@ export default defineComponent({
         });
 
         // Watch for changes to any of our internal values and update the modelValue.
-        watch([type, template, subject, replyTo, body], () => {
+        watch([type, template, subject, replyTo, body, appendOrgHeaderAndFooter], () => {
             const newValue: FormEmailSource = {
                 ...props.modelValue,
                 type: toNumberOrNull(type.value) ?? FormEmailSourceType.UseTemplate,
@@ -116,6 +116,7 @@ export default defineComponent({
         });
 
         return {
+            appendOrgHeaderAndFooter,
             type,
             template,
             subject,

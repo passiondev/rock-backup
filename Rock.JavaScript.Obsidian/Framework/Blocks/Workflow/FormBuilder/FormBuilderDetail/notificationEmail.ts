@@ -124,9 +124,9 @@ export default defineComponent({
                 ...props.modelValue,
                 enabled: enabled.value,
                 destination: toNumberOrNull(destination.value) ?? FormNotificationEmailDestination.SpecificIndividual,
-                recipient: props.modelValue.recipient,
-                emailAddress: props.modelValue.emailAddress,
-                campusTopicGuid: props.modelValue.campusTopicGuid,
+                recipient: recipient.value,
+                emailAddress: emailAddress.value,
+                campusTopicGuid: campusTopicGuid.value,
                 source: source.value
             };
 

@@ -37,7 +37,7 @@ const formFieldVisibilityOptions: ListItem[] = [
     },
     {
         value: FormFieldVisibility.Optional.toString(),
-        text: "Optionsl"
+        text: "Optional"
     },
     {
         value: FormFieldVisibility.Required.toString(),
@@ -113,7 +113,7 @@ export default defineComponent({
         const addressType = ref(props.modelValue.addressType ?? "");
         const maritalStatus = ref(props.modelValue.maritalStatus?.toString() ?? FormFieldVisibility.Hidden.toString());
         const spouseEntry = ref(props.modelValue.spouseEntry?.toString() ?? FormFieldVisibility.Hidden.toString());
-        const spouseLabel = ref(props.modelValue.spouseLabel ?? "");
+        const spouseLabel = ref(props.modelValue.spouseLabel ?? "Spouse");
 
         /** The column span class to apply to the columns. */
         const columnClass = computed((): string => props.isVertical ? "col-xs-12" : "col-md-3");
@@ -236,35 +236,35 @@ export default defineComponent({
         <div :class="columnClass">
             <DropDownList v-model="gender"
                 label="Gender"
-                :showBlankValue="false"
+                :showBlankItem="false"
                 :options="formFieldVisibilityOptions" />
         </div>
 
         <div :class="columnClass">
             <DropDownList v-model="email"
                 label="Email"
-                :showBlankValue="false"
+                :showBlankItem="false"
                 :options="formFieldVisibilityOptions" />
         </div>
 
         <div :class="columnClass">
             <DropDownList v-model="mobilePhone"
                 label="Mobile Phone"
-                :showBlankValue="false"
+                :showBlankItem="false"
                 :options="formFieldVisibilityOptions" />
         </div>
 
         <div :class="columnClass">
             <DropDownList v-model="birthdate"
                 label="Birthdate"
-                :showBlankValue="false"
+                :showBlankItem="false"
                 :options="formFieldVisibilityOptions" />
         </div>
 
         <div :class="columnClass">
             <DropDownList v-model="address"
                 label="Address"
-                :showBlankValue="false"
+                :showBlankItem="false"
                 :options="formFieldVisibilityOptions" />
         </div>
 
@@ -278,7 +278,7 @@ export default defineComponent({
         <div :class="columnClass">
             <DropDownList v-model="maritalStatus"
                 label="Marital Status"
-                :showBlankValue="false"
+                :showBlankItem="false"
                 :options="formFieldVisibilityOptions" />
         </div>
     </div>
@@ -287,7 +287,7 @@ export default defineComponent({
         <div :class="columnClass">
             <DropDownList v-model="spouseEntry"
                 label="Spouse Entry"
-                :showBlankValue="false"
+                :showBlankItem="false"
                 :options="formFieldVisibilityOptions" />
         </div>
 

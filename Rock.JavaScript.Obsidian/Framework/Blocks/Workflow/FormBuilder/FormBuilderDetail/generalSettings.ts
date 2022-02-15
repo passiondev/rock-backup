@@ -75,7 +75,7 @@ export default defineComponent({
         const template = ref(props.modelValue.template ?? "");
 
         /** The category this form is attached to. */
-        const category = ref(props.modelValue.category ? [props.modelValue.category] : []);
+        const category = ref(props.modelValue.category ?? null);
 
         /** The date and time the form beings to allow entries. */
         const entryStarts = ref(props.modelValue.entryStarts ?? "");
@@ -91,19 +91,20 @@ export default defineComponent({
             updateRefValue(name, props.modelValue.name ?? "");
             updateRefValue(description, props.modelValue.description ?? "");
             updateRefValue(template, props.modelValue.template ?? "");
-            updateRefValue(category, props.modelValue.category ? [props.modelValue.category] : []);
+            updateRefValue(category, props.modelValue.category ?? null);
             updateRefValue(entryStarts, props.modelValue.entryStarts ?? "");
             updateRefValue(entryEnds, props.modelValue.entryEnds ?? "");
         });
 
         // Watch for changes on any of our internal values and then update the modelValue.
-        watch([name, description, template, category, entryStarts, entryEnds], () => {
+        watch([name, description, template, category, isLoginRequired, entryStarts, entryEnds], () => {
             const newValue: FormGeneral = {
                 ...props.modelValue,
                 name: name.value,
                 description: description.value,
                 template: template.value,
-                category: category.value.length > 0 ? category.value[0] : null,
+                category: category.value,
+                isLoginRequired: isLoginRequired.value,
                 entryStarts: entryStarts.value,
                 entryEnds: entryEnds.value,
             };
