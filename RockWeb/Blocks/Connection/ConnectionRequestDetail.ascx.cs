@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
-using System.Dynamic;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -96,7 +95,7 @@ namespace RockWeb.Blocks.Connection
                             <p><strong>ConnectionRequest, CurrentPerson, Context, PageParameter, Campuses</strong>)</p>
                          </i>",
         EditorMode = CodeEditorMode.Lava,
-        //DefaultValue = Lava.ConnectionRequestDetails, // For Testing Only
+        // DefaultValue = Lava.ConnectionRequestDetails, // For Testing Only
         IsRequired = false,
         Order = 8 )]
 
@@ -679,8 +678,8 @@ namespace RockWeb.Blocks.Connection
 
                     var state = rblState.SelectedValueAsEnumOrNull<ConnectionState>();
 
-                    // If a value is selected in the radio button list for State, use it as the State, otherwise select "Active".
-                    // This is to prevent the "Future Follow-Up" State from being persisted when the Connection Opportunity was changed to not allow Future FollowUp as a State.
+                    // If a value is selected in the radio button list, use it, otherwise use "Active".
+                    // This prevents the "FutureFollowUp" State from remaining on a Connection Request if the Connection Type's "Enable Future Follow-up" was unchecked.
                     if ( state.HasValue )
                     {
                         connectionRequest.ConnectionState = rblState.SelectedValueAsEnum<ConnectionState>();
@@ -689,6 +688,7 @@ namespace RockWeb.Blocks.Connection
                     {
                         connectionRequest.ConnectionState = ConnectionState.Active;
                     }
+
                     connectionRequest.ConnectionStatusId = rblStatus.SelectedValueAsId().Value;
 
                     connectionRequest.CampusId = cpCampus.SelectedCampusId;
@@ -1445,7 +1445,7 @@ namespace RockWeb.Blocks.Connection
                         rockContext.SaveChanges();
                         connectionRequestActivity.SaveAttributeValues( rockContext );
 
-                        if ( ViewState[ViewStateKey.ActivityWebViewMode]?.ToStringOrDefault("False") == "False" )
+                        if ( ViewState[ViewStateKey.ActivityWebViewMode]?.ToStringOrDefault( "False" ) == "False" )
                         {
                             BindConnectionRequestActivitiesGrid( connectionRequest, rockContext );
                         }

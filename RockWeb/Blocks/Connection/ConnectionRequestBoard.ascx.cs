@@ -1248,8 +1248,8 @@ namespace RockWeb.Blocks.Connection
 
             var state = rblRequestModalAddEditModeState.SelectedValueAsEnumOrNull<ConnectionState>();
 
-            // If a value is selected in the radio button list for State, use it as the State, otherwise select "Active".
-            // This is to prevent the "Future Follow-Up" State from being persisted when the Connection Opportunity was changed to not allow Future FollowUp as a State.
+            // If a value is selected in the radio button list, use it, otherwise use "Active".
+            // This prevents the "FutureFollowUp" State from remaining on a Connection Request if the Connection Type's "Enable Future Follow-up" was unchecked.
             if ( state.HasValue )
             {
                 connectionRequest.ConnectionState = rblRequestModalAddEditModeState.SelectedValueAsEnum<ConnectionState>();
@@ -2342,7 +2342,8 @@ namespace RockWeb.Blocks.Connection
 ";
             }
 
-            ScriptManager.RegisterStartupScript( gRequestModalViewModeWorkflows,
+            ScriptManager.RegisterStartupScript(
+                gRequestModalViewModeWorkflows,
                 gRequestModalViewModeWorkflows.GetType(),
                 "openWorkflowScript",
                 script,
