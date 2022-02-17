@@ -16,11 +16,8 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Rock.Attribute;
 using Rock.ClientService.Core.DefinedValue;
@@ -38,7 +35,7 @@ namespace Rock.Blocks.Workflow.FormBuilder
     /// <seealso cref="Rock.Blocks.RockObsidianBlockType" />
 
     [DisplayName( "Form Template Detail" )]
-    [Category( "Obsidian > Workflow > FormBuilder" )]
+    [Category( "Workflow > FormBuilder" )]
     [Description( "Shows the details of a FormBuilder template." )]
     [IconCssClass( "fa fa-align-left" )]
 
