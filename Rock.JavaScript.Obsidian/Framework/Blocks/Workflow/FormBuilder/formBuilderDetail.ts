@@ -176,6 +176,18 @@ export default defineComponent({
             recipientOptions.value = options;
         };
 
+        /**
+         * Event handler called before the page unloads. This handler is
+         * added whenever the form is dirty and needs to be saved.
+         * 
+         * @param event The event that was raised.
+         */
+        const onBeforeUnload = (event: BeforeUnloadEvent): void => {
+            event.preventDefault();
+            event.returnValue = "";
+        };
+
+        // Watch for changes to our internal values and update the modelValue.
         watch([builderViewModel, communicationsViewModel, generalViewModel, completionViewModel], () => {
             form.allowPersonEntry = builderViewModel.value.allowPersonEntry;
             form.footerContent = builderViewModel.value.footerContent;
@@ -191,6 +203,16 @@ export default defineComponent({
 
             updateRecipientOptions();
             isFormDirty.value = true;
+        });
+
+        // Watch for changes in the form dirty state and remove/install our
+        // handle to prevent accidentally navigating away from the page.
+        watch(isFormDirty, () => {
+            window.removeEventListener("beforeunload", onBeforeUnload);
+
+            if (isFormDirty.value) {
+                window.addEventListener("beforeunload", onBeforeUnload);
+            }
         });
 
         provideFormSources(config.sources ?? {});
