@@ -7,13 +7,13 @@ namespace Rock.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class AddCategorizedDefinedValueFieldType : IMigrationMetadata
+    public sealed partial class rollup_20220216 : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddWorkflowRelatedModel));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(Rollup_20220215));
         
         string IMigrationMetadata.Id
         {
-            get { return "202202130202284_AddCategorizedDefinedValueFieldType"; }
+            get { return "202202162343093_rollup_20220216"; }
         }
         
         string IMigrationMetadata.Source

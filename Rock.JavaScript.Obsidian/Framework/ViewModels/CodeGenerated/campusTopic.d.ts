@@ -23,31 +23,11 @@
 
 import { IEntity } from "../entity";
 
-export type WorkflowType = IEntity & {
-    categoryId?: number | null;
-    completedWorkflowRetentionPeriod?: number | null;
-    description?: string | null;
-    formBuilderSettingsJson?: string | null;
-    formBuilderTemplateId?: number | null;
-    formEndDateTime?: string | null;
-    formStartDateTime?: string | null;
-    iconCssClass?: string | null;
-    isActive?: boolean | null;
-    isFormBuilder?: boolean;
-    isLoginRequired?: boolean;
-    isPersisted?: boolean;
-    isSystem?: boolean;
-    loggingLevel?: number;
-    logRetentionPeriod?: number | null;
-    maxWorkflowAgeDays?: number | null;
-    name?: string | null;
-    noActionMessage?: string | null;
-    order?: number;
-    processingIntervalSeconds?: number | null;
-    summaryViewText?: string | null;
-    workflowExpireDateTime?: string | null;
-    workflowIdPrefix?: string | null;
-    workTerm?: string | null;
+export type CampusTopic = IEntity & {
+    campusId?: number;
+    email?: string | null;
+    isPublic?: boolean;
+    topicTypeValueId?: number;
     createdDateTime?: string | null;
     modifiedDateTime?: string | null;
     createdByPersonAliasId?: number | null;
