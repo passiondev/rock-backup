@@ -24,10 +24,12 @@ using Rock.Attribute;
 using Rock.ClientService.Core.DefinedValue;
 using Rock.Data;
 using Rock.Model;
+using Rock.Security;
 using Rock.SystemKey;
 using Rock.ViewModel.Blocks.Workflow.FormBuilder;
 using Rock.ViewModel.NonEntities;
 using Rock.Web.Cache;
+using Rock.Workflow.FormBuilder;
 
 namespace Rock.Blocks.Workflow.FormBuilder
 {
@@ -613,6 +615,7 @@ namespace Rock.Blocks.Workflow.FormBuilder
                 ConnectionStatusOptions = definedValueClientService.GetDefinedValuesAsListItems( SystemGuid.DefinedType.PERSON_CONNECTION_STATUS.AsGuid() ),
                 RecordStatusOptions = definedValueClientService.GetDefinedValuesAsListItems( SystemGuid.DefinedType.PERSON_RECORD_STATUS.AsGuid() ),
                 EmailTemplateOptions = Utility.GetEmailTemplateOptions( rockContext, RequestContext ),
+                FormTemplateOptions = GetFormTemplateOptions( rockContext ),
 
                 SectionTypeOptions = new List<ListItemViewModel>()
                 {
@@ -630,6 +633,32 @@ namespace Rock.Blocks.Workflow.FormBuilder
                     }
                 }
             };
+        }
+
+        /// <summary>
+        /// Get the form template list item options that can be selected in the
+        /// settings UI.
+        /// </summary>
+        /// <param name="rockContext">The database context used for data queries.</param>
+        /// <returns>A list of <see cref="FormTemplateListItemViewModel"/> objects that represent the available templates.</returns>
+        private List<FormTemplateListItemViewModel> GetFormTemplateOptions( RockContext rockContext )
+        {
+            return new WorkflowFormBuilderTemplateService( rockContext ).Queryable()
+                .Where( t => t.IsActive )
+                .ToList()
+                .Where( t => t.IsAuthorized( Authorization.VIEW, RequestContext.CurrentPerson ) )
+                .Select( t => new FormTemplateListItemViewModel
+                {
+                    Value = t.Guid.ToString(),
+                    Text = t.Name,
+                    FormHeader = t.FormHeader,
+                    FormFooter = t.FormFooter,
+                    IsCompletionActionConfigured = t.CompletionSettingsJson != null,
+                    IsConfirmationEmailConfigured = t.ConfirmationEmailSettingsJson?.FromJsonOrNull<FormConfirmationEmailSettings>()?.Enabled ?? false,
+                    IsLoginRequiredConfigured = t.IsLoginRequired,
+                    IsPersonEntryConfigured = t.AllowPersonEntry
+                } )
+                .ToList();
         }
 
         #endregion

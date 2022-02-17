@@ -66,6 +66,7 @@
     <Compile Include="Blocks\Workflow\FormBuilder\FormTemplateDetail\TemplateDetailViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormTemplateDetail\TemplateEditDetailViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormTemplateDetail\ValueSourcesViewModel.cs" />
+    <Compile Include="Blocks\Workflow\FormBuilder\FormTemplateListItemViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormValueSourcesViewModel.cs" />
     <Compile Include="CodeGenerated\BenevolenceTypeViewModel.cs" />
     <Compile Include="CodeGenerated\BenevolenceWorkflowViewModel.cs" />

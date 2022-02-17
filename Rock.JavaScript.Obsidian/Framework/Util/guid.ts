@@ -34,7 +34,7 @@ export function newGuid (): Guid {
  * Returns a normalized Guid that can be compared with string equality (===)
  * @param a
  */
-export function normalize (a: Guid | null): Guid | null {
+export function normalize (a: Guid | null | undefined): Guid | null {
     if (!a) {
         return null;
     }
@@ -76,7 +76,7 @@ export function toGuidOrNull(value: string | null | undefined): Guid | null {
  * @param a
  * @param b
  */
-export function areEqual (a: Guid | null, b: Guid | null): boolean {
+export function areEqual (a: Guid | null | undefined, b: Guid | null | undefined): boolean {
     return normalize(a) === normalize(b);
 }
 

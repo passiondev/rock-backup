@@ -18,6 +18,7 @@
 import { computed, defineComponent, PropType, ref, watch } from "vue";
 import RockField from "../../../../Controls/rockField";
 import { DragSource, IDragSourceOptions } from "../../../../Directives/dragDrop";
+import Alert from "../../../../Elements/alert";
 import DropDownList from "../../../../Elements/dropDownList";
 import Switch from "../../../../Elements/switch";
 import { toNumberOrNull } from "../../../../Services/number";
@@ -29,6 +30,7 @@ import { useFormSources } from "./utils";
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.GeneralAside",
     components: {
+        Alert,
         ConfigurableZone,
         DropDownList,
         RockField,
@@ -53,6 +55,11 @@ export default defineComponent({
         fieldDragOptions: {
             type: Object as PropType<IDragSourceOptions>,
             required: true
+        },
+
+        isPersonEntryForced: {
+            type: Boolean as PropType<boolean>,
+            default: false
         }
     },
 
@@ -161,8 +168,13 @@ export default defineComponent({
         </div>
 
         <div class="mt-3">
+            <Switch v-if="!isPersonEntryForced" v-model="hasPersonEntry" text="Enable Person Entry" />
+
+            <Alert v-else alertType="info">
+                Person entry is enabled on the template and cannot be changed.
+            </Alert>
+
             <DropDownList v-model="campusSetFrom" label="Campus Set From" />
-            <Switch v-model="hasPersonEntry" text="Enable Person Entry" />
         </div>
     </div>
 </div>

@@ -113,6 +113,30 @@ export type FormBuilderSettings = {
 };
 
 /**
+ * Custom ListItem that extends the item to incldue details about what forced
+ * settings the template has.
+ */
+export type FormTemplateListItem = ListItem & {
+    /** The form header content that will be displayed above the form. */
+    formHeader?: string | null;
+
+    /** The form footer content that will be displayed below the form. */
+    formFooter?: string | null;
+
+    /** True if the template forces the login required setting; otherwise false. */
+    isLoginRequiredConfigured?: boolean;
+
+    /** True if the template forces the person entry settings; otherwise false. */
+    isPersonEntryConfigured?: boolean;
+
+    /** True if the template forces the confirmation email settings; otherwise false. */
+    isConfirmationEmailConfigured?: boolean;
+
+    /** True if the template forces the completion action settings; otherwise false. */
+    isCompletionActionConfigured?: boolean;
+};
+
+/**
  * Represents the sources of truth for various pickers and lists of entities
  * that will be used by the JavaScript code.
  */
@@ -143,6 +167,9 @@ export type FormValueSources = {
 
     /** The list of field types that are available to pick from. */
     fieldTypes?: FormFieldType[] | null;
+
+    /** The form templates that are available to pick from. */
+    formTemplateOptions?: FormTemplateListItem[] | null;
 };
 
 /**
