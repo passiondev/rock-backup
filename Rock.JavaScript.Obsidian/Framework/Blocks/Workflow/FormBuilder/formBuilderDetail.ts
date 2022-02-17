@@ -63,6 +63,7 @@ export default defineComponent({
 
         const builderViewModel = ref<FormBuilderSettings>({
             allowPersonEntry: form.allowPersonEntry,
+            campusSetFrom: form.campusSetFrom,
             footerContent: form.footerContent,
             headerContent: form.headerContent,
             personEntry: form.personEntry,
@@ -190,6 +191,7 @@ export default defineComponent({
         // Watch for changes to our internal values and update the modelValue.
         watch([builderViewModel, communicationsViewModel, generalViewModel, completionViewModel], () => {
             form.allowPersonEntry = builderViewModel.value.allowPersonEntry;
+            form.campusSetFrom = builderViewModel.value.campusSetFrom;
             form.footerContent = builderViewModel.value.footerContent;
             form.headerContent = builderViewModel.value.headerContent;
             form.personEntry = builderViewModel.value.personEntry;

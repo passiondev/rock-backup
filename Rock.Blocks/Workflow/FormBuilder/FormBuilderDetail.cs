@@ -178,7 +178,7 @@ namespace Rock.Blocks.Workflow.FormBuilder
             settings.CompletionAction = formSettings.Completion.FromViewModel();
             settings.ConfirmationEmail = formSettings.ConfirmationEmail.FromViewModel( rockContext );
             settings.NotificationEmail = formSettings.NotificationEmail.FromViewModel( rockContext );
-            settings.CampusSetFrom = formSettings.CampusSetFrom;
+            settings.CampusSetFrom = formSettings.CampusSetFrom?.FromViewModel();
 
             workflowType.FormBuilderSettingsJson = settings.ToJson();
         }
@@ -420,7 +420,7 @@ namespace Rock.Blocks.Workflow.FormBuilder
                 ConfirmationEmail = settings?.ConfirmationEmail.ToViewModel( rockContext ),
                 NotificationEmail = settings?.NotificationEmail.ToViewModel( rockContext ),
                 Completion = settings?.CompletionAction.ToViewModel(),
-                CampusSetFrom = null // TODO
+                CampusSetFrom = settings?.CampusSetFrom?.ToViewModel()
             };
 
             // Build the person entry settings.

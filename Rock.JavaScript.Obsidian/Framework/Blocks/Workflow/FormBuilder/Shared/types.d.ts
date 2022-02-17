@@ -77,6 +77,20 @@ export const enum FormCompletionActionType {
     Redirect = 1
 }
 
+/**
+ * Defines the way the campus context is set when a form is processed.
+ */
+export const enum CampusSetFrom {
+    /** Use the campus of the current person who is logged in while filling out the form. */
+    CurrentPerson = 0,
+
+    /** Use the campus of the person in the Person attribute. */
+    WorkflowPerson = 1,
+
+    /** Use the campus from the "Campus" query string which could be an Id or Guid. */
+    QueryString = 2
+}
+
 // #endregion
 
 // #region Types
@@ -370,7 +384,7 @@ export type FormSettings = {
     completion?: FormCompletionAction | null;
 
     /** Determines how the form's campus context will be set when it first runs. */
-    campusSetFrom?: number;
+    campusSetFrom?: CampusSetFrom;
 
     /**
      * Determines if the person entry section should be displayed at the top

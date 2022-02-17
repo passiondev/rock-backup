@@ -24,8 +24,24 @@ import Switch from "../../../../Elements/switch";
 import { toNumberOrNull } from "../../../../Services/number";
 import ConfigurableZone from "./configurableZone";
 import { GeneralAsideSettings } from "./types";
-import { FormFieldType } from "../Shared/types";
+import { CampusSetFrom, FormFieldType } from "../Shared/types";
 import { useFormSources } from "./utils";
+import { ListItem } from "../../../../ViewModels";
+
+const campusSetFromOptions: ListItem[] = [
+    {
+        value: CampusSetFrom.CurrentPerson.toString(),
+        text: "Current Person"
+    },
+    {
+        value: CampusSetFrom.WorkflowPerson.toString(),
+        text: "Workflow Person"
+    },
+    {
+        value: CampusSetFrom.QueryString.toString(),
+        text: "Query String"
+    }
+];
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.GeneralAside",
@@ -128,6 +144,7 @@ export default defineComponent({
         return {
             advancedFieldTypes,
             campusSetFrom,
+            campusSetFromOptions,
             commonFieldTypes,
             hasPersonEntry,
         };
@@ -174,7 +191,7 @@ export default defineComponent({
                 Person entry is enabled on the template and cannot be changed.
             </Alert>
 
-            <DropDownList v-model="campusSetFrom" label="Campus Set From" />
+            <DropDownList v-model="campusSetFrom" label="Campus Set From" :options="campusSetFromOptions" />
         </div>
     </div>
 </div>

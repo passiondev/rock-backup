@@ -349,6 +349,50 @@ namespace Rock.Blocks.Workflow.FormBuilder
         }
 
         /// <summary>
+        /// Creates a <see cref="Rock.Workflow.FormBuilder.CampusSetFrom"/>
+        /// value from its view model representation.
+        /// </summary>
+        /// <param name="viewModel">The view model that represents the value.</param>
+        /// <returns>The value created from the view model.</returns>
+        internal static Rock.Workflow.FormBuilder.CampusSetFrom FromViewModel( this CampusSetFrom viewModel )
+        {
+            switch ( viewModel )
+            {
+                case CampusSetFrom.WorkflowPerson:
+                    return Rock.Workflow.FormBuilder.CampusSetFrom.WorkflowPerson;
+
+                case CampusSetFrom.QueryString:
+                    return Rock.Workflow.FormBuilder.CampusSetFrom.QueryString;
+
+                case CampusSetFrom.CurrentPerson:
+                default:
+                    return Rock.Workflow.FormBuilder.CampusSetFrom.CurrentPerson;
+            }
+        }
+
+        /// <summary>
+        /// Creates a view model representation of a
+        /// <see cref="Rock.Workflow.FormBuilder.CampusSetFrom"/> value.
+        /// </summary>
+        /// <param name="value">The value to be represented as a view model.</param>
+        /// <returns>The view model representation.</returns>
+        internal static CampusSetFrom ToViewModel( this Rock.Workflow.FormBuilder.CampusSetFrom value )
+        {
+            switch ( value )
+            {
+                case Rock.Workflow.FormBuilder.CampusSetFrom.WorkflowPerson:
+                    return CampusSetFrom.WorkflowPerson;
+
+                case Rock.Workflow.FormBuilder.CampusSetFrom.QueryString:
+                    return CampusSetFrom.QueryString;
+
+                case Rock.Workflow.FormBuilder.CampusSetFrom.CurrentPerson:
+                default:
+                    return CampusSetFrom.CurrentPerson;
+            }
+        }
+
+        /// <summary>
         /// Creates a view model representation of a
         /// <see cref="WorkflowActionFormPersonEntryOption"/> value.
         /// </summary>
