@@ -45,20 +45,12 @@ export default defineComponent({
         const config = useConfigurationValues<FormTemplateDetailConfiguration>();
         const invokeBlockAction = useInvokeBlockAction();
 
-        /** The current details for view mode. */
         const templateDetail = ref(config.template);
-
-        /** The current details for edit mode. */
         const templateEditDetail = ref<TemplateEditDetail>({});
-
-        /** True if we should allow the individual to start an edit operation. */
         const isEditable = ref(config.isEditable);
 
-        /**
-         * True if we are currently in view mode. Default to view mode unless
-         * our templateGuid is an empty Guid.
-         */
-        const isViewMode = ref(!areEqual(config.templateGuid ?? "", emptyGuid));
+        // Start in edit mode if we have an empty guid.
+        const isEditMode = ref(areEqual(config.templateGuid ?? "", emptyGuid));
 
         /** The audit details that should be displayed. */
         const templateAuditDetail = computed(() => templateDetail.value?.auditDetails);
@@ -79,7 +71,7 @@ export default defineComponent({
          * This takes into account the current display mode.
          */
         const blockTitle = computed((): string => {
-            if (isViewMode.value) {
+            if (!isEditMode.value) {
                 return templateDetail.value?.name ?? "";
             }
             else {
@@ -97,7 +89,7 @@ export default defineComponent({
 
             if (result.isSuccess && result.data) {
                 templateEditDetail.value = result.data;
-                isViewMode.value = false;
+                isEditMode.value = true;
             }
         };
 
@@ -106,8 +98,13 @@ export default defineComponent({
          * while in edit mode.
          */
         const onEditCancelClick = (): void => {
+            if (config.parentUrl && areEqual(config.templateGuid ?? "", emptyGuid)) {
+                window.location.href = config.parentUrl;
+                return;
+            }
+
             templateEditDetail.value = {};
-            isViewMode.value = true;
+            isEditMode.value = false;
         };
 
         /**
@@ -123,7 +120,7 @@ export default defineComponent({
             if (result.isSuccess && result.data) {
                 templateDetail.value = result.data;
                 templateEditDetail.value = {};
-                isViewMode.value = true;
+                isEditMode.value = false;
             }
         };
 
@@ -134,7 +131,7 @@ export default defineComponent({
             isEditable,
             isInactive,
             isStartupError,
-            isViewMode,
+            isEditMode,
             onEditCancelClick,
             onEditClick,
             onSubmit,
@@ -158,7 +155,7 @@ export default defineComponent({
         <AuditDetail v-model="templateAuditDetail" />
     </template>
 
-    <div v-if="isViewMode">
+    <div v-if="!isEditMode">
         <ViewPanel :modelValue="templateDetail" />
 
         <div class="actions">

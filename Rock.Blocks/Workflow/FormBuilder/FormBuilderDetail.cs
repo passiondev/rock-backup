@@ -84,8 +84,8 @@ namespace Rock.Blocks.Workflow.FormBuilder
                 // form.
                 var viewModel = new FormBuilderDetailViewModel
                 {
-                    SubmissionsPageUrl = LinkedPageUrl( AttributeKey.SubmissionsPage, RequestContext.GetPageParameters() ),
-                    AnalyticsPageUrl = LinkedPageUrl( AttributeKey.AnalyticsPage, RequestContext.GetPageParameters() ),
+                    SubmissionsPageUrl = this.GetLinkedPageUrl( AttributeKey.SubmissionsPage, RequestContext.GetPageParameters() ),
+                    AnalyticsPageUrl = this.GetLinkedPageUrl( AttributeKey.AnalyticsPage, RequestContext.GetPageParameters() ),
                     Sources = GetOptionSources( rockContext )
                 };
 
@@ -630,32 +630,6 @@ namespace Rock.Blocks.Workflow.FormBuilder
                     }
                 }
             };
-        }
-
-        #endregion
-
-        #region Move to Extension Methods
-
-        /// <summary>
-        /// Builds and returns the URL for a linked <see cref="Rock.Model.Page"/>
-        /// from a <see cref="Rock.Attribute.LinkedPageAttribute"/> and any necessary
-        /// query parameters.
-        /// </summary>
-        /// <param name="attributeKey">The attribute key that contains the linked page value.</param>
-        /// <param name="queryParams">Any query string parameters that should be included in the built URL.</param>
-        /// <returns>A string representing the URL to the linked <see cref="Rock.Model.Page"/>.</returns>
-        private string LinkedPageUrl( string attributeKey, IDictionary<string, string> queryParams = null )
-        {
-            var pageReference = new Rock.Web.PageReference( GetAttributeValue( attributeKey ), new Dictionary<string, string>( queryParams ) );
-
-            if ( pageReference.PageId > 0 )
-            {
-                return pageReference.BuildUrl();
-            }
-            else
-            {
-                return string.Empty;
-            }
         }
 
         #endregion

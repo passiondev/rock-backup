@@ -70,7 +70,8 @@ namespace Rock.Blocks.Workflow.FormBuilder
                 // form template.
                 var viewModel = new FormTemplateDetailConfiguration
                 {
-                    Sources = GetOptionSources( rockContext )
+                    Sources = GetOptionSources( rockContext ),
+                    ParentUrl = this.GetParentPageUrl()
                 };
 
                 // If we have a template specified in the query string then

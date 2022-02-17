@@ -73,14 +73,8 @@ export default defineComponent({
 
     setup(props, { emit }) {
         const enabled = useVModelPassthrough(props, "enabled", emit);
-
-        /** The type of completion logic to use when the form has been completed. */
         const type = ref(props.modelValue.type?.toString() ?? FormCompletionActionType.DisplayMessage.toString());
-
-        /** The message to display to the user. */
         const message = ref(props.modelValue.message ?? "");
-
-        /** The URL to redirect the user to. */
         const redirectUrl = ref(props.modelValue.redirectUrl ?? "");
 
         /** True if the type is DisplayMessage. */

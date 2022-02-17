@@ -31,6 +31,12 @@ namespace Rock.ViewModel.Blocks.Workflow.FormBuilder.FormTemplateDetail
         public ValueSourcesViewModel Sources { get; set; }
 
         /// <summary>
+        /// Gets or sets the URL of the parent page.
+        /// </summary>
+        /// <value>The URL of the parent page.</value>
+        public string ParentUrl { get; set; }
+
+        /// <summary>
         /// Gets or sets a value that indicates if the individual should be
         /// allowed to enter edit mode.
         /// </summary>

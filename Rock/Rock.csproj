@@ -1229,6 +1229,7 @@
     <Compile Include="Utility\ExtensionMethods\Obsolete\StringRockExtensions.cs" />
     <Compile Include="Utility\Enums\AccountProtectionProfile.cs" />
     <Compile Include="Utility\Enums\ElevatedSecurityLevel.cs" />
+    <Compile Include="Utility\ExtensionMethods\RockBlockTypeExtensions.cs" />
     <Compile Include="Utility\MethodRetry.cs" />
     <Compile Include="Communication\Transport\RockMobilePush.cs" />
     <Compile Include="Communication\Transport\SafeSenderResult.cs" />

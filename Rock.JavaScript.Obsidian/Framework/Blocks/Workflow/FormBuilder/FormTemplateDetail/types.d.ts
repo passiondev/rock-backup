@@ -119,6 +119,9 @@ export type FormTemplateDetailConfiguration = {
     /** The source of information for various pickers and controls. */
     sources?: ValueSources | null;
 
+    /** The URL of the parent page. */
+    parentUrl?: string | null;
+
     /** True if the template can be edited. */
     isEditable?: boolean;
 

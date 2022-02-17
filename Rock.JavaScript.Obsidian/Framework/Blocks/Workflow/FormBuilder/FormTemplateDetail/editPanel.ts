@@ -92,9 +92,11 @@ export default defineComponent({
         // The raw completion action value that will be used to track state.
         const internalCompletionAction = ref(props.modelValue.completionAction);
 
-        // Use a computed value so that we can provide the CompletionSettings
-        // component with a non-null value while using a null value to identify
-        // that the completion action isn't enabled.
+        /**
+         * Use a computed value so that we can provide the CompletionSettings
+         * component with a non-null value while using a null value to identify
+         * that the completion action isn't enabled.
+         */
         const completionAction = computed<FormCompletionAction>({
             get() {
                 return internalCompletionAction.value ?? {};
@@ -106,8 +108,10 @@ export default defineComponent({
             }
         });
 
-        // Use a computed value to track if the completion action panel is
-        // enabled or not.
+        /**
+         * Use a computed value to track if the completion action panel is
+         * enabled or not.
+         */
         const completionActionEnabled = computed<boolean>({
             get() {
                 return !!internalCompletionAction.value;

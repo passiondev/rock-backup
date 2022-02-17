@@ -33,13 +33,9 @@ export default defineComponent({
     },
 
     setup(props) {
-        /** The name of the template. */
+        // Setup all the standard values that we will be displaying.
         const name = ref(props.modelValue.name ?? "");
-
-        /** The text that describes the purpose of the template. */
         const description = ref(props.modelValue.description ?? "");
-
-        /** The workflow types that are using this template. */
         const usedByWorkflowTypes = ref(props.modelValue.usedBy ?? []);
 
         // Watch for changes in our model value and update.
