@@ -40,6 +40,7 @@ import { FormField, FormFieldType, FormPersonEntry, FormSection } from "../Share
 import { PropType } from "vue";
 import { useFormSources } from "./utils";
 import { confirmDelete } from "../../../../Util/dialogs";
+import { ListItem } from "../../../../ViewModels";
 
 /**
  * Get the drag source options for the section zones. This allows the user to
@@ -108,6 +109,26 @@ function getFieldDragSourceOptions(sections: FormSection[], availableFieldTypes:
             const fieldType = new List(availableFieldTypes.value).firstOrUndefined(f => areEqual(f.guid, fieldTypeGuid));
 
             if (section && fieldType && operation.targetIndex !== undefined) {
+                const existingKeys: string[] = [];
+
+                // Find all existing attribute keys.
+                for (const sect of sections) {
+                    if (sect.fields) {
+                        for (const field of sect.fields) {
+                            existingKeys.push(field.key);
+                        }
+                    }
+                }
+
+                // Find a key that isn't used.
+                const baseKey = fieldType.text.replace(/[^a-zA-Z0-9_\-.]/g, "");
+                let key = baseKey;
+                let keyCount = 0;
+                while (existingKeys.includes(key)) {
+                    keyCount++;
+                    key = `${baseKey}${keyCount}`;
+                }
+
                 if (!section.fields) {
                     section.fields = [];
                 }
@@ -116,7 +137,7 @@ function getFieldDragSourceOptions(sections: FormSection[], availableFieldTypes:
                     guid: newGuid(),
                     fieldTypeGuid: fieldType.guid,
                     name: fieldType.text,
-                    key: "TODO:GenerateDefaultKeyFromName",
+                    key: key,
                     size: 12,
                     configurationValues: {},
                     defaultValue: ""
@@ -404,6 +425,29 @@ export default defineComponent({
 
         /** The form footer content specified in the template. */
         const templateFormFooterContent = computed((): string => props.templateOverrides?.formFooter ?? "");
+
+        /**
+         * Contains all the existing attribute keys in an array of ListItems.
+         * Each item has a value that is the attribute guid and text that is
+         * the key string.
+         */
+        const existingKeys = computed((): ListItem[] => {
+            const existingKeys: ListItem[] = [];
+
+            // Find all existing attribute keys.
+            for (const sect of sections) {
+                if (sect.fields) {
+                    for (const field of sect.fields) {
+                        existingKeys.push({
+                            value: field.guid,
+                            text: field.key
+                        });
+                    }
+                }
+            }
+
+            return existingKeys;
+        });
 
         // #endregion
 
@@ -695,6 +739,7 @@ export default defineComponent({
             availableFieldTypes,
             bodyElement,
             editField,
+            existingKeys,
             fieldDragSourceOptions,
             fieldDragTargetId: fieldDragSourceOptions.id,
             fieldEditAsideComponentInstance,
@@ -756,6 +801,7 @@ export default defineComponent({
             :modelValue="editField"
             ref="fieldEditAsideComponentInstance"
             :fieldTypes="availableFieldTypes"
+            :existingKeys="existingKeys"
             @update:modelValue="onEditFieldUpdate"
             @close="onAsideClose" />
 
