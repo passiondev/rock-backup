@@ -62,6 +62,10 @@
     <Compile Include="Blocks\Workflow\FormBuilder\FormPersonEntryViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormSectionViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormSettingsViewModel.cs" />
+    <Compile Include="Blocks\Workflow\FormBuilder\FormTemplateDetail\FormTemplateDetailConfiguration.cs" />
+    <Compile Include="Blocks\Workflow\FormBuilder\FormTemplateDetail\TemplateDetailViewModel.cs" />
+    <Compile Include="Blocks\Workflow\FormBuilder\FormTemplateDetail\TemplateEditDetailViewModel.cs" />
+    <Compile Include="Blocks\Workflow\FormBuilder\FormTemplateDetail\ValueSourcesViewModel.cs" />
     <Compile Include="Blocks\Workflow\FormBuilder\FormValueSourcesViewModel.cs" />
     <Compile Include="CodeGenerated\BenevolenceTypeViewModel.cs" />
     <Compile Include="CodeGenerated\BenevolenceWorkflowViewModel.cs" />
@@ -72,6 +76,7 @@
     <Compile Include="Connection\ConnectionRequest\ConnectionRequestCountsViewModel.cs" />
     <Compile Include="Controls\FieldTypeConfigurationViewModel.cs" />
     <Compile Include="Controls\FieldTypeConfigurationPropertiesViewModel.cs" />
+    <Compile Include="NonEntities\AuditDetailViewModel.cs" />
     <Compile Include="NonEntities\PublicComparisonValueViewModel.cs" />
     <Compile Include="NonEntities\PublicAttributeValueCategoryViewModel.cs" />
     <Compile Include="NonEntities\PublicEditableAttributeValueViewModel.cs" />

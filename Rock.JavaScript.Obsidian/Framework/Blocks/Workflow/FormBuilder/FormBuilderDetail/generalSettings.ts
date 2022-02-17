@@ -26,9 +26,9 @@ import TransitionVerticalCollapse from "../../../../Elements/transitionVerticalC
 import { EntityType } from "../../../../SystemGuids";
 import { updateRefValue } from "../../../../Util/util";
 import { ListItem } from "../../../../ViewModels";
-import EmailSource from "./emailSource";
-import SettingsWell from "./settingsWell";
-import { FormGeneral } from "./types";
+import EmailSource from "../Shared/emailSource";
+import SettingsWell from "../Shared/settingsWell";
+import { FormGeneral } from "../Shared/types";
 
 /**
  * Displays the UI for the General Settings section of the Settings screen.

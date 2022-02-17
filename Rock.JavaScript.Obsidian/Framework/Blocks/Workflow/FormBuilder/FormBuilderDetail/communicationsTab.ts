@@ -19,7 +19,7 @@ import { defineComponent, PropType, ref, watch } from "vue";
 import RockForm from "../../../../Controls/rockForm";
 import Alert from "../../../../Elements/alert";
 import { ListItem } from "../../../../ViewModels";
-import ConfirmationEmail from "./confirmationEmail";
+import ConfirmationEmail from "../Shared/confirmationEmail";
 import NotificationEmail from "./notificationEmail";
 import { FormCommunication } from "./types";
 import { useFormSources } from "./utils";

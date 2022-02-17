@@ -22,7 +22,8 @@ import DropDownList from "../../../../Elements/dropDownList";
 import Switch from "../../../../Elements/switch";
 import { toNumberOrNull } from "../../../../Services/number";
 import ConfigurableZone from "./configurableZone";
-import { FormFieldType, GeneralAsideSettings } from "./types";
+import { GeneralAsideSettings } from "./types";
+import { FormFieldType } from "../Shared/types";
 import { useFormSources } from "./utils";
 
 export default defineComponent({

@@ -19,8 +19,8 @@ import { defineComponent, PropType, ref } from "vue";
 import Panel from "../../../../Controls/panel";
 import RockForm from "../../../../Controls/rockForm";
 import { useVModelPassthrough } from "../../../../Util/component";
-import PersonEntrySettings from "./personEntrySettings";
-import { FormPersonEntry } from "./types";
+import PersonEntrySettings from "../Shared/personEntrySettings";
+import { FormPersonEntry } from "../Shared/types";
 import { useFormSources } from "./utils";
 
 export default defineComponent({

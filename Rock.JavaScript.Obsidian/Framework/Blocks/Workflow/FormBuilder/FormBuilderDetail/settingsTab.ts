@@ -18,9 +18,9 @@
 import { defineComponent, PropType } from "vue";
 import RockForm from "../../../../Controls/rockForm";
 import { useVModelPassthrough } from "../../../../Util/component";
-import CompletionSettings from "./completionSettings";
+import CompletionSettings from "../Shared/completionSettings";
 import GeneralSettings from "./generalSettings";
-import { FormCompletionAction, FormGeneral } from "./types";
+import { FormCompletionAction, FormGeneral } from "../Shared/types";
 
 export default defineComponent({
     name: "Workflow.FormBuilderDetail.SettingsTab",

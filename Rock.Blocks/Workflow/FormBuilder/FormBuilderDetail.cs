@@ -37,7 +37,7 @@ namespace Rock.Blocks.Workflow.FormBuilder
     /// <seealso cref="Rock.Blocks.RockObsidianBlockType" />
 
     [DisplayName( "Form Builder Detail" )]
-    [Category( "Obsidian > Workflow > Form Builder" )]
+    [Category( "Obsidian > Workflow > FormBuilder" )]
     [Description( "Edits the details of a workflow Form Builder action." )]
     [IconCssClass( "fa fa-hammer" )]
 
@@ -612,7 +612,7 @@ namespace Rock.Blocks.Workflow.FormBuilder
                 AddressTypeOptions = definedValueClientService.GetDefinedValuesAsListItems( SystemGuid.DefinedType.GROUP_LOCATION_TYPE.AsGuid() ),
                 ConnectionStatusOptions = definedValueClientService.GetDefinedValuesAsListItems( SystemGuid.DefinedType.PERSON_CONNECTION_STATUS.AsGuid() ),
                 RecordStatusOptions = definedValueClientService.GetDefinedValuesAsListItems( SystemGuid.DefinedType.PERSON_RECORD_STATUS.AsGuid() ),
-                EmailTemplateOptions = GetEmailTemplateOptions( rockContext ),
+                EmailTemplateOptions = Utility.GetEmailTemplateOptions( rockContext, RequestContext ),
 
                 SectionTypeOptions = new List<ListItemViewModel>()
                 {
@@ -630,27 +630,6 @@ namespace Rock.Blocks.Workflow.FormBuilder
                     }
                 }
             };
-        }
-
-        /// <summary>
-        /// Gets the e-mail template option choices available to the individual.
-        /// </summary>
-        /// <param name="rockContext">The database context to use for data lookup.</param>
-        /// <returns>A collection of view models that represent the e-mail templates.</returns>
-        private List<ListItemViewModel> GetEmailTemplateOptions( RockContext rockContext )
-        {
-            return new SystemCommunicationService( rockContext )
-                .Queryable()
-                .Where( c => c.IsActive == true )
-                .ToList()
-                .Where( c => c.IsAuthorized( Rock.Security.Authorization.VIEW, RequestContext.CurrentPerson ) )
-                .OrderBy( c => c.Title )
-                .Select( c => new ListItemViewModel
-                {
-                    Value = c.Guid.ToString(),
-                    Text = c.Title
-                } )
-                .ToList();
         }
 
         #endregion
