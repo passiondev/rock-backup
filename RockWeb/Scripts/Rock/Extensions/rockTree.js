@@ -7,7 +7,6 @@
             this.$el = $(element);
             this.options = options;
             this.selectedNodes = [];
-
             // Create an object-based event aggregator (not DOM-based)
             // for internal eventing
             this.events = $({});
@@ -45,7 +44,8 @@
         // Default utility function to attempt to map a Rock.Web.UI.Controls.Pickers.TreeViewItem
         // to a more standard JS object.
 		_mapArrayDefault = function (arr, treeView) {
-		    return $.map(arr, function (item) {
+            return $.map(arr, function (item) {
+
 		        var node = {
 		            id: item.Guid || item.Id,
 		            name: item.Name || item.Title,
@@ -192,9 +192,13 @@
                             } catch (e) {
                                 dfd.reject(e);
                             }
+
+                            self.$el.trigger('rockTree:fetchCompleted', [{ success: true, rockTree: self, data: data }]);
                         })
                         .fail(function (jqXHR, textStatus, errorThrown) {
                             self.renderError(jqXHR.responseJSON ? jqXHR.responseJSON.ExceptionMessage : errorThrown);
+
+                            self.$el.trigger('rockTree:fetchCompleted', [{ success: false, rockTree: self, data: jqXHR }]);
                         });
                 };
 
@@ -433,9 +437,11 @@
                     folderCssClass = hasChildren ? ( node.isOpen ? self.options.iconClasses.branchOpen : self.options.iconClasses.branchClosed ) : "",
                     leafCssClass = node.iconCssClass || self.options.iconClasses.leaf;
 
+                    var isActive = (!node.hasOwnProperty('isActive') || node.isActive);
+
 				    $li.addClass('rocktree-item')
 						.addClass(hasChildren ? 'rocktree-folder' : 'rocktree-leaf')
-                        .addClass( ( !node.hasOwnProperty('isActive') || node.isActive )? '' : 'is-inactive')
+                        .addClass(isActive ? '' : 'is-inactive-not-allowed')
 						.attr('data-id', node.id)
 						.attr('data-parent-id', node.parentId);
 
@@ -449,12 +455,14 @@
 				    tmp.innerHTML = node.name;
 				    var nodeText = tmp.textContent || tmp.innerText || "";
 
-				    var countInfoHtml = '';
-				    if (typeof (node.countInfo) != 'undefined' && node.countInfo != null) {
+                    var countInfoHtml = '';
+                    if (typeof (node.countInfo) !== 'undefined' && node.countInfo !== null && self.options.displayChildItemCountLabel) {
 				        countInfoHtml = '<span class="label label-tree">' + node.countInfo + '</span>';
 				    }
 
-				    $li.append('<span class="rocktree-name" title="' + nodeText.trim() + '"> ' + node.name + countInfoHtml + '</span>');
+                    var notAllowedClass = isActive ? '' : ' not-allowed';
+
+                    $li.append('<span class="rocktree-name' + notAllowedClass + '" title="' + nodeText.trim() + '"> ' + node.name + countInfoHtml + '</span>');
 				    var $rockTreeNameNode = $li.find('.rocktree-name');
 
                     if (!self.options.categorySelection && node.isCategory) {
@@ -463,13 +471,13 @@
                     }
 
 				    for (var i = 0; i < self.selectedNodes.length; i++) {
-				        if (self.selectedNodes[i].id == node.id) {
+				        if (self.selectedNodes[i].id === node.id) {
 				            $rockTreeNameNode.addClass('selected');
 				            break;
 				        }
 				    }
 
-            if (hasChildren) {
+                    if (hasChildren) {
 				        $li.prepend('<i class="rocktree-icon icon-fw ' + folderCssClass + '"></i>');
 
 				        if (node.iconCssClass) {
@@ -512,7 +520,7 @@
             $.each(this.nodes, function (index, node) {
                 renderNode($ul, node);
             });
-
+            
             this.$el.trigger('rockTree:rendered');
         },
 
@@ -580,7 +588,7 @@
                 e.stopPropagation();
 
                 var $icon = $(this),
-					$ul = $icon.siblings('ul'),
+                    $ul = $icon.siblings('ul'),
 					id = $icon.parent('li').attr('data-id'),
 					node = _findNodeById(id, self.nodes),
 					openClass = self.options.iconClasses.branchOpen,
@@ -647,14 +655,20 @@
                 $rockTree.find('.selected').parent('li[data-id="' + id + '"]').removeClass('selected');
                 $rockTree.find('.selected').parent('li').each(function (idx, li) {
                     var $li = $(li);
-                    selectedNodes.push({
-                        id: $li.attr('data-id'),
-                        // get the li text excluding child text
-                        name: $li.contents(':not(ul)').text()
-                    });
+                    var isInactive = $li.hasClass('is-inactive-not-allowed');
+
+                    if (!isInactive) {
+                        selectedNodes.push({
+                            id: $li.attr('data-id'),
+                            // get the rocktree item title excluding the child count label if being shown
+                            name: $li.find('.rocktree-name').first().attr('title')
+                        });
+                    }
                 });
 
                 self.selectedNodes = selectedNodes;
+
+
                 self.$el.trigger('rockTree:selected', id);
                 self.$el.trigger('rockTree:itemClicked', id);
 
@@ -693,7 +707,7 @@
                     for (var i = 0; i < childNodes.length; i++) {
                         var selected = false;
                         for (var j = 0; j < self.selectedNodes.length; j++) {
-                            if (self.selectedNodes[j].id == childNodes[i].id) {
+                            if (self.selectedNodes[j].id === childNodes[i].id) {
                                 selected = true;
                                 break;
                             }
@@ -710,7 +724,7 @@
                     for (var i = 0; i < self.selectedNodes.length; i++) {
                         var isAChildNode = false;
                         for (var j = 0; j < childNodes.length; j++) {
-                            if (childNodes[j].id == self.selectedNodes[i].id) {
+                            if (childNodes[j].id === self.selectedNodes[i].id) {
                                 isAChildNode = true;
                                 break;
                             }

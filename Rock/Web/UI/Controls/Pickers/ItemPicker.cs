@@ -246,12 +246,37 @@ namespace Rock.Web.UI.Controls
         private HiddenFieldWithClass _hfExpandedCategoryIds;
         private HiddenFieldWithClass _hfItemName;
         private HiddenFieldWithClass _hfItemRestUrlExtraParams;
+        private HiddenField _hfSearchValue;
+
         private HtmlAnchor _btnSelect;
         private HtmlAnchor _btnSelectNone;
-
         #endregion
 
         #region Properties
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the <see cref="ItemPicker"/> should allow a search when used for single select
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [enhance for long list]; otherwise, <c>false</c>.
+        /// </value>
+        public bool EnhanceForLongLists
+        {
+            get { return ViewState["EnhanceForLongLists"] as bool? ?? false; }
+            set { ViewState["EnhanceForLongLists"] = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the <see cref="ItemPicker"/> should display the child count item count label on the parent item.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [display child item count label]; otherwise, <c>false</c>.
+        /// </value>
+        public bool DisplayChildItemCountLabel
+        {
+            get { return ViewState["DisplayChildItemCountLabel"] as bool? ?? false; }
+            set { ViewState["DisplayChildItemCountLabel"] = value; }
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether the control should be displayed Full-Width
@@ -272,6 +297,18 @@ namespace Rock.Web.UI.Controls
             }
         }
 
+
+        /// <summary>
+        /// Gets or sets the dropdown picker menu classes. Default: 'picker-menu dropdown-menu'
+        /// </summary>
+        /// <value>
+        /// The CSS classes to apply.
+        /// </value>
+        public string PickerMenuCssClasses
+        {
+            get { return ViewState["PickerMenuCssClass"] as string ?? "picker-menu dropdown-menu"; }
+            set { ViewState["PickerMenuCssClass"] = value; }
+        }
         /// <summary>
         /// Gets the item rest URL.
         /// </summary>
@@ -650,6 +687,7 @@ namespace Rock.Web.UI.Controls
             RequiredFieldValidator = new HiddenFieldValidator();
             HelpBlock = new HelpBlock();
             WarningBlock = new WarningBlock();
+            DisplayChildItemCountLabel = true;
         }
 
         #endregion
@@ -680,6 +718,11 @@ namespace Rock.Web.UI.Controls
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+
+            if ( Page.IsPostBack )
+            {
+
+            }
         }
 
         /// <summary>
@@ -687,7 +730,8 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         protected virtual void RegisterJavaScript()
         {
-            string treeViewScript =
+
+            var treeViewScript =
 $@"Rock.controls.itemPicker.initialize({{ 
     controlId: '{this.ClientID}',
     restUrl: '{this.ResolveUrl( ItemRestUrl )}',
@@ -698,10 +742,15 @@ $@"Rock.controls.itemPicker.initialize({{
     restParams: $('#{_hfItemRestUrlExtraParams.ClientID}').val(),
     expandedIds: [{this.InitialItemParentIds}],
     expandedCategoryIds: [{this.ExpandedCategoryIds}],
-    showSelectChildren: {this.ShowSelectChildren.ToString().ToLower()}
+    showSelectChildren: {this.ShowSelectChildren.ToString().ToLower()},
+    enhanceForLongLists: {this.EnhanceForLongLists.ToString().ToLower()},
+    displayChildItemCountLabel: {this.DisplayChildItemCountLabel.ToString().ToLower()}
 }});
 ";
             ScriptManager.RegisterStartupScript( this, this.GetType(), "item_picker-treeviewscript_" + this.ClientID, treeViewScript, true );
+
+            // Search Control
+
         }
 
         /// <summary>
@@ -764,6 +813,13 @@ $@"Rock.controls.itemPicker.initialize({{
                 _btnSelectNone.ServerClick += btnSelect_Click;
             }
 
+
+            if ( EnhanceForLongLists )
+            {
+                _hfSearchValue = new HiddenField();
+                _hfSearchValue.ID = "hfSearchValue";
+            }
+
             Controls.Add( _hfItemId );
             Controls.Add( _hfInitialItemParentIds );
             Controls.Add( _hfExpandedCategoryIds );
@@ -771,6 +827,11 @@ $@"Rock.controls.itemPicker.initialize({{
             Controls.Add( _hfItemRestUrlExtraParams );
             Controls.Add( _btnSelect );
             Controls.Add( _btnSelectNone );
+
+            if ( _hfSearchValue != null )
+            {
+                Controls.Add( _hfSearchValue );
+            }
 
             RockControlHelper.CreateChildControls( this, Controls );
 
@@ -800,6 +861,34 @@ $@"Rock.controls.itemPicker.initialize({{
         {
             if ( this.Enabled )
             {
+                // style tag
+                writer.RenderBeginTag( HtmlTextWriterTag.Style );
+
+                if ( EnhanceForLongLists )
+                {
+                    writer.Write( @"
+                    .input-group-addon-override {
+                             border-width: 1px 1px 1px 0px !important;
+                             background-color:transparent;
+                    }
+
+                    .form-control-override {
+                         border-width: 1px 0px 1px 1px !important;
+                    }
+
+                    .form-control-override:focus {
+                         border-color: #dfe0e1 !important;
+                         box-shadow: none !important;
+                    }
+
+                    .item-picker-search {
+                         padding-bottom:15px !important;
+                    }" );
+                }
+
+                writer.RenderEndTag();
+                // end style tag
+
                 writer.AddAttribute( "id", this.ClientID.ToString() );
 
                 List<string> pickerClasses = new List<string>();
@@ -826,6 +915,11 @@ $@"Rock.controls.itemPicker.initialize({{
                 _hfItemName.RenderControl( writer );
                 _hfItemRestUrlExtraParams.RenderControl( writer );
 
+                if ( _hfSearchValue != null )
+                {
+                    _hfSearchValue.RenderControl( writer );
+                }
+
                 if ( !HidePickerLabel )
                 {
                     string pickerLabelHtmlFormat = @"
@@ -843,7 +937,7 @@ $@"Rock.controls.itemPicker.initialize({{
                 }
 
                 // picker menu
-                writer.AddAttribute( "class", "picker-menu dropdown-menu" );
+                writer.AddAttribute( "class", PickerMenuCssClasses );
                 if ( ShowDropDown )
                 {
                     writer.AddStyleAttribute( HtmlTextWriterStyle.Display, "block" );
@@ -869,12 +963,13 @@ $@"Rock.controls.itemPicker.initialize({{
                                 </div>
                                 <div class='viewport'>
                                     <div class='overview'>
-                                        <div id='treeviewItems_{0}' class='treeview treeview-items'></div>        
+                                        <div id='treeviewItems_{0}' class='treeview treeview-items'>               
+                                           <!-- Search is rendered here if EnhanceForLongLists is true -->   
+                                        </div>
                                     </div>
                                 </div>
-                            </div>",
-                           this.ClientID );
-
+                            </div>", this.ClientID);
+                
                 // picker actions
                 writer.AddAttribute( "class", "picker-actions" );
                 writer.RenderBeginTag( HtmlTextWriterTag.Div );

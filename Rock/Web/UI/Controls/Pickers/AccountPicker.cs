@@ -37,6 +37,11 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         private HyperLink _btnSelectAll;
 
+        /// <summary>
+        /// The checkbox to show inactive groups
+        /// </summary>
+        private RockCheckBox _cbShowInactiveAccounts;
+
         #endregion
 
         /// <summary>
@@ -45,6 +50,9 @@ namespace Rock.Web.UI.Controls
         public AccountPicker() : base()
         {
             this.ShowSelectChildren = true;
+            this.EnhanceForLongLists = true;
+            this.PickerMenuCssClasses = "picker-menu-w500 dropdown-menu";
+            this.DisplayChildItemCountLabel = false;
         }
 
         /// <summary>
@@ -63,7 +71,7 @@ namespace Rock.Web.UI.Controls
             set
             {
                 ViewState["DisplayActiveOnly"] = value;
-                SetExtraRestParams();
+                SetAccountExtraRestParams();
             }
         }
 
@@ -83,7 +91,7 @@ namespace Rock.Web.UI.Controls
             set
             {
                 ViewState["DisplayPublicName"] = value;
-                SetExtraRestParams();
+                SetAccountExtraRestParams();
             }
         }
 
@@ -115,16 +123,70 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Gets or sets the root account identifier.
+        /// </summary>
+        /// <value>
+        /// The root account identifier.
+        /// </value>
+        public int? RootAccountId
+        {
+            get
+            {
+                return ViewState["RootAccountId"] as int?;
+            }
+
+            set
+            {
+                ViewState["RootAccountId"] = value;
+                SetAccountExtraRestParams();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the included group type ids.
+        /// </summary>
+        /// <value>
+        /// The included group type ids.
+        /// </value>
+        public List<int> IncludedAccountTypeIds
+        {
+            get
+            {
+                return ViewState["IncludedAccountTypeIds"] as List<int> ?? new List<int>();
+            }
+
+            set
+            {
+                ViewState["IncludedAccountTypeIds"] = value;
+                SetAccountExtraRestParams();
+            }
+
+        }
+        /// <summary>
         /// Called by the ASP.NET page framework to notify server controls that use composition-based implementation to create any child controls they contain in preparation for posting back or rendering.
         /// </summary>
         protected override void CreateChildControls()
         {
             base.CreateChildControls();
 
-            _btnSelectAll = new HyperLink();
-            _btnSelectAll.ID = "_btnSelectAll";
-            _btnSelectAll.CssClass = "btn btn-default btn-xs js-select-all pull-right";
-            _btnSelectAll.Text = "Select All";
+            _cbShowInactiveAccounts = new RockCheckBox
+            {
+                ContainerCssClass = "pull-right",
+                SelectedIconCssClass = "fa fa-check-square-o",
+                UnSelectedIconCssClass = "fa fa-square-o",
+                ID = this.ID + $"{nameof( _cbShowInactiveAccounts )}",
+                Text = "Show Inactive",
+                AutoPostBack = true
+            };
+            _cbShowInactiveAccounts.CheckedChanged += _cbShowInactiveAccounts_CheckedChanged;
+            this.Controls.Add( _cbShowInactiveAccounts );
+
+            _btnSelectAll = new HyperLink
+            {
+                ID = "_btnSelectAll",
+                CssClass = "btn btn-default btn-xs js-select-all pull-right",
+                Text = "Select All"
+            };
 
             this.Controls.Add( _btnSelectAll );
         }
@@ -141,6 +203,8 @@ namespace Rock.Web.UI.Controls
             {
                 _btnSelectAll.RenderControl( writer );
             }
+
+            _cbShowInactiveAccounts.RenderControl( writer );
         }
 
         /// <summary>
@@ -150,7 +214,7 @@ namespace Rock.Web.UI.Controls
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            SetExtraRestParams();
+            SetAccountExtraRestParams();
             this.IconCssClass = "fa fa-building-o";
         }
 
@@ -178,36 +242,24 @@ namespace Rock.Web.UI.Controls
         /// Sets the value.
         /// </summary>
         /// <param name="account">The account.</param>
+
         public void SetValue( FinancialAccount account )
         {
             if ( account != null )
             {
                 ItemId = account.Id.ToString();
-                List<int> parentAccountIds = new List<int>();
-                var parentAccount = account.ParentAccount;
 
-                while ( parentAccount != null )
-                {
-                    if ( parentAccountIds.Contains( parentAccount.Id ) )
-                    {
-                        // infinite recursion
-                        break;
-                    }
-
-                    parentAccountIds.Insert( 0, parentAccount.Id );
-                    parentAccount = parentAccount.ParentAccount;
-                }
-
-                InitialItemParentIds = parentAccountIds.AsDelimited( "," );
-                ItemName = this.DisplayPublicName ? account.PublicName : account.Name;
+                var parentGroupIds = GetFinancialAccountAncestorsIdList( account.ParentAccount );
+                InitialItemParentIds = parentGroupIds.AsDelimited( "," );
+                ItemName = account.Name;
             }
             else
             {
                 ItemId = Constants.None.IdValue;
                 ItemName = Constants.None.TextHtml;
             }
-        }
 
+        }
         /// <summary>
         /// Returns a list of the ancestor FinancialAccounts of the specified FinancialAccount.
         /// If the ParentFinancialAccount property of the FinancialAccount is not populated, it is assumed to be a top-level node.
@@ -249,11 +301,11 @@ namespace Rock.Web.UI.Controls
         {
             var financialAccounts = accounts.ToList();
 
-            if ( financialAccounts.Any() )
+            if ( financialAccounts != null && financialAccounts.Any() )
             {
                 var ids = new List<string>();
                 var names = new List<string>();
-                var parentAccountIds = new List<int>();
+                var parrentAccountIds = new List<int>();
 
                 foreach ( var account in accounts )
                 {
@@ -261,20 +313,23 @@ namespace Rock.Web.UI.Controls
                     {
                         ids.Add( account.Id.ToString() );
                         names.Add( this.DisplayPublicName ? account.PublicName : account.Name );
-                        var parentAccount = account.ParentAccount;
-                        var accountParentIds = GetFinancialAccountAncestorsIdList( parentAccount );
-                        foreach ( var accountParentId in accountParentIds )
+                        if ( account.ParentAccount != null && !parrentAccountIds.Contains( account.ParentAccount.Id ) )
                         {
-                            if ( !parentAccountIds.Contains( accountParentId ) )
+                            var parrentAccount = account.ParentAccount;
+                            var accountParentIds = GetFinancialAccountAncestorsIdList( parrentAccount );
+                            foreach ( var accountParentId in accountParentIds )
                             {
-                                parentAccountIds.Add( accountParentId );
+                                if ( !parrentAccountIds.Contains( accountParentId ) )
+                                {
+                                    parrentAccountIds.Add( accountParentId );
+                                }
                             }
                         }
                     }
                 }
 
-                // NOTE: Order is important (parents before children)
-                InitialItemParentIds = parentAccountIds.AsDelimited( "," );
+                // NOTE: Order is important (parents before children) since the GroupTreeView loads on demand
+                InitialItemParentIds = parrentAccountIds.AsDelimited( "," );
                 ItemIds = ids;
                 ItemNames = names;
             }
@@ -290,8 +345,14 @@ namespace Rock.Web.UI.Controls
         /// </summary>
         protected override void SetValueOnSelect()
         {
-            var item = new FinancialAccountService( new RockContext() ).Get( int.Parse( ItemId ) );
-            this.SetValue( item );
+            var accountId = ItemId.AsIntegerOrNull();
+            FinancialAccount account = null;
+            if ( accountId.HasValue && accountId > 0 )
+            {
+                account = new FinancialAccountService( new RockContext() ).Get( accountId.Value );
+            }
+
+            SetValue( account );
         }
 
         /// <summary>
@@ -300,9 +361,19 @@ namespace Rock.Web.UI.Controls
         /// <exception cref="System.NotImplementedException"></exception>
         protected override void SetValuesOnSelect()
         {
-            var itemIds = ItemIds.Select( int.Parse );
-            var items = new FinancialAccountService( new RockContext() ).Queryable().Where( i => itemIds.Contains( i.Id ) );
-            this.SetValues( items );
+            var accountIds = ItemIds.Where( i => i != "0" ).AsIntegerList();
+            if ( accountIds.Any() )
+            {
+                var accounts = new FinancialAccountService( new RockContext() )
+                    .Queryable()
+                    .Where( g => accountIds.Contains( g.Id ) )
+                    .ToList();
+                this.SetValues( accounts );
+            }
+            else
+            {
+                this.SetValues( null );
+            }
         }
 
         /// <summary>
@@ -317,12 +388,34 @@ namespace Rock.Web.UI.Controls
         }
 
         /// <summary>
+        /// Handles the CheckedChanged event of the _cbShowInactiveAccounts control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        public void _cbShowInactiveAccounts_CheckedChanged( object sender, EventArgs e )
+        {
+            ShowDropDown = true;
+           this.SetAccountExtraRestParams( _cbShowInactiveAccounts.Checked );
+        }
+
+        /// <summary>
         /// Sets the extra rest parameters.
         /// </summary>
-        private void SetExtraRestParams()
+        private void SetAccountExtraRestParams( bool includeInactiveAccounts = false )
         {
+            var displayActiveOnly = this.DisplayActiveOnly || !includeInactiveAccounts;
+
             var extraParams = new System.Text.StringBuilder();
-            extraParams.Append( $"/{this.DisplayActiveOnly.ToString()}/{this.DisplayPublicName.ToString()}" );
+            extraParams.Append( $"/{displayActiveOnly}/{this.DisplayPublicName}" );
+            if ( RootAccountId.HasValue )
+            {
+                extraParams.Append( $"&rootAccountId={RootAccountId.Value}" );
+            }
+
+            if ( IncludedAccountTypeIds != null && IncludedAccountTypeIds.Any() )
+            {
+                extraParams.Append( $"&includedAccountTypeIds={IncludedAccountTypeIds.AsDelimited( "," )}" );
+            }
             ItemRestUrlExtraParams = extraParams.ToString();
         }
     }

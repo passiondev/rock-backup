@@ -50,6 +50,7 @@ namespace Rock.Web.UI.Controls
         public GroupPicker() : base()
         {
             this.ShowSelectChildren = true;
+            this.EnhanceForLongLists = true;
         }
 
         /// <summary>

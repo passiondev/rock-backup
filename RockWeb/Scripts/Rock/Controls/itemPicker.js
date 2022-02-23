@@ -19,6 +19,8 @@
                 var $control = $('#' + this.options.controlId),
                     $tree = $control.find('.treeview'),
                     treeOptions = {
+                        displayChildItemCountLabel: this.options.displayChildItemCountLabel,
+                        enhanceForLongLists: this.options.enhanceForLongLists,
                         multiselect: this.options.allowMultiSelect,
                         categorySelection: this.options.allowCategorySelection,
                         categoryPrefix: this.options.categoryPrefix,
@@ -41,6 +43,7 @@
 
                 // clean up the tree (in case it was initialized already, but we are rebuilding it)
                 var rockTree = $tree.data('rockTree');
+
                 if (rockTree) {
                     rockTree.nodes = [];
                 }
@@ -76,7 +79,9 @@
                     treeOptions.expandedCategoryIds = $hfExpandedCategoryIds.val().split(',');
                 }
 
+                // Initialize the rockTree and pass the tree options also makes http fetches
                 $tree.rockTree(treeOptions);
+
                 this.updateScrollbar();
             },
             initializeEventHandlers: function () {
@@ -103,19 +108,26 @@
                     })
                     .on('rockTree:rendered', function (evt) {
                         self.scrollToSelectedItem();
+
+                        // Render the search control if EnhanceForLongLists is true from the server
+                        createSearchControl(self);
+                    })
+                    .on('rockTree:fetchCompleted', function (evt,data) {
+                        console.debug("rockTree:fetchCompleted", data);
                     });
 
                 $control.find('a.picker-label').on('click', function (e) {
                     e.preventDefault();
                     $(this).toggleClass("active");
-                    $control.find('.picker-menu').first().toggle(0, function () {
+                    $control.find('[class^="picker-menu"]').first().toggle(0, function () {
                         self.scrollToSelectedItem();
                     });
                 });
 
                 $control.find('.picker-cancel').on('click', function () {
                     $(this).toggleClass("active");
-                    $(this).closest('.picker-menu').toggle(0, function () {
+                    $(this).toggleClass("active");console
+                    $(this).closest('[class^="picker-menu"]').toggle(0, function () {
                         self.updateScrollbar();
                     });
                     $(this).closest('a.picker-label').toggleClass("active");
@@ -127,14 +139,19 @@
                     $control.find('.picker-select-none').show();
                 }
 
+                // Item selected click
                 $control.find('.picker-btn').on('click', function (el) {
 
                     var rockTree = $control.find('.treeview').data('rockTree'),
                         selectedNodes = rockTree.selectedNodes,
                         selectedIds = [],
                         selectedNames = [];
+
+
+
                     $.each(selectedNodes, function (index, node) {
                         var nodeName = $("<textarea/>").html(node.name).text();
+
                         selectedNames.push(nodeName);
                         if (!selectedIds.includes(node.id)) {
                             selectedIds.push(node.id);
@@ -152,7 +169,7 @@
                     $spanNames.attr('title', $spanNames.text());
 
                     $(this).closest('a.picker-label').toggleClass("active");
-                    $(this).closest('.picker-menu').toggle(0, function () {
+                    $(this).closest('[class^="picker-menu"]').toggle(0, function () {
                         self.updateScrollbar();
                     });
 
@@ -169,6 +186,7 @@
                     e.stopImmediatePropagation();
                     var rockTree = $control.find('.treeview').data('rockTree');
                     rockTree.clear();
+
                     $hfItemIds.val('0').trigger('change'); // .trigger('change') is used to cause jQuery to fire any "onchange" event handlers for this hidden field.
                     $hfItemNames.val('');
 
@@ -183,32 +201,30 @@
                 });
 
                 // clicking on the 'select all' btn
-                $control.on('click', '.js-select-all', function (e)
-                {
-                  var rockTree = $control.find('.treeview').data('rockTree');
+                $control.on('click', '.js-select-all', function (e) {
+                    var rockTree = $control.find('.treeview').data('rockTree');
 
-                  e.preventDefault();
-                  e.stopPropagation();
+                    e.preventDefault();
+                    e.stopPropagation();
 
-                  var $itemNameNodes = rockTree.$el.find('.rocktree-name');
+                    var $itemNameNodes = rockTree.$el.find('.rocktree-name');
 
-                  var allItemNodesAlreadySelected = true;
-                  $itemNameNodes.each(function (a)
-                  {
-                    if (!$(this).hasClass('selected')) {
-                      allItemNodesAlreadySelected = false;
+                    var allItemNodesAlreadySelected = true;
+                    $itemNameNodes.each(function (a) {
+                        if (!$(this).hasClass('selected')) {
+                            allItemNodesAlreadySelected = false;
+                        }
+                    });
+
+                    if (!allItemNodesAlreadySelected) {
+                        // mark them all as unselected (just in case some are selected already), then click them to select them
+                        $itemNameNodes.removeClass('selected');
+                        $itemNameNodes.trigger('click');
+                    } else {
+                        // if all were already selected, toggle them to unselected
+                        rockTree.setSelected([]);
+                        $itemNameNodes.removeClass('selected');
                     }
-                  });
-
-                  if (!allItemNodesAlreadySelected) {
-                    // mark them all as unselected (just in case some are selected already), then click them to select them
-                    $itemNameNodes.removeClass('selected');
-                    $itemNameNodes.trigger('click');
-                  } else {
-                    // if all were already selected, toggle them to unselected
-                    rockTree.setSelected([]);
-                    $itemNameNodes.removeClass('selected');
-                  }
                 });
             },
             updateScrollbar: function (sPosition) {
@@ -229,7 +245,7 @@
                 Rock.dialogs.updateModalScrollBar(this.options.controlId);
             },
             scrollToSelectedItem: function () {
-                var $selectedItem = $('#' + this.options.controlId).find('.picker-menu').find('.selected').first();
+                var $selectedItem = $('#' + this.options.controlId + ' [class^="picker-menu"]').find('.selected').first();
                 if ($selectedItem.length && (!this.alreadyScrolledToSelected)) {
                     this.updateScrollbar();
                     this.iScroll.scrollToElement('.selected', '0s');
@@ -254,7 +270,9 @@
                 selectedIds: null,
                 expandedIds: null,
                 expandedCategoryIds: null,
-                showSelectChildren: false
+                showSelectChildren: false,
+                enhanceForLongLists: false,
+                displayChildItemCountLabel: false,
             },
             controls: {},
             initialize: function (options) {
@@ -275,6 +293,62 @@
                 itemPicker.initialize();
             }
         };
+
+        const createSearchControl = function (rockTree) {
+            var options = rockTree.options;
+
+            if (options.enhanceForLongLists === true) {
+
+                var controlId = options.controlId;
+
+                const searchInputControl = '#' + controlId + '_itemPickerSearchInput';
+                const searchValueField = '#' + controlId + '_hfSearchValue';
+
+                var searchControl =
+                    '<div id="' + controlId + '_itemPickerSearch">' +
+                    '  <div class="input-group item-picker-search">' +
+                    '    <input id="' + controlId + '_itemPickerSearchInput" class="form-control form-control-override" type="text" autocomplete="on" />' +
+                    '      <div class="input-group-addon input-group-addon-override">' +
+                    '        <i class="fa fa-search text-gray-600"></i>' +
+                    '      </div>' +
+                    '  </div>' +
+                    '  <div id="' + controlId + '_treeItems' + '">' +
+                    '</div>';
+
+                // Get all of the rendered items
+                var itemsHtml = $('#' + controlId + ' .treeview-items').html();
+                $('#' + controlId + ' .treeview-items').html("");
+
+                // Add the search control after rendering
+                $('#' + controlId + ' .treeview').prepend(searchControl);
+
+                $('#' + controlId + '_treeItems').append(itemsHtml);             
+
+                // Handle the input searching
+                $(searchInputControl).keyup(function (keyEvent) {
+                    
+                    var that = this, $allListElements = $('#' + controlId + '_itemPickerSearch ul > li');
+
+                    $(searchValueField).val($(searchInputControl).val());
+
+                    var $matchingListElements = $allListElements.filter(function (i, li) {
+                        var listItemText = $(li).text().toUpperCase(),
+                            searchText = that.value.toUpperCase();
+                        return ~listItemText.indexOf(searchText);
+                    });
+                    $allListElements.hide();
+                    $matchingListElements.show();
+                });
+
+                // Check for existing input val (likely on postbacks) then set the search value and fire the search
+                var existingVal = $(searchValueField).val();
+                if (existingVal && existingVal.length > 0) {
+                    
+                    $(searchInputControl).val(existingVal);
+                    $(searchInputControl).trigger('keyup');
+                }
+            }
+        }
 
         return exports;
     }());

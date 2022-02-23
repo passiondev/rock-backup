@@ -69,7 +69,7 @@ namespace Rock.Rest.Controllers
             if ( activeOnly )
             {
                 qry = qry
-                    .Where( f => f.IsActive == true );
+                    .Where( f => f.IsActive == activeOnly );
             }
 
             var accountList = qry
@@ -77,37 +77,38 @@ namespace Rock.Rest.Controllers
                 .ThenBy( f => f.Name )
                 .ToList();
 
-            var accountItemList = accountList.Select( a => new TreeViewItem
+            var accountTreeViewItems = accountList.Select( a => new TreeViewItem
             {
                 Id = a.Id.ToString(),
-                Name = HttpUtility.HtmlEncode( displayPublicName ? a.PublicName : a.Name )
+                Name = HttpUtility.HtmlEncode( displayPublicName ? a.PublicName : a.Name ),
+                IsActive = a.IsActive
             } ).ToList();
 
             var resultIds = accountList.Select( f => f.Id ).ToList();
 
-            var qryHasChildren = Get()
+            var childrenList = Get()
                 .Where( f =>
                     f.ParentAccountId.HasValue &&
                     resultIds.Contains( f.ParentAccountId.Value ) )
                 .Select( f => f.ParentAccountId.Value )
-                .Distinct()
                 .ToList();
 
-            foreach ( var accountItem in accountItemList )
+            foreach ( var accountTreeViewItem in accountTreeViewItems )
             {
-                int accountId = int.Parse( accountItem.Id );
-                accountItem.HasChildren = qryHasChildren.Any( f => f == accountId );
-                if ( accountItem.HasChildren )
+                int accountId = int.Parse( accountTreeViewItem.Id );
+                accountTreeViewItem.HasChildren = childrenList.Any( f => f == accountId );
+                if ( accountTreeViewItem.HasChildren )
                 {
+                    accountTreeViewItem.CountInfo = childrenList?.Count();
                     // since there usually aren't that many accounts, go ahead and fetch all the children so that they don't need to be lazy loaded.
                     // this will also help the "Select Children" btn in the AccountPicker work better
-                    accountItem.Children = this.GetChildren( accountId, activeOnly, displayPublicName ).ToList();
+                    //accountItem.Children = this.GetChildren( accountId, activeOnly, displayPublicName ).ToList();
                 }
 
-                accountItem.IconCssClass = "fa fa-file-o";
+                accountTreeViewItem.IconCssClass = "fa fa-file-o";
             }
 
-            return accountItemList.AsQueryable();
+            return accountTreeViewItems.AsQueryable();
         }
     }
 }
