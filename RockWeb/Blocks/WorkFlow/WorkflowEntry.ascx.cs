@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
+using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 
 using Rock;
@@ -752,6 +753,48 @@ namespace RockWeb.Blocks.WorkFlow
 
             phAttributes.Controls.Clear();
 
+
+            var formSectionNone = new Panel()
+            {
+                ID = $"pnlFormSection_none",
+                CssClass = "row",
+                Visible = form.FormAttributes.Any( x => !x.ActionFormSectionId.HasValue )
+            };
+
+            phWorkflowFormAttributes.Controls.Add( formSectionNone );
+
+            var formSections = form.FormAttributes.Select( a => a.ActionFormSectionId ).Where( a => a.HasValue ).Distinct().ToList()
+                .Select( a => WorkflowActionFormSectionCache.Get( a.Value ) )
+                .OrderBy( a => a.Order ).ThenBy( a => a.Title )
+                .ToList();
+
+            Dictionary<int, Control> formSectionControlLookup = new Dictionary<int, Control>();
+
+            foreach ( var formSection in formSections )
+            {
+                var formSectionControl = new Panel
+                {
+                    ID = $"pnlFormSection_{formSection.Id}",
+                    CssClass = "form-section"
+                };
+
+                //if (formSection.)
+
+                HtmlGenericControl formSectionRow = new HtmlGenericControl( "div" );
+                formSectionRow.AddCssClass( "row" );
+                formSectionControl.Controls.Add( formSectionRow );
+                if ( formSection.Title.IsNotNullOrWhiteSpace() )
+                {
+                    var formSectionHeader = new HtmlGenericControl( "h1" );
+                    formSectionHeader.InnerText = formSection.Title;
+                    phWorkflowFormAttributes.Controls.Add( formSectionHeader );
+                }
+
+                phWorkflowFormAttributes.Controls.Add( formSectionControl );
+
+                formSectionControlLookup.Add( formSection.Id, formSectionRow );
+            }
+
             foreach ( var formAttribute in form.FormAttributes.OrderBy( a => a.Order ) )
             {
                 if ( !formAttribute.IsVisible )
@@ -786,10 +829,24 @@ namespace RockWeb.Blocks.WorkFlow
 
                 fieldVisibilityWrapper.EditValueUpdated += ( object sender, FieldVisibilityWrapper.FieldEventArgs args ) =>
                 {
-                    FieldVisibilityWrapper.ApplyFieldVisibilityRules( phAttributes );
+                    FieldVisibilityWrapper.ApplyFieldVisibilityRules( phWorkflowFormAttributes );
                 };
 
-                phAttributes.Controls.Add( fieldVisibilityWrapper );
+                Control sectionControl;
+                if ( formAttribute.ActionFormSectionId.HasValue )
+                {
+                    sectionControl = formSectionControlLookup.GetValueOrNull( formAttribute.ActionFormSectionId.Value );
+                }
+                else
+                {
+                    sectionControl = formSectionNone;
+                }
+
+                HtmlGenericControl fieldColumnContainer = new HtmlGenericControl( "div" );
+                fieldColumnContainer.AddCssClass( $"col-md-{formAttribute.ColumnSize ?? 12}" );
+                sectionControl.Controls.Add( fieldColumnContainer );
+
+                fieldColumnContainer.Controls.Add( fieldVisibilityWrapper );
 
                 if ( !string.IsNullOrWhiteSpace( formAttribute.PreHtml ) )
                 {
@@ -805,11 +862,11 @@ namespace RockWeb.Blocks.WorkFlow
                     // get formatted value
                     if ( attribute.FieldType.Class == typeof( Rock.Field.Types.ImageFieldType ).FullName )
                     {
-                        formattedValue = field.FormatValueAsHtml( phAttributes, attribute.EntityTypeId, _activity.Id, value, attribute.QualifierValues, true );
+                        formattedValue = field.FormatValueAsHtml( fieldColumnContainer, attribute.EntityTypeId, _activity.Id, value, attribute.QualifierValues, true );
                     }
                     else
                     {
-                        formattedValue = field.FormatValueAsHtml( phAttributes, attribute.EntityTypeId, _activity.Id, value, attribute.QualifierValues );
+                        formattedValue = field.FormatValueAsHtml( fieldColumnContainer, attribute.EntityTypeId, _activity.Id, value, attribute.QualifierValues );
                     }
 
                     if ( formAttribute.HideLabel )
