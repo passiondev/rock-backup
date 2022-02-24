@@ -751,8 +751,7 @@ namespace RockWeb.Blocks.WorkFlow
                 BuildPersonEntryForm( _action, form, setValues, mergeFields );
             }
 
-            phAttributes.Controls.Clear();
-
+            phWorkflowFormAttributes.Controls.Clear();
 
             var formSectionNone = new Panel()
             {
@@ -926,7 +925,7 @@ namespace RockWeb.Blocks.WorkFlow
                 }
             }
 
-            FieldVisibilityWrapper.ApplyFieldVisibilityRules( phAttributes );
+            FieldVisibilityWrapper.ApplyFieldVisibilityRules(phWorkflowFormAttributes );
 
             if ( form.AllowNotes.HasValue && form.AllowNotes.Value && _workflow != null && _workflow.Id != 0 )
             {
@@ -1613,7 +1612,7 @@ namespace RockWeb.Blocks.WorkFlow
             foreach ( WorkflowActionFormAttributeCache formAttribute in editableFormAttributes )
             {
                 var attribute = AttributeCache.Get( formAttribute.AttributeId );
-                var control = phAttributes.FindControl( string.Format( "attribute_field_{0}", formAttribute.AttributeId ) );
+                var control = phWorkflowFormAttributes.FindControl( string.Format( "attribute_field_{0}", formAttribute.AttributeId ) );
 
                 if ( attribute != null && control != null )
                 {

@@ -72,7 +72,7 @@
                             </asp:Panel>
 
                             <%-- Workflow Attribute Controls  --%>
-                            <asp:PlaceHolder ID="phAttributes" runat="server" />
+                            <asp:PlaceHolder ID="phWorkflowFormAttributes" runat="server" />
 
                             <asp:Literal ID="lFormFooterText" runat="server" />
 
