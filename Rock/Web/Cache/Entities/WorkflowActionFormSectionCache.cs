@@ -2,6 +2,7 @@
 using System.Runtime.Serialization;
 
 using Rock.Data;
+using Rock.Field;
 using Rock.Model;
 
 namespace Rock.Web.Cache
@@ -51,6 +52,9 @@ namespace Rock.Web.Cache
             ? DefinedValueCache.Get( SectionTypeValueId.Value )
             : null;
 
+        /// <inheritdoc cref="WorkflowActionFormSection.SectionVisibilityRulesJSON"/>
+        public FieldVisibilityRules SectionVisibilityRules { get; private set; }
+
         #endregion Properties
 
         /// <summary>
@@ -74,6 +78,8 @@ namespace Rock.Web.Cache
             this.Order = workflowActionFormSection.Order;
             this.WorkflowActionFormId = workflowActionFormSection.WorkflowActionFormId;
             this.SectionTypeValueId = workflowActionFormSection.SectionTypeValueId;
+
+            this.SectionVisibilityRules = workflowActionFormSection.SectionVisibilityRulesJSON?.FromJsonOrNull<FieldVisibilityRules>() ?? new FieldVisibilityRules();
         }
     }
 }
