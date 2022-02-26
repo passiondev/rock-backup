@@ -30,7 +30,11 @@ namespace Rock.Web.Cache
 
         /// <inheritdoc cref="WorkflowActionFormSection.SectionVisibilityRulesJSON"/>
         [DataMember]
-        public string SectionVisibilityRulesJSON { get; private set; }
+        public string SectionVisibilityRulesJSON
+        {
+            get => SectionVisibilityRules?.ToJson();
+            private set => SectionVisibilityRules = value?.FromJsonOrNull<FieldVisibilityRules>();
+        }
 
         /// <inheritdoc cref="WorkflowActionFormSection.Order"/>
         [DataMember]
@@ -70,7 +74,7 @@ namespace Rock.Web.Cache
             {
                 return;
             }
-            
+
             this.Title = workflowActionFormSection.Title;
             this.Description = workflowActionFormSection.Description;
             this.ShowHeadingSeparator = workflowActionFormSection.ShowHeadingSeparator;
@@ -78,8 +82,6 @@ namespace Rock.Web.Cache
             this.Order = workflowActionFormSection.Order;
             this.WorkflowActionFormId = workflowActionFormSection.WorkflowActionFormId;
             this.SectionTypeValueId = workflowActionFormSection.SectionTypeValueId;
-
-            this.SectionVisibilityRules = workflowActionFormSection.SectionVisibilityRulesJSON?.FromJsonOrNull<FieldVisibilityRules>() ?? new FieldVisibilityRules();
         }
     }
 }

@@ -83,7 +83,6 @@ namespace Rock.Web.Cache
         [DataMember]
         public string Description { get; private set; }
 
-
         /// <summary>
         /// Gets or sets the CategoryId of the <see cref="Rock.Model.Category"/> that this WorkflowType belongs to. 
         /// </summary>
@@ -206,7 +205,11 @@ namespace Rock.Web.Cache
 
         /// <inheritdoc cref="WorkflowType.FormBuilderSettingsJson"/>
         [DataMember]
-        public string FormBuilderSettingsJson { get; private set; }
+        public string FormBuilderSettingsJson
+        {
+            get => FormBuilderSettings?.ToJson();
+            private set => FormBuilderSettings = value?.FromJsonOrNull<Rock.Workflow.FormBuilder.FormSettings>();
+        }
 
         /// <inheritdoc cref="WorkflowType.FormStartDateTime"/>
         [DataMember]
@@ -219,6 +222,16 @@ namespace Rock.Web.Cache
         /// <inheritdoc cref="WorkflowType.WorkflowExpireDateTime"/>
         [DataMember]
         public DateTime? WorkflowExpireDateTime { get; private set; }
+
+        /// <inheritdoc cref="WorkflowType.IsLoginRequired"/>
+        [DataMember]
+        public bool IsLoginRequired { get; private set; }
+
+        /// <inheritdoc cref="WorkflowType.FormBuilderTemplate"/>
+        public WorkflowFormBuilderTemplateCache FormBuilderTemplate => FormBuilderTemplateId.HasValue ? WorkflowFormBuilderTemplateCache.Get( FormBuilderTemplateId.Value ) : null;
+
+        /// <inheritdoc cref="Rock.Workflow.FormBuilder.FormSettings"/>
+        public Rock.Workflow.FormBuilder.FormSettings FormBuilderSettings { get; private set; }
 
         /// <summary>
         /// Gets the category.
@@ -327,6 +340,7 @@ namespace Rock.Web.Cache
             FormStartDateTime = workflowType.FormStartDateTime;
             FormEndDateTime = workflowType.FormEndDateTime;
             WorkflowExpireDateTime = workflowType.WorkflowExpireDateTime;
+            IsLoginRequired = workflowType.IsLoginRequired;
 
             // set activityTypeIds to null so it load them all at once on demand
             _activityTypeIds = null;

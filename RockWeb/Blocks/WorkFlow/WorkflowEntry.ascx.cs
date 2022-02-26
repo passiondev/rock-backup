@@ -32,6 +32,7 @@ using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using Rock.Workflow.FormBuilder;
 
 namespace RockWeb.Blocks.WorkFlow
 {
@@ -385,6 +386,20 @@ namespace RockWeb.Blocks.WorkFlow
                 return false;
             }
 
+            // Check Login Requirement
+            if ( workflowType.IsLoginRequired == true && CurrentUser == null )
+            {
+                var site = RockPage.Site;
+                if ( site.LoginPageId.HasValue )
+                {
+                    site.RedirectToLoginPage( true );
+                }
+                else
+                {
+                    System.Web.Security.FormsAuthentication.RedirectToLoginPage();
+                }
+            }
+
             if ( !workflowType.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
             {
                 ShowNotes( false );
@@ -393,6 +408,34 @@ namespace RockWeb.Blocks.WorkFlow
             }
 
             if ( !( workflowType.IsActive ?? true ) )
+            {
+                ShowNotes( false );
+                ShowMessage( NotificationBoxType.Warning, "Sorry", "This type of workflow is not active." );
+                return false;
+            }
+
+            if ( workflowType.FormStartDateTime.HasValue && workflowType.FormStartDateTime.Value < RockDateTime.Now )
+            {
+                ShowNotes( false );
+                ShowMessage( NotificationBoxType.Warning, "Sorry", "This type of workflow is not active." );
+                return false;
+            }
+
+            if ( workflowType.FormEndDateTime.HasValue && workflowType.FormEndDateTime.Value > RockDateTime.Now )
+            {
+                ShowNotes( false );
+                ShowMessage( NotificationBoxType.Warning, "Sorry", "This type of workflow is not active." );
+                return false;
+            }
+
+            if ( workflowType.WorkflowExpireDateTime.HasValue && workflowType.WorkflowExpireDateTime.Value > RockDateTime.Now )
+            {
+                ShowNotes( false );
+                ShowMessage( NotificationBoxType.Warning, "Sorry", "This type of workflow is not active." );
+                return false;
+            }
+
+            if ( workflowType.FormBuilderTemplate?.IsActive == false )
             {
                 ShowNotes( false );
                 ShowMessage( NotificationBoxType.Warning, "Sorry", "This type of workflow is not active." );
@@ -1045,45 +1088,10 @@ namespace RockWeb.Blocks.WorkFlow
         private void BuildPersonEntryForm( WorkflowAction action, WorkflowActionFormCache actionForm, bool setValues, Dictionary<string, object> mergeFields )
         {
             var workflowType = GetWorkflowType();
-
-            bool allowPersonEntry;
-            string preHtml;
-            string postHtml;
-            Rock.Workflow.FormBuilder.FormPersonEntrySettings formPersonEntry;
-
-            if ( workflowType?.FormBuilderTemplateId != null )
-            {
-                var formBuilderTemplate = new WorkflowFormBuilderTemplateService( new RockContext() ).Get( workflowType.FormBuilderTemplateId.Value );
-                allowPersonEntry = formBuilderTemplate.AllowPersonEntry;
-                formPersonEntry = formBuilderTemplate.PersonEntrySettingsJson?.FromJsonOrNull<Rock.Workflow.FormBuilder.FormPersonEntrySettings>();
-                preHtml = formBuilderTemplate.FormHeader;
-                postHtml = formBuilderTemplate.FormFooter;
-            }
-            else
-            {
-                allowPersonEntry = actionForm.AllowPersonEntry;
-                preHtml = actionForm.PersonEntryPreHtml;
-                postHtml = actionForm.PersonEntryPostHtml;
-                formPersonEntry = new Rock.Workflow.FormBuilder.FormPersonEntrySettings
-                {
-                    Address = actionForm.PersonEntryAddressEntryOption,
-                    AddressTypeValueId = actionForm.PersonEntryGroupLocationTypeValueId,
-                    AutofillCurrentPerson = actionForm.PersonEntryAutofillCurrentPerson,
-                    Birthdate = actionForm.PersonEntryBirthdateEntryOption,
-                    CampusStatusValueId = actionForm.PersonEntryCampusStatusValueId,
-                    CampusTypeValueId = actionForm.PersonEntryCampusTypeValueId,
-                    ConnectionStatusValueId = actionForm.PersonEntryConnectionStatusValueId,
-                    Email = actionForm.PersonEntryEmailEntryOption,
-                    Gender = actionForm.PersonEntryGenderEntryOption,
-                    HideIfCurrentPersonKnown = actionForm.PersonEntryHideIfCurrentPersonKnown,
-                    MaritalStatus = actionForm.PersonEntryMaritalStatusEntryOption,
-                    MobilePhone = actionForm.PersonEntryMobilePhoneEntryOption,
-                    RecordStatusValueId = actionForm.PersonEntryRecordStatusValueId,
-                    ShowCampus = actionForm.PersonEntryCampusIsVisible,
-                    SpouseEntry = actionForm.PersonEntrySpouseEntryOption,
-                    SpouseLabel = actionForm.PersonEntrySpouseLabel
-                };
-            }
+            string preHtml = actionForm.PersonEntryPreHtml;
+            string postHtml = actionForm.PersonEntryPostHtml;
+            var formPersonEntrySettings = actionForm.GetFormPersonEntrySettings( workflowType.FormBuilderTemplate );
+            var allowPersonEntry = actionForm.GetAllowPersonEntry( workflowType.FormBuilderTemplate );
 
             pnlPersonEntry.Visible = allowPersonEntry;
             if ( !allowPersonEntry )
@@ -1091,7 +1099,7 @@ namespace RockWeb.Blocks.WorkFlow
                 return;
             }
 
-            if ( formPersonEntry.HideIfCurrentPersonKnown && CurrentPerson != null )
+            if ( formPersonEntrySettings.HideIfCurrentPersonKnown && CurrentPerson != null )
             {
                 pnlPersonEntry.Visible = false;
                 return;
@@ -1099,7 +1107,7 @@ namespace RockWeb.Blocks.WorkFlow
 
             lPersonEntryPreHtml.Text = preHtml.ResolveMergeFields( mergeFields );
 
-            if ( formPersonEntry.ShowCampus )
+            if ( formPersonEntrySettings.ShowCampus )
             {
                 // NOTE: If there is only one Campus in the system, this control be always be hidden
                 cpPersonEntryCampus.Visible = true;
@@ -1111,14 +1119,14 @@ namespace RockWeb.Blocks.WorkFlow
                  */
 
                 cpPersonEntryCampus.IncludeInactive = true;
-                if ( formPersonEntry.CampusStatusValueId.HasValue )
+                if ( formPersonEntrySettings.CampusStatusValueId.HasValue )
                 {
-                    cpPersonEntryCampus.CampusStatusFilter = new List<int> { formPersonEntry.CampusStatusValueId.Value };
+                    cpPersonEntryCampus.CampusStatusFilter = new List<int> { formPersonEntrySettings.CampusStatusValueId.Value };
                 }
 
-                if ( formPersonEntry.CampusTypeValueId.HasValue )
+                if ( formPersonEntrySettings.CampusTypeValueId.HasValue )
                 {
-                    cpPersonEntryCampus.CampusTypesFilter = new List<int> { formPersonEntry.CampusTypeValueId.Value };
+                    cpPersonEntryCampus.CampusTypesFilter = new List<int> { formPersonEntrySettings.CampusTypeValueId.Value };
                 }
             }
             else
@@ -1126,13 +1134,13 @@ namespace RockWeb.Blocks.WorkFlow
                 cpPersonEntryCampus.Visible = false;
             }
 
-            SetPersonEditorOptions( pePerson1, formPersonEntry );
-            SetPersonEditorOptions( pePerson2, formPersonEntry );
-            pePerson2.PersonLabelPrefix = formPersonEntry.SpouseLabel;
+            SetPersonEditorOptions( pePerson1, formPersonEntrySettings );
+            SetPersonEditorOptions( pePerson2, formPersonEntrySettings );
+            pePerson2.PersonLabelPrefix = formPersonEntrySettings.SpouseLabel;
             cbShowPerson2.TextCssClass = "font-weight-semibold";
             cbShowPerson2.ContainerCssClass = "show-spouse mt-3 mb-4";
-            cbShowPerson2.Text = string.Format( "Show {0}", formPersonEntry.SpouseLabel );
-            switch ( formPersonEntry.SpouseEntry )
+            cbShowPerson2.Text = string.Format( "Show {0}", formPersonEntrySettings.SpouseLabel );
+            switch ( formPersonEntrySettings.SpouseEntry )
             {
                 case WorkflowActionFormPersonEntryOption.Required:
                     {
@@ -1163,23 +1171,23 @@ namespace RockWeb.Blocks.WorkFlow
             }
 
             dvpMaritalStatus.DefinedTypeId = DefinedTypeCache.GetId( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() );
-            dvpMaritalStatus.Required = formPersonEntry.MaritalStatus == WorkflowActionFormPersonEntryOption.Required;
+            dvpMaritalStatus.Required = formPersonEntrySettings.MaritalStatus == WorkflowActionFormPersonEntryOption.Required;
 
-            if ( formPersonEntry.MaritalStatus == WorkflowActionFormPersonEntryOption.Hidden )
+            if ( formPersonEntrySettings.MaritalStatus == WorkflowActionFormPersonEntryOption.Hidden )
             {
                 dvpMaritalStatus.Visible = false;
             }
 
-            acPersonEntryAddress.Required = formPersonEntry.Address == WorkflowActionFormPersonEntryOption.Required;
+            acPersonEntryAddress.Required = formPersonEntrySettings.Address == WorkflowActionFormPersonEntryOption.Required;
 
             lPersonEntryPostHtml.Text = postHtml.ResolveMergeFields( mergeFields );
 
-            var promptForAddress = ( formPersonEntry.Address != WorkflowActionFormPersonEntryOption.Hidden ) && formPersonEntry.AddressTypeValueId.HasValue;
+            var promptForAddress = ( formPersonEntrySettings.Address != WorkflowActionFormPersonEntryOption.Hidden ) && formPersonEntrySettings.AddressTypeValueId.HasValue;
             acPersonEntryAddress.Visible = promptForAddress;
 
             if ( setValues )
             {
-                SetPersonEntryValues( action, formPersonEntry );
+                SetPersonEntryValues( action, formPersonEntrySettings );
             }
         }
 
@@ -1188,7 +1196,7 @@ namespace RockWeb.Blocks.WorkFlow
         /// </summary>
         /// <param name="action">The current action related to the form.</param>
         /// <param name="form">The form details.</param>
-        private void SetPersonEntryValues( WorkflowAction action, Rock.Workflow.FormBuilder.FormPersonEntrySettings formPersonEntry )
+        private void SetPersonEntryValues( WorkflowAction action, Rock.Workflow.FormBuilder.FormPersonEntrySettings formPersonEntrySettings )
         {
             var rockContext = new RockContext();
             Person personEntryPerson = null;
@@ -1212,19 +1220,19 @@ namespace RockWeb.Blocks.WorkFlow
 
             pePerson1.SetFromPerson( personEntryPerson );
 
-            if ( formPersonEntry.SpouseEntry != WorkflowActionFormPersonEntryOption.Hidden )
+            if ( formPersonEntrySettings.SpouseEntry != WorkflowActionFormPersonEntryOption.Hidden )
             {
                 pePerson2.SetFromPerson( personEntrySpouse );
             }
 
-            var promptForAddress = ( formPersonEntry.Address != WorkflowActionFormPersonEntryOption.Hidden ) && formPersonEntry.AddressTypeValueId.HasValue;
+            var promptForAddress = ( formPersonEntrySettings.Address != WorkflowActionFormPersonEntryOption.Hidden ) && formPersonEntrySettings.AddressTypeValueId.HasValue;
 
             if ( promptForAddress && personEntryFamilyId != null )
             {
-                var personEntryGroupLocationTypeValueId = formPersonEntry.AddressTypeValueId.Value;
+                var personEntryGroupLocationTypeValueId = formPersonEntrySettings.AddressTypeValueId.Value;
 
                 var familyLocation = new GroupLocationService( rockContext ).Queryable()
-                    .Where( a => a.GroupId == personEntryFamilyId.Value && a.GroupLocationTypeValueId == formPersonEntry.AddressTypeValueId ).Select( a => a.Location ).FirstOrDefault();
+                    .Where( a => a.GroupId == personEntryFamilyId.Value && a.GroupLocationTypeValueId == formPersonEntrySettings.AddressTypeValueId ).Select( a => a.Location ).FirstOrDefault();
 
                 if ( familyLocation != null )
                 {
@@ -1242,7 +1250,7 @@ namespace RockWeb.Blocks.WorkFlow
         /// </summary>
         /// <param name="personBasicEditor">The person basic editor.</param>
         /// <param name="form">The form.</param>
-        private static void SetPersonEditorOptions( PersonBasicEditor personBasicEditor, Rock.Workflow.FormBuilder.FormPersonEntrySettings formPersonEntry )
+        private static void SetPersonEditorOptions( PersonBasicEditor personBasicEditor, Rock.Workflow.FormBuilder.FormPersonEntrySettings formPersonEntrySettings )
         {
             personBasicEditor.ShowInColumns = false;
             personBasicEditor.ShowTitle = false;
@@ -1255,17 +1263,17 @@ namespace RockWeb.Blocks.WorkFlow
             personBasicEditor.ShowPersonRole = false;
             personBasicEditor.ShowGrade = false;
 
-            personBasicEditor.RequireGender = formPersonEntry.Gender == WorkflowActionFormPersonEntryOption.Required;
-            personBasicEditor.ShowGender = formPersonEntry.Gender != WorkflowActionFormPersonEntryOption.Hidden;
+            personBasicEditor.RequireGender = formPersonEntrySettings.Gender == WorkflowActionFormPersonEntryOption.Required;
+            personBasicEditor.ShowGender = formPersonEntrySettings.Gender != WorkflowActionFormPersonEntryOption.Hidden;
 
-            personBasicEditor.RequireEmail = formPersonEntry.Email == WorkflowActionFormPersonEntryOption.Required;
-            personBasicEditor.ShowEmail = formPersonEntry.Email != WorkflowActionFormPersonEntryOption.Hidden;
+            personBasicEditor.RequireEmail = formPersonEntrySettings.Email == WorkflowActionFormPersonEntryOption.Required;
+            personBasicEditor.ShowEmail = formPersonEntrySettings.Email != WorkflowActionFormPersonEntryOption.Hidden;
 
-            personBasicEditor.RequireMobilePhone = formPersonEntry.MobilePhone == WorkflowActionFormPersonEntryOption.Required;
-            personBasicEditor.ShowMobilePhone = formPersonEntry.MobilePhone != WorkflowActionFormPersonEntryOption.Hidden;
+            personBasicEditor.RequireMobilePhone = formPersonEntrySettings.MobilePhone == WorkflowActionFormPersonEntryOption.Required;
+            personBasicEditor.ShowMobilePhone = formPersonEntrySettings.MobilePhone != WorkflowActionFormPersonEntryOption.Hidden;
 
-            personBasicEditor.RequireBirthdate = formPersonEntry.Birthdate == WorkflowActionFormPersonEntryOption.Required;
-            personBasicEditor.ShowBirthdate = formPersonEntry.Birthdate != WorkflowActionFormPersonEntryOption.Hidden;
+            personBasicEditor.RequireBirthdate = formPersonEntrySettings.Birthdate == WorkflowActionFormPersonEntryOption.Required;
+            personBasicEditor.ShowBirthdate = formPersonEntrySettings.Birthdate != WorkflowActionFormPersonEntryOption.Hidden;
 
             // we have a another MaritalStatus picker that will apply to both Person and Person's Spouse
             personBasicEditor.ShowMaritalStatus = false;
@@ -1318,7 +1326,9 @@ namespace RockWeb.Blocks.WorkFlow
                 return;
             }
 
-            if ( !form.AllowPersonEntry )
+            var workflowType = GetWorkflowType();
+
+            if ( !form.GetAllowPersonEntry( workflowType.FormBuilderTemplate ) )
             {
                 return;
             }
