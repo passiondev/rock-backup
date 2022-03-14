@@ -1,0 +1,267 @@
+{% stylesheet %}
+
+.group-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50px;
+    background-position: 50% 50%;
+    background-size: cover;
+}
+
+.leaderimg1 {
+    width: 38px;
+    height: 38px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #D0D0D0;
+    border-radius: 50px;
+    background-position: 50% 50%;
+    background-size: cover;
+}
+
+.leaderimg2 {
+    width: 38px;
+    height: 38px;
+    margin-left: -10px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #D0D0D0;
+    border-radius: 50px;
+    background-position: 50% 50%;
+    background-size: cover;
+}
+
+.group-type-title {
+    font-family: Helvetica;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 18px;
+    display: flex;
+    align-items: center;
+    letter-spacing: 0.01em;
+    color: #000000;
+}
+
+.group-title-detail {
+    font-family: Helvetica;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 16px;
+    display: flex;
+    align-items: center;
+    letter-spacing: 0.01em;
+    color: #000000;
+
+}
+
+.panel {
+    background: #FFFFFF;
+    box-sizing: border-box;
+    border-radius: 6px;
+    padding: 15px 20px;
+}
+
+.group-header {
+    font-family: Helvetica;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 10px;
+    line-height: 11px;
+    display: flex;
+    align-items: center;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: #B0B0B0;
+    margin-bottom: 5px;
+}
+
+.btn-smd {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.col-sm-4 {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.in-columns {
+    -webkit-column-gap: 5px;
+    -moz-column-gap: 5px;
+    column-gap: 5px;
+    -webkit-column-width: 70px;
+    -moz-column-width: 70px;
+    column-width: 70px;
+}
+
+@media screen and (max-width: 767.98px){
+
+}
+
+{% endstylesheet %}
+
+{% javascript %}
+    function copyToClipboard(text, el) {
+        var copyTest = document.queryCommandSupported('copy');
+        var elOriginalText = el.attr('data-original-title');
+
+        if (copyTest === true) {
+            var copyTextArea = document.createElement("textarea");
+            copyTextArea.value = text;
+            document.body.appendChild(copyTextArea);
+            copyTextArea.select();
+            try {
+                var successful = document.execCommand('copy');
+            } catch (err) {
+                console.log('Oops, unable to copy');
+            }
+            document.body.removeChild(copyTextArea);
+            el.attr('data-original-title', elOriginalText);
+        } else {
+            window.prompt("Copy to clipboard: Ctrl+C or Command+C, Enter", text);
+        }
+    }
+
+    $(document).ready(function() {
+        $('.js-copy').click(function() {
+            var text = $(this).attr('data-clipboard-text');
+            var el = $(this);
+            copyToClipboard(text, el);
+        });
+    });
+{% endjavascript %}
+
+{% if rows == empty %}
+    <div class="alert alert-info">
+        There are no groups that match the criteria.
+    </div>
+{% else %}
+   <h3>Groups Displayed: {{ rows | Size }}</h3>
+{% endif %}
+
+<div class="row">
+
+        {% for row in rows %}
+
+            {% assign group = row.Id | GroupById %}
+
+                <div class="col-xs-12 col-sm-6 col-md-4">
+
+                    <div class="panel" style="border: 1px solid {{ row.GroupColor }}; min-height:525px">
+
+                        <div class="col-xs-12 panel-heading group-card">
+                            <div class="col-xs-3">
+                                <div class="group-icon" style="background-image:url('{{ row.GroupIconUrl }}'); margin-right: 10px;"></div>
+                            </div>
+                                <div class="col-xs-9" style="margin-left: -15px;">
+                                    <ul class="list-unstyled">
+                                        <li class="group-type-title">{{ row.GroupType }} Group</li>
+                                        
+                                        {% assign length = row.GroupLocation | Size %}
+                                        {% if length > 20 %}
+                                            <li>in {{ row.GroupLocation | Slice:0, 17 }}...</li>
+                                        {% else %}
+                                            <li>in {{ row.GroupLocation }}</li>
+                                        {% endif %}
+                                        
+                                    </ul>
+                                </div>
+                            <div class="col-xs-12 form-group" style="color: {{ row.GroupColor }}"><hr/></div>
+
+                        </div>
+
+                        <div class="panel-body" style="min-height:445px">
+                            {% sql %}
+                                Select 
+                                    p.Id, 
+                                    coalesce(p.FirstName, '') as FirstName, 
+                                    coalesce(p.LastName,'') as LastName, 
+                                    gm.GroupId
+                                FROM Person p
+                                inner join GroupMember gm on p.Id = gm.PersonId and gm.GroupId = {{ group.Id }}
+                                Where gm.GroupRoleId = 149 and GroupMemberStatus = 1 and IsArchived = 0
+                            {% endsql %}
+
+                            <div class="col-xs-12 form-group">
+                                <ul class="list-unstyled">
+                                    <li class="pull-right">
+                                        <ul class="pull-right list-unstyled list-inline">
+                                            {% for item in results %}
+                                                {% assign person = item.Id | PersonById %}
+                                                
+                                                {% assign remainder = forloop.index0 | Modulo:2 %}
+                                                {% if remainder == 0 %}
+                                                    <li class="leaderimg1" style="background-image:url('{{ person.PhotoUrl }}');"></li>
+                                                {% else %}
+                                                    <li class="leaderimg2" style="background-image:url('{{ person.PhotoUrl }}');margin-top:-10px"></li>
+                                                    <br>
+                                                {% endif %}
+                        
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+
+                                    <li class="group-header">Hosted by</li>
+                                        <li class="form-group group-title-detail">
+                                        {% assign groupName = '' %}
+                                        {% for item in results %}
+                                            {% if forloop.last == true %}
+                                                {% assign groupName = groupName | Append:item.FirstName | Capitalize %}
+                                            {% else %}
+                                                {% assign groupName = groupName | Append:item.FirstName | Capitalize | Append: ' + ' %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        
+                                        {% if groupName == '' %}
+                                            {{ row.Name }}
+                                        {% else %}
+                                            {{ groupName }}
+                                        {% endif %}
+                                    </li>
+                                    <li class="group-header">Meets</li>
+                                        <li class="form-group group-title-detail">{{ row.DayOfWeek }} at {{ row.TimeOfDay | Date:'h:mm tt' }}, {{ row.GroupRhythm }}</li>
+                                        
+                                    <li class="group-header">Group</li>
+                                        {% if row.AgeRangeList contains '20s, 30s, 40s, 50s+' %}
+                                            {% if row.Id == 559766 %}
+                                                <li class="form-group group-title-detail">All Ages; {{ row.GroupMix }} - childcare provided</li>
+                                            {% else %}
+                                                <li class="form-group group-title-detail">All Ages; {{ row.GroupMix }}</li>
+                                            {% endif %}
+                                        {% else %}
+                                            <li class="form-group group-title-detail">{{ row.AgeRangeList }}; {{ row.GroupMix }}</li>
+                                        {% endif %}
+                                        
+                                    <li class="group-header">Topic</li>
+                                        <li class="form-group"><div class="group-title-detail"><i class="{{ row.GroupContentIcon }} fa-fw" style="margin-right: 5px;"> </i> {{ row.GroupContentType }}</li>
+                                    
+                                    <li class="group-header">Community Group</li>
+                                        {% if row.CommunityGroup %}
+                                            <li class="form-group group-title-detail">{{ row.CommunityGroup }}</li>
+                                        {% else %}
+                                            <li class="form-group group-title-detail">I don't currently attend a Community Group</li>
+                                        {% endif %}
+
+                                    <li class="group-header">Status</li>
+                                        <li class="form-group group-title-detail">{{ row.GroupStatus }}</li>
+
+                                </ul>
+                            </div>
+                            
+
+                        </div>
+                        
+                        <div class="col-xs-12 text-center">
+                            
+                            <button id="btnCopyToClipboard" data-trigger="hover" data-placement="top" onclick="$(this).attr('data-original-title', 'Copied!').tooltip('show').attr('data-original-title', 'Copies the link to sign up for this connect group');return false;" data-delay="250" data-clipboard-text="https://connect.passion.team/page/1936?GroupId={{ row.Id }}&dow={{ row.DayOfWeek }}&OverrideCheck=true" class="btn btn-info btn-xs btn-copy-to-clipboard margin-l-md margin-b-sm text-center js-copy" data-toggle="tooltip" data-original-title="Copies the link to sign up for this connect group">Copy Sign Up Link</button>
+                                
+                        </div>
+
+                    </div>
+                         
+                </div>
+
+        {% endfor %}
+</div>

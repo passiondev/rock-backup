@@ -1,0 +1,48 @@
+{% if rows == empty %}
+    <div class="alert alert-info">
+        There are no requests to display at this time.
+    </div>
+{% endif %}
+
+    {% for row in rows %}
+        <div class="card col-md-5 lx-5 mx-4 mb-5" style="min-height:425px;">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ row.ParentFirstName }} {{ row.ParentLastName }}</h5>
+                <p class="card-text"><b>Request #: </b>{{ row.ID }}</p>
+                <p class="card-text"><b>Date of Event: </b>{{ row.EventDate | Date:'MM/dd/yyyy'}}</p>
+                <p class="card-text"><b>Gathering: </b>{{ row.Gathering }}</p>
+            
+                {% if row.CommunityGroup != '' %}
+                    <p class="card-text"><b>Community Group: </b>{{ row.CommunityGroup }}</p>
+                {% endif %}
+            
+                <p class="card-text"><b>Total Hours: </b>{{ row.TotalHours }}</p>
+                <p class="card-text"><b>Number of Children: </b>{{ row.ChildrenNum }}</p>
+                <p class="card-text"><b>Reimbursement Amount: </b>${{ row.ReimbursementAmount | AsInteger }}.00</p>
+            
+                {% if row.AdditionalComments != '' %}
+                    <p class="card-text"><b>Additional Comments: </b>{{ row.AdditionalComments }}</p>
+                {% endif %}
+            
+                <p class="card-text"><b>Initials: </b>{{ row.Initials }}</p>
+            
+                {% if row.CommunityGroup == '' %}
+                    <br>
+                {% endif %}
+            
+                {% if row.AdditionalComments == '' %}
+                    <br>
+                {% endif %}
+            
+                <div class="mt-auto">
+            
+                    <a href="https://connect.passion.team/WorkflowLaunch/375/{{ row.Guid }}" target="_blank" class="btn btn-primary">View Details</a>
+
+                    <a href="https://connect.passion.team/WorkflowEntry/375?WorkflowGuid={{ row.Guid }}&Command=Approve" target="_blank" class="btn btn-success">Approve</a>
+                
+                    <a href="https://connect.passion.team/WorkflowEntry/375?WorkflowGuid={{ row.Guid }}&Command=Deny" target="_blank" class="btn btn-danger">Deny</a>
+                
+                </div>
+            </div>
+        </div>
+    {% endfor %}

@@ -1,0 +1,56 @@
+{% if rows == empty %}
+    <div class="panel panel-block" style="min-height:275px;">
+        <div class="panel-body">
+            <h2 class="font-headline text-4xl md:text-5xl lg:text-6xl leading-none uppercase z-10 max-w-xl blend-difference text-center" style="font-family: Saol Display,Georgia,Cambria,Times New Roman,Times,serif">Role Breakdown</h2>
+            <hr />
+                
+            <div class="text-black font-expanded text-base uppercase mb-2 text-center">   
+                There is no information to display.
+            </div>
+        </div>
+    </div>
+{% else %}
+
+<div class="panel panel-block">
+    <div class="panel-body" style="min-height: 227px;">
+        <h2 class="font-headline text-4xl md:text-5xl lg:text-6xl leading-none uppercase z-10 max-w-xl blend-difference text-center" style="font-family: Saol Display,Georgia,Cambria,Times New Roman,Times,serif">Role Breakdown</h2>
+        <hr />
+        {% assign rowCount = rows | Size %}
+        {% assign roleName = 'start' %}
+        {% assign total = 0 %}
+        {% for index in (0...rowCount) %}
+            <div class='row text-black'>
+                <div class='col-sm-offset-1 font-expanded text-base'>
+                    {% if index < rowCount %}
+                        {% if rows[index].PrimaryRole contains roleName %}
+                            <h4 class="text-base tracking-tight max-w-lg mb-1 list-unstyled col-xs-offset-1">{{ rows[index].PrimaryTrack | Remove:'Residency, ' }} | {{ rows[index].RoleNum }}</h4>
+                            {% assign total = total | Plus:rows[index].RoleNum %}
+                        {% else %}
+                            {% if total > 0 %}
+                                <h4 class="text-base tracking-tight max-w-lg mb-1 list-unstyled col-xs-offset-1">Total | {{ total }}</h4>
+                                {% assign total = 0 %}
+                            {% endif %}
+                            
+                            {% assign roleName = rows[index].PrimaryRole %}
+                            
+                            {% assign check = index | Plus:1 %}
+                            {% if check < rowCount and rows[check].PrimaryRole contains roleName %}
+                                <h4 class="mb-1"><b>{{ rows[index].PrimaryRole }}</b></h4>
+                                {% assign total = total | Plus:rows[index].RoleNum %}
+                                <h4 class="text-base tracking-tight max-w-lg mb-1 list-unstyled col-xs-offset-1">{{ rows[index].PrimaryTrack | Remove:'Residency, ' }} | {{ rows[index].RoleNum }}</h4>
+                            {% else %}
+                                <h4 class="mb-1"><b>{{ rows[index].PrimaryRole }}</b> | {{ rows[index].RoleNum }}</h4>
+                            {% endif %}
+                        {% endif %}
+                    {% else if index == rowCount %}
+                        {% if total > 0 %}
+                            <h4 class="text-base tracking-tight max-w-lg mb-1 list-unstyled col-xs-offset-1">Total | {{ total }}</h4>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endif %}

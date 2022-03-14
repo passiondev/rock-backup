@@ -1,0 +1,25 @@
+SELECT TOP 5 
+	AttrVal.Value AS FirstName, 
+	LastNameAttrVal.[Value] AS LastName, 
+	JesusStoryAttrVal.[Value] AS JesusStory, 
+	HouseAreaAttrVal.[Value] AS Area,
+	AttrVal.CreatedDateTime,
+	dbo.ufnCrm_GetAddress(Person.Id,'Home','City') AS City,
+	dbo.ufnCrm_GetAddress(Person.Id,'Home','State') AS State
+FROM Workflow
+	INNER JOIN AttributeValue AttrVal 
+		ON Workflow.Id=AttrVal.EntityId AND AttrVal.AttributeId=23308
+	INNER JOIN AttributeValue LastNameAttrVal 
+		ON Workflow.Id=LastNameAttrVal.EntityId AND LastNameAttrVal.AttributeId=23309
+	INNER JOIN AttributeValue JesusStoryAttrVal
+		ON Workflow.Id=JesusStoryAttrVal.EntityId AND JesusStoryAttrVal.AttributeId=23311
+	INNER JOIN AttributeValue HouseAreaAttrVal
+		ON Workflow.Id=HouseAreaAttrVal.EntityId AND HouseAreaAttrVal.AttributeId=23456
+	INNER JOIN AttributeValue PersonAttrVal
+		ON Workflow.Id=PersonAttrVal.EntityId AND PersonAttrVal.AttributeId=23314
+	INNER JOIN PersonAlias
+		ON PersonAttrVal.[Value]=PersonAlias.Guid
+	INNER JOIN Person
+		ON PersonAlias.AliasPersonGuid=Person.Guid
+WHERE WorkflowTypeId=344 AND HouseAreaAttrVal.[Value]='Connect Groups'
+ORDER BY AttrVal.CreatedDateTime DESC

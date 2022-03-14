@@ -1,0 +1,87 @@
+WITH Candidates AS (
+    SELECT 
+        Workflow.Id AS WorkflowID
+        ,CandidatePerson.[Value] AS CandidatePerson 
+        ,PersonAlias.PersonId
+        ,CandidateName.[Value] AS CandidateName
+        ,CandidateEmail.[Value] AS CandidateEmail
+        ,ApplicationDate.[Value] AS DateApplied
+        ,ApplicationStage.[Value] AS StageOfApplication
+        ,University.[Value] AS University
+        ,GraduationDate.[Value] AS GraduationDate
+        ,PrimaryRole.[Value] AS PrimaryRole
+        ,PrimaryTrack.[Value] AS PrimaryTrack
+        ,SecondaryRole.[Value] AS SecondaryRole
+        ,ResidentSeason.[Value] AS ResidentSeason
+        ,SeasonNumber.[Value] AS SeasonNumber
+    FROM Workflow
+        INNER JOIN AttributeValue CandidatePerson ON CandidatePerson.EntityId = Workflow.Id AND CandidatePerson.AttributeId = 30041
+        INNER JOIN PersonAlias ON Cast(PersonAlias.[Guid] AS uniqueidentifier) = coalesce(CandidatePerson.[Value],'')
+        INNER JOIN AttributeValue CandidateName ON CandidateName.EntityId = Workflow.Id AND CandidateName.AttributeId = 29632
+        INNER JOIN AttributeValue CandidateEmail ON CandidateEmail.EntityId = Workflow.Id AND CandidateEmail.AttributeId = 29634
+        INNER JOIN AttributeValue ApplicationDate ON ApplicationDate.EntityId = Workflow.Id AND ApplicationDate.AttributeId = 29636
+        INNER JOIN AttributeValue ApplicationStage ON ApplicationStage.EntityId = Workflow.Id AND ApplicationStage.AttributeId = 29646
+        INNER JOIN AttributeValue University ON University.EntityId = Workflow.Id AND University.AttributeId = 29647
+        INNER JOIN AttributeValue GraduationDate ON GraduationDate.EntityId = Workflow.Id AND GraduationDate.AttributeId = 29648
+        INNER JOIN AttributeValue PrimaryRole ON PrimaryRole.EntityId = Workflow.Id AND PrimaryRole.AttributeId = 29649
+        INNER JOIN AttributeValue PrimaryTrack ON PrimaryTrack.EntityId = Workflow.Id AND PrimaryTrack.AttributeId = 29650
+        INNER JOIN AttributeValue SecondaryRole ON SecondaryRole.EntityId = Workflow.Id AND SecondaryRole.AttributeId = 29651
+        LEFT OUTER JOIN AttributeValue ResidentSeason ON ResidentSeason.EntityId = Workflow.Id AND ResidentSeason.AttributeId = 31900
+        LEFT OUTER JOIN AttributeValue SeasonNumber ON SeasonNumber.EntityId = Workflow.Id AND SeasonNumber.AttributeId = 32204
+    WHERE Workflow.WorkflowTypeId = 410
+        AND (@Season = '' OR @Season = SeasonNumber.[Value])
+),
+UniqueApplicants AS (
+    SELECT 
+        COUNT(DISTINCT Candidates.PersonId) AS TotalNumber
+    FROM Candidates
+),
+ApplicantsPerUniversity AS (
+    SELECT 
+        COUNT(DISTINCT Candidates.PersonId) AS UniversityNum
+        ,Candidates.University
+    FROM Candidates
+    GROUP BY Candidates.University
+),
+ApplicantsPerRole AS (
+    SELECT 
+        COUNT(DISTINCT Candidates.PersonId) AS RoleNum
+        ,Candidates.PrimaryRole
+    FROM Candidates
+    GROUP BY Candidates.PrimaryRole
+),
+ApplicantsPerTrack AS (
+    SELECT 
+        COUNT(DISTINCT Candidates.PersonId) AS TrackNum
+        ,Candidates.PrimaryTrack
+    FROM Candidates
+    GROUP BY Candidates.PrimaryTrack
+),
+Hired AS (
+    SELECT  
+        COUNT(DISTINCT Candidates.PersonId) AS HiredNum
+    FROM Candidates
+    WHERE Candidates.StageOfApplication = 'Hired'
+),
+OnStaff AS (
+    SELECT
+        COUNT(DISTINCT Candidates.PersonId) AS StaffNum
+    FROM Candidates
+    WHERE Candidates.StageOfApplication = 'Hired'
+        AND Candidates.PersonId IN (
+            SELECT DISTINCT
+                Person.Id
+            FROM Person
+                INNER JOIN GroupMember ON GroupMember.PersonId = Person.Id
+                INNER JOIN [Group] ON [Group].Id = GroupMember.GroupId
+            WHERE [Group].GroupTypeId = 28
+                AND [Group].IsActive = 1
+                AND [Group].[IsArchived] = 0
+                AND GroupMember.GroupMemberStatus = 1
+                AND GroupMember.GroupRoleId = 32
+        )
+)
+
+SELECT 
+    OnStaff.StaffNum
+FROM OnStaff

@@ -1,0 +1,115 @@
+SELECT DISTINCT
+    Person.Id
+    ,Person.FirstName AS 'FirstName'
+    ,Person.LastName AS 'LastName'
+    ,Person.Email AS 'Email'
+    ,PhoneNumber.NumberFormatted AS 'Phone Number'
+    ,CASE 
+        WHEN Person.Gender = 0 THEN 'Unknown'
+        WHEN Person.Gender = 1 THEN 'Male'
+        WHEN Person.Gender = 2 THEN 'Female'
+    END AS 'Gender'
+    ,FORMAT(Person.BirthDate, 'MM/dd/yyyy') AS 'Birthday'
+    ,dbo.ufnCrm_GetAddress(Person.Id,'Home','Street 1') as 'Address'
+    ,CommunityGroup.[Name] AS 'CommunityGroup'
+    ,CommunityGroupMember.Id AS 'CommunityGroupMemberId'
+    ,GroupTypeRole.Name AS 'Group Role'
+    ,CASE WHEN Person.Id = ConnectGroup.PersonId 
+        THEN MAX(ConnectGroup.Name)
+        ELSE '-'
+    END AS 'Connect Group'
+    ,CommunityGroupMember.CreatedDateTime AS 'Date Joined'
+    ,MIN(AttendanceOccurrence.OccurrenceDate) AS 'FirstAttended'
+    ,MAX(AttendanceOccurrence.OccurrenceDate) AS 'LastAttended'
+FROM 
+    [Group] CommunityGroup
+    INNER JOIN GroupMember CommunityGroupMember 
+        ON CommunityGroupMember.GroupId = CommunityGroup.Id
+    INNER JOIN Person 
+        ON Person.Id=CommunityGroupMember.PersonId
+    LEFT OUTER JOIN PhoneNumber
+        ON PhoneNumber.PersonId = Person.Id
+    LEFT OUTER JOIN 
+        (SELECT DISTINCT GroupMember.PersonId, [Group].Name
+            FROM [Group] 
+                INNER JOIN GroupMember 
+                    ON [Group].Id = GroupMember.GroupId 
+            WHERE   
+                [Group].ParentGroupId = 290980 
+                AND [Group].IsArchived = 0 
+                AND [Group].IsActive = 1) ConnectGroup
+        ON ConnectGroup.PersonId=Person.Id
+    INNER JOIN PersonAlias
+        ON PersonAlias.PersonId=Person.Id
+    LEFT OUTER JOIN Attendance
+        ON Attendance.PersonAliasId=PersonAlias.Id
+    LEFT OUTER JOIN AttendanceOccurrence
+        ON AttendanceOccurrence.Id=Attendance.OccurrenceId
+        AND AttendanceOccurrence.GroupId = @GroupId
+    INNER JOIN GroupTypeRole
+        ON CommunityGroupMember.GroupRoleId=GroupTypeRole.Id
+WHERE
+    CommunityGroupMember.GroupMemberStatus = 1
+    AND (@FirstName = '' OR Person.FirstName = @FirstName)
+    AND (@LastName = '' OR Person.LastName = @LastName)
+    AND (@Email = '' OR Person.Email = @Email)
+    AND (@Birthday = '' OR 
+        (@Birthday >= Person.DaysUntilBirthday))
+    AND CommunityGroupMember.IsArchived = 0
+    AND CommunityGroup.Id = @GroupId
+    AND (@Gender = '' OR Person.Gender = @Gender)
+    AND (@GroupRole = '' OR GroupTypeRole.Name = @GroupRole)
+    AND (@ConnectGroup = '' OR
+        (
+            @ConnectGroup = 'Yes' AND 
+            Person.Id IN (
+                SELECT DISTINCT GroupMember.PersonId
+                FROM [Group] 
+                    INNER JOIN GroupMember 
+                        ON [Group].Id = GroupMember.GroupId 
+                WHERE   
+                    [Group].ParentGroupId = 290980 
+                    AND [Group].IsArchived = 0 
+                    AND [Group].IsActive = 1
+            ) OR (
+                @ConnectGroup = 'No' AND 
+                Person.Id NOT IN (
+                    SELECT DISTINCT GroupMember.PersonId
+                    FROM [Group] 
+                    INNER JOIN GroupMember 
+                        ON [Group].Id = GroupMember.GroupId 
+                    WHERE   
+                        [Group].ParentGroupId = 290980 
+                        AND [Group].IsArchived = 0 
+                        AND [Group].IsActive = 1
+                )
+            )
+        )
+    )
+    AND (@DateJoinedStart = '' OR
+        (@DateJoinedStart <= CONVERT(date, CommunityGroupMember.CreatedDateTime)
+        AND @DateJoinedEnd >= CONVERT(date, CommunityGroupMember.CreatedDateTime))
+    )
+GROUP BY 
+    Person.FirstName
+    ,Person.LastName
+    ,Person.Email
+    ,PhoneNumber.NumberFormatted
+    ,[Gender]
+    ,CommunityGroup.Name
+    ,CommunityGroupMember.Id
+    ,CommunityGroup.Id
+    ,GroupTypeRole.Name
+    ,Person.Id
+    ,ConnectGroup.PersonId
+    ,CommunityGroupMember.CreatedDateTime
+    ,Person.BirthDate
+    ,dbo.ufnCrm_GetAddress(Person.Id,'Home','Street 1')
+HAVING 
+    (@FirstAttendedStart = '' OR 
+    (CONVERT(date, MIN(AttendanceOccurrence.OccurrenceDate)) >= CONVERT(date, @FirstAttendedStart)
+    AND CONVERT(date, MIN(AttendanceOccurrence.OccurrenceDate)) <= CONVERT(date, @FirstAttendedEnd)))
+    AND (@LastAttendedStart = ''  OR
+    (CONVERT(date, MAX(AttendanceOccurrence.OccurrenceDate)) >= CONVERT(date, @LastAttendedStart)
+    AND CONVERT(date, MAX(AttendanceOccurrence.OccurrenceDate)) <= CONVERT(date, @LastAttendedEnd)))
+ORDER BY LastName, FirstAttended, LastAttended

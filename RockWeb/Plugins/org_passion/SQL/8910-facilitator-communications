@@ -1,0 +1,45 @@
+WITH facilitators AS (
+    SELECT 
+        p.Id as PersonId
+        ,p.FirstName
+        ,p.LastName
+        ,p.Email 
+    FROM GroupMember gm
+        INNER JOIN [Group] ON gm.GroupId = [Group].Id
+        INNER JOIN Person p ON gm.PersonId = p.Id
+    WHERE [Group].ParentGroupId = 124324
+        AND gm.GroupRoleId = 63
+        AND [Group].IsActive = 1
+        AND [Group].IsArchived = 0
+        AND gm.GroupMemberStatus = 1
+)
+,Communications AS (
+    SELECT 
+        PA.PersonId
+        ,Communication.*
+    FROM Communication
+        INNER JOIN PersonAlias pa ON Communication.SenderPersonAliasId = pa.Id
+)
+
+SELECT DISTINCT
+    facilitators.*
+    ,Communications.Id AS CommunicationId
+    ,Communications.Subject
+    ,CASE Communications.Status
+	    WHEN 0 THEN 'Draft'
+	    WHEN 1 THEN 'Draft'
+	    WHEN 2 THEN 'Pending Approval'
+	    WHEN 3 THEN 'Approved'
+	    WHEN 4 THEN 'Denied'
+	END AS [Status]
+    ,Communications.CommunicationType
+    ,Communications.CreatedDateTime
+    ,Communications.SendDateTime
+    ,Communications.FutureSendDateTime
+    ,Communications.ListGroupId
+    ,Communications.CommunicationTemplateId
+FROM facilitators
+    INNER JOIN Communications ON facilitators.PersonId = Communications.PersonId
+    INNER JOIN CommunicationTemplate ON Communications.CommunicationTemplateId = CommunicationTemplate.Id
+WHERE CommunicationTemplate.CategoryId = 725
+ORDER BY Communications.CreatedDateTime DESC

@@ -1,0 +1,66 @@
+{% stylesheet %}
+    
+    @media print {
+    .row, .col-md-12 {
+        float: none;
+        width: initial;
+    }
+    
+    .page-break {
+        display: block; 
+        page-break-before: always;
+    }
+    
+    .print-hide {
+        display: none;
+    }
+
+    .page-wrapper > .navbar-static-side,
+    .rock-top-header {
+        display: none;
+    }
+
+    form > .page-wrapper {
+        padding-top: 0px;
+    }
+
+    .page-wrapper > #content-wrapper {
+        margin-left: 0px !important;
+    }
+
+    #content-wrapper > .main-content {
+        margin: 0px;
+    }
+    
+}
+    
+{% endstylesheet %}
+
+{% for row in rows %}
+    <div class="panel panel-block" style="min-height: 282px;">
+        <div class="panel-body">
+            <h2 class="text-center text-primary">Care Request Summary</h2>
+            <hr />
+                
+            <div class='row'>    
+                <div class='col-md-4 col-md-offset-1 text-center'>
+                    {% if row.SubmittedContact %}
+                        <h2>{{ row.SubmittedContact }}</h2>
+                    {% else %}
+                        <h3>Unable to Calculate</h3>
+                    {% endif %}
+                    <strong>Average Number of Days Between Submitted Request and First Contact</strong>
+                </div>
+                    
+                <div class='col-md-4 col-md-offset-2 text-center'>
+                    {% if row.ContactFulfilled %}
+                        <h2>{{ row.ContactFulfilled }}</h2>
+                    {% else %}
+                        <h3>Unable to Calculate</h3>
+                    {% endif %}
+                    <strong>Average Number of Days Between First Contact and Need Fulfilled</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}

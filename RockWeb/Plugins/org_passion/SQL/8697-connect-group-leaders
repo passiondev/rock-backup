@@ -1,0 +1,22 @@
+SELECT 
+    [Group].Id AS GroupID
+    ,Person.Id
+    ,Person.FirstName
+    ,Person.LastName
+    ,Person.Email
+    ,PhoneNumber.NumberFormatted AS 'PhoneNumber'
+    ,[Group].[Name] AS ConnectGroup
+FROM [Group]
+    INNER JOIN AttributeValue cg ON cg.EntityId = [Group].Id
+        AND cg.AttributeId = 29396
+    INNER JOIN GroupMember ON GroupMember.GroupId = [Group].Id
+    INNER JOIN Person ON GroupMember.PersonId = Person.Id
+    INNER JOIN PhoneNumber ON PhoneNumber.PersonId = Person.Id and PhoneNumber.NumberTypeValueId = 12
+    INNER JOIN [Group] CommunityGroup ON cg.[Value] = CAST([CommunityGroup].Guid AS varchar(64))
+WHERE CommunityGroup.Id = @GroupId
+    AND [Group].IsActive = 1
+    AND [Group].IsArchived = 0
+    AND GroupMember.GroupMemberStatus = 1
+    AND GroupMember.IsArchived = 0
+    AND GroupMember.GroupRoleId = 149
+ORDER BY [Group].Name, Person.LastName, Person.FirstName

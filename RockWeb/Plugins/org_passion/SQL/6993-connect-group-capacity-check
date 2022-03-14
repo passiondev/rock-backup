@@ -1,0 +1,29 @@
+{% assign url = 'Global' | Page:'Url'  %}
+
+{% assign groupID = url | Url:'queryparameter','GroupId' %}
+
+
+{% sql id:'{{ groupID }}' %}
+
+    SELECT 
+        [Group].GroupCapacity AS Capacity,
+        COUNT(GroupMember.Id) AS GroupCount
+    FROM [Group]
+    INNER JOIN GroupMember
+        ON GroupMember.GroupId=[Group].Id
+    WHERE [Group].Id=@id
+        AND GroupMember.GroupMemberStatus = 1
+        AND GroupMember.IsArchived = 0
+    GROUP BY [Group].GroupCapacity
+
+{% endsql %}
+
+{% for result in results %}
+
+    {% if result.Capacity <= result.GroupCount %}
+        {{ true }}
+    {% else %}
+        {{ false }}
+    {% endif %}
+    
+{% endfor %}

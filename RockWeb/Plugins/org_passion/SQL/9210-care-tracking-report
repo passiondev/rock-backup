@@ -1,0 +1,29 @@
+SELECT DISTINCT
+    CR.Id AS 'Request ID'
+    ,CONCAT(Submitter.FirstName, ' ', Submitter.LastName) AS 'Submitter'
+    ,CR.Comments AS 'Request Description'
+    ,CO.Name AS 'Connection Opportunity'
+    ,CONCAT(Connector.FirstName, ' ', Connector.LastName) AS 'Connector'
+    ,CR.CreatedDateTime AS 'Submitted Time'
+    ,MIN(FirstContact.CreatedDateTime) AS 'Date of First Contact' -- we only want the first contacted activity
+    ,MIN(NeedFulfilled.CreatedDateTime) AS 'Date Fulfilled'
+    ,CR.ConnectionStatusId AS Status
+FROM ConnectionRequest CR
+    INNER JOIN ConnectionOpportunity CO ON CO.Id = CR.ConnectionOpportunityId
+    LEFT OUTER JOIN ConnectionRequestActivity FirstContact ON FirstContact.ConnectionRequestId = CR.Id
+        AND FirstContact.ConnectionActivityTypeId = 46  -- contacted activity
+    LEFT OUTER JOIN ConnectionRequestActivity NeedFulfilled ON NeedFulfilled.ConnectionRequestId = CR.Id
+        AND NeedFulfilled.ConnectionActivityTypeId = 14  -- need fulfilled activity
+    INNER JOIN PersonAlias ConnectorPersonAlias ON ConnectorPersonAlias.Id = CR.ConnectorPersonAliasId
+    INNER JOIN PersonAlias SubmitterPersonAlias ON SubmitterPersonAlias.Id = CR.PersonAliasId
+    INNER JOIN Person Submitter ON SubmitterPersonAlias.PersonId = Submitter.Id
+    INNER JOIN Person Connector ON ConnectorPersonAlias.PersonId = Connector.Id
+WHERE CO.ConnectionTypeId = 3 -- care requests 
+    AND (@DateRangeStart = '' 
+    OR (CONVERT(date, CR.CreatedDateTime) >= CONVERT(date, @DateRangeStart)
+        AND CONVERT(date, CR.CreatedDateTime) <= CONVERT(date, @DateRangeEnd)))
+GROUP BY CR.Id, CONCAT(Submitter.FirstName, ' ', Submitter.LastName), CR.Comments, 
+    CO.Name, CONCAT(Connector.FirstName, ' ', Connector.LastName), 
+    FirstContact.ConnectionActivityTypeId, CR.CreatedDateTime, 
+    NeedFulfilled.ConnectionActivityTypeId, CR.ConnectionStatusId
+ORDER BY [Submitted Time] DESC

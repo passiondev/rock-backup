@@ -1,0 +1,10 @@
+DELETE 
+FROM Workflow
+WHERE 
+    (WorkflowTypeId=189) OR
+    (WorkflowTypeId=66) OR 
+    (WorkflowTypeId=68) OR 
+    (WorkflowTypeId = 67 AND 
+        [Status]='Active' AND 
+        Id != 124036) OR
+    (WorkflowTypeId=122)

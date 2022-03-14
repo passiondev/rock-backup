@@ -1,0 +1,71 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+      <span class="fas fa-cross" style="font-size: 22px;padding-top: 3px;padding-right: 10px;"></span><span style="font-size: 18px;">Jesus Stories</span>
+    </div> 
+      
+    <div class="panel-body" style="min-height: 300px;max-height: 300px;">
+          
+        {% sql %}
+            SELECT TOP 5 
+                AttrVal.Value AS FirstName, 
+                LastNameAttrVal.[Value] AS LastName, 
+                JesusStoryAttrVal.[Value] AS JesusStory, 
+                HouseAreaAttrVal.[Value] AS Area,
+                AttrVal.CreatedDateTime,
+                dbo.ufnCrm_GetAddress(Person.Id,'Home','City') AS City,
+                dbo.ufnCrm_GetAddress(Person.Id,'Home','State') AS State
+            FROM Workflow
+            INNER JOIN AttributeValue AttrVal   
+                ON Workflow.Id=AttrVal.EntityId AND AttrVal.AttributeId=23308
+            INNER JOIN AttributeValue LastNameAttrVal
+                ON Workflow.Id=LastNameAttrVal.EntityId AND LastNameAttrVal.AttributeId=23309
+            INNER JOIN AttributeValue JesusStoryAttrVal
+                ON Workflow.Id=JesusStoryAttrVal.EntityId AND JesusStoryAttrVal.AttributeId=23311
+            INNER JOIN AttributeValue HouseAreaAttrVal
+                ON Workflow.Id=HouseAreaAttrVal.EntityId AND HouseAreaAttrVal.AttributeId=23456
+            INNER JOIN AttributeValue PersonAttrVal
+                ON Workflow.Id=PersonAttrVal.EntityId AND PersonAttrVal.AttributeId=23314
+            INNER JOIN PersonAlias
+                ON PersonAttrVal.[Value]=PersonAlias.Guid
+            INNER JOIN Person
+                ON PersonAlias.AliasPersonGuid=Person.Guid
+            WHERE WorkflowTypeId=344 AND HouseAreaAttrVal.[Value]='Connect Groups'
+            ORDER BY AttrVal.CreatedDateTime DESC
+        {% endsql %}
+        
+        {% if results == empty %}
+        
+            <div style="min-height:200px;max-height:200px;overflow-y:scroll;">
+                <p><i>"We have had many answers to prayers with God's callings in our lives and family and friend relationships in our lives who needed prayer, reconciliation, etc. Inspired by the PCC Staff meeting story about opening your meetings with God stories, we began to do this several months ago, and it is a great blessing to all celebrate these God stories together to kick off each of our circle / connect group times together."</i></p>
+                <p align="right"><i>— Stanton + Lorie L. in Marietta, GA</i></p>
+            </div>
+            
+            
+        {% else %}
+        
+            <div id="myCarousel" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner" style="min-height: 200px;max-height:200px;overflow-y:scroll;">
+                    {% for result in results %}
+                        <div class="item {% if forloop.index == 1 %} active {% endif %}" >
+                        <i><p class="text-center"> "{{ result.JesusStory | Truncate:935,'...' }}" </p></i>
+                        <i><p class="text-right"> — {{ result.FirstName | Downcase | Capitalize }} {{ result.LastName | Slice: 0 | Capitalize }}.
+                            {% if result.City != null %} in {{ result.City }}, {{ result.State }} {% endif %} </p></i>
+                        <br />
+                        </div>
+                    {% endfor %}
+                </div>
+                <br>
+                <ol class="carousel-indicators mb-0" style="bottom: 0px;">
+                {% for result in results %}
+                    {% if forloop.length > 1 %}
+                        <li data-target="#myCarousel" data-slide-to="{{ forloop.index0 }}" {% if forloop.index == 1 %}class='active'{% endif %} style="background-color:#D3D3D3;"></li>
+                    {% endif %}
+                {% endfor %}
+                </ol>
+            </div>
+        {% endif %}
+        
+        <div class="text-right mb-2 mr-2 mt-3"><a href="https://connect.passion.team/JesusStory?Area=Connect%20Groups" target="_blank" class="btn btn-primary">Share your Jesus Story here!</a></div>
+    </div>
+
+</div>

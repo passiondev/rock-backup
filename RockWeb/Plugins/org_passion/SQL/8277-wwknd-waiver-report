@@ -1,0 +1,19 @@
+SELECT 
+    Participant.Id
+    ,RegistrationRegistrant.Id AS 'RegistrantId'
+    ,Participant.FirstName AS 'ParticipantFirstName'
+    ,Participant.LastName AS 'ParticipantLastName'
+    ,Participant.Email AS 'ParticipantEmail'
+    ,Participant.BirthDate
+    ,Registration.FirstName AS 'ParentFirstName'
+    ,Registration.LastName AS 'ParentLastName'
+    ,Registration.ConfirmationEmail AS 'ParentEmail'
+    ,Registration.CreatedDateTime AS 'RegistrationTime'
+    ,RegistrationInstance.Name AS 'RegistrationName'
+FROM RegistrationRegistrant
+    INNER JOIN PersonAlias ON PersonAlias.Id=RegistrationRegistrant.PersonAliasId
+    INNER JOIN Person Participant ON Participant.Id=PersonAlias.PersonId
+    INNER JOIN Registration ON RegistrationRegistrant.RegistrationId=Registration.Id
+    INNER JOIN RegistrationInstance ON RegistrationInstance.Id = Registration.RegistrationInstanceId
+WHERE RegistrationInstanceId IN (9, 10, 11, 12, 13, 14, 15)
+ORDER BY Participant.LastName

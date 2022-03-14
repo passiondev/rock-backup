@@ -1,0 +1,29 @@
+{% assign personID = Workflow | Attribute:'CurrentPerson', 'Id' %}
+{% assign fianceID = Workflow | Attribute:'FiancePerson', 'Id' %}
+
+{% sql fid:'{{ fianceID }}' id:'{{ personID }}' %}
+
+    SELECT 
+        [Person].Id
+        ,[Group].Id AS GroupID
+        ,AttributeValue.[Value] AS Link
+    FROM GroupMember
+        INNER JOIN [Group] ON [Group].Id=GroupMember.GroupId
+        INNER JOIN Person ON GroupMember.PersonId=Person.Id
+        INNER JOIN PersonAlias ON Person.Id=PersonAlias.PersonId
+        INNER JOIN AttributeValue ON AttributeValue.EntityId=[Group].Id
+            AND AttributeValue.AttributeId=29393
+    WHERE [Group].ParentGroupId=538298
+        AND (Person.Id = @id
+        OR PersonAlias.PersonId = @id 
+        OR Person.Id = @fid
+        OR PersonAlias.PersonId = @fid)
+        AND [Group].isActive = 1
+        AND [Group].isArchived = 0
+    GROUP BY Person.Id, [Group].Id, AttributeValue.[Value]
+
+{% endsql %}
+
+{% for result in results limit:1 %}
+    {{ result.Link }}
+{% endfor %}

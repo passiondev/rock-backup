@@ -1,0 +1,19 @@
+SELECT  DISTINCT
+    Workflow.Id
+    ,CAST(Workflow.CompletedDateTime AS date) AS 'DateJoined'
+    ,FirstName.[Value] AS 'FirstName'
+    ,LastName.[Value] AS 'LastName'
+    ,Email.[Value] AS 'Email'
+    ,PhoneNumber.[Value] AS 'PhoneNumber'
+    ,[ConnectGroup].Name AS 'ConnectGroupName'
+FROM Workflow
+    INNER JOIN AttributeValue FirstName ON FirstName.EntityId = Workflow.Id AND FirstName.AttributeId = 25909
+    INNER JOIN AttributeValue LastName ON LastName.EntityId = Workflow.Id AND LastName.AttributeId = 25910
+    INNER JOIN AttributeValue Email ON Email.EntityId = Workflow.Id AND Email.AttributeId = 25908
+    INNER JOIN AttributeValue PhoneNumber ON PhoneNumber.EntityId = Workflow.Id AND PhoneNumber.AttributeId = 25912
+    INNER JOIN AttributeValue GroupID ON GroupID.EntityId = Workflow.Id AND GroupID.AttributeId = 25937
+    INNER JOIN [Group] ConnectGroup ON ConnectGroup.Id = GroupID.[Value]
+WHERE Workflow.WorkflowTypeId=373
+    AND @DateRangeStart = '' OR (
+    CAST(Workflow.CompletedDateTime AS date) BETWEEN CAST(@DateRangeStart AS date) AND CAST(@DateRangeEnd AS date))
+ORDER BY CAST(Workflow.CompletedDateTime AS date) DESC

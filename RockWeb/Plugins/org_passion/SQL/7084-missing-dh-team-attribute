@@ -1,0 +1,12 @@
+SELECT 
+    [Group].Id 
+FROM [Group]
+FULL OUTER JOIN AttributeValue
+    ON AttributeValue.EntityId=[Group].Id
+FULL OUTER JOIN Attribute
+    ON Attribute.Id=AttributeValue.AttributeId
+WHERE ((AttributeValue.AttributeId=8957
+        AND AttributeValue.[Value]='')
+    OR (AttributeValue.Value IS NULL
+        AND [Group].GroupTypeId=34))
+    AND [Group].IsActive=1

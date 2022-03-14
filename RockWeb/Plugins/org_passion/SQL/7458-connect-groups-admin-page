@@ -1,0 +1,154 @@
+WITH grp AS (
+	(
+		SELECT DISTINCT
+			g.Id,
+			g.Name,
+			g.GroupCapacity,
+			(SELECT count(Id) FROM GroupMember gm WHERE gm.GroupId = g.Id AND gm.GroupRoleId = 149 AND IsArchived = 0 AND gm.GroupMemberStatus = 1) AS LeaderCount,
+			(SELECT count(Id) FROM GroupMember gm WHERE gm.GroupId = g.Id AND gm.GroupRoleId <> 149 AND IsArchived = 0 AND gm.GroupMemberStatus = 1) AS AttendeeCount,
+			LEFT(DATENAME (w, dow.Value - 1), 3) AS DayOfWeek,
+			tod.Value AS TimeOfDay,
+			CASE WHEN groupType.Value LIKE '%Married%' THEN
+				groupType.Value
+			ELSE
+				groupType.Value + '''s'
+			END AS GroupType,
+			ageRange.Value AS definedvaluevalue,
+			(
+				SELECT DISTINCT
+					SUBSTRING((
+						SELECT
+							', ' + d1.Value AS [text()] FROM (
+								SELECT 1 AS ValId, d.Guid, d.Value FROM DefinedValue d WHERE d.Guid IN(SELECT * FROM fnSplit (ageRange. [Value])) ORDER BY d.Value OFFSET 0 ROWS) AS d1
+								WHERE d1.ValId = d2.ValId
+								ORDER BY d1.ValId FOR XML PATH(''), TYPE).value ('text()[1]', 'nvarchar(max)'), 2, 1000) [AgeRangeList]
+				FROM (SELECT 1 AS ValId, d.Guid, d.Value FROM DefinedValue d WHERE d.Guid IN(SELECT * FROM fnSplit (ageRange.Value)) ORDER BY d.Value OFFSET 0 ROWS) AS d2
+			) AS AgeRangeList,
+			COALESCE(groupMix.Value, '') AS GroupMix,
+			COALESCE(groupContent.Value, 'TBD') AS GroupContentType,
+			CASE
+				WHEN groupContent.Value like '%Book%' then 'fas fa-book'
+			 	WHEN groupContent.Value like '%Message%' then 'fas fa-comment'
+			 	ELSE 'hidden' 
+			END as GroupContentIcon,
+			groupRhythm.Value as GroupRhythm,
+			COALESCE(groupLocation.Value,'TBD') as GroupLocation,
+			CASE
+				WHEN groupType.Value like '%Women%' then '#FF6174'
+				WHEN groupType.Value like '%Men%' then '#1B5BFF'
+				ELSE '#7B61FF'
+			END as GroupColor,
+			CASE
+				WHEN groupType.Value like '%Women%' then 'https://connect.passion.team/Content/ExternalSite/Icons/icon-women@2x.png' 
+			 	WHEN groupType.Value like '%Men%' then 'https://connect.passion.team/Content/ExternalSite/Icons/icon-men@2x.png' 
+				ELSE 'https://connect.passion.team/Content/ExternalSite/Icons/icon-married@2x.png'
+			END as GroupIconUrl,
+			groupStatus.Value AS GroupStatus,
+			communityGroup.Value AS cgGuid,
+			cgName.Name AS CommunityGroup
+		FROM
+			[Group] g
+		LEFT OUTER JOIN AttributeValue groupType ON g.Id = groupType.EntityId AND groupType.AttributeId = 24061
+		LEFT OUTER JOIN AttributeValue ageRange ON g.Id = ageRange.EntityId AND ageRange.AttributeId = 28119
+		LEFT OUTER JOIN AttributeValue groupMix ON g.Id = groupMix.EntityId AND groupMix.AttributeId = 24063
+		LEFT OUTER JOIN AttributeValue groupContent ON g.Id = groupContent.EntityId AND groupContent.AttributeId = 24064
+		LEFT OUTER JOIN AttributeValue groupLocation ON g.Id = groupLocation.EntityId AND groupLocation.AttributeId = 24065
+		LEFT OUTER JOIN AttributeValue dow ON g.Id = dow.EntityId AND dow.AttributeId = 24279
+		LEFT OUTER JOIN AttributeValue tod ON g.Id = tod.EntityId AND tod.AttributeId = 24280
+		LEFT OUTER JOIN AttributeValue groupRhythm ON g.Id = groupRhythm.EntityId AND groupRhythm.AttributeId = 24281
+		LEFT OUTER JOIN AttributeValue groupStatus ON g.Id = groupStatus.EntityId AND groupStatus.AttributeId = 13880
+		LEFT OUTER JOIN AttributeValue communityGroup ON g.Id = communityGroup.EntityId AND communityGroup.AttributeId = 29396
+		LEFT OUTER JOIN [Group] cgName ON communityGroup. [Value] = cgName. [Guid]
+		RIGHT OUTER JOIN (SELECT DISTINCT item AS itemx from dbo.fnSplit(@AgeRange)) ageSplit ON ageRange.Value like CONCAT('%',itemx,'%')
+	WHERE
+		g.ParentGroupId in(290980)
+		AND g.IsActive = 1
+		AND g.IsArchived = 0
+		AND @AgeRange <> ''
+        AND (@GroupType = 'All Groups' OR groupType.Value IN (Select * FROM dbo.fnSplit(@GroupType)))
+        AND (@DayofWeek = '' OR dow.Value IN (Select * FROM dbo.fnSplit(@DayofWeek)))
+        AND (@Location = '' OR groupLocation.Value IN (Select * FROM dbo.fnSplit(@Location)))
+        AND (@Topic = 'All Topics' OR groupContent.Value IN (Select * FROM dbo.fnSplit(@Topic)))
+        AND (@CommunityGroup = '' OR communityGroup.Value IN (Select * FROM dbo.fnSplit(@CommunityGroup)))
+	)
+	UNION
+	(
+		SELECT DISTINCT
+			g.Id,
+			g.Name,
+			g.GroupCapacity,
+			(SELECT count(Id) FROM GroupMember gm WHERE gm.GroupId = g.Id AND gm.GroupRoleId = 149 AND IsArchived = 0 AND gm.GroupMemberStatus = 1) AS LeaderCount,
+			(SELECT count(Id) FROM GroupMember gm WHERE gm.GroupId = g.Id AND gm.GroupRoleId <> 149 AND IsArchived = 0 AND gm.GroupMemberStatus = 1) AS AttendeeCount,
+			LEFT(DATENAME (w, dow.Value - 1), 3) AS DayOfWeek,
+			tod.Value AS TimeOfDay,
+			CASE WHEN groupType.Value LIKE '%Married%' THEN
+				groupType.Value
+			ELSE
+				groupType.Value + '''s'
+			END AS GroupType,
+			ageRange.Value AS definedvaluevalue,
+			(
+				SELECT DISTINCT
+					SUBSTRING((
+						SELECT
+							', ' + d1.Value AS [text()] FROM (
+								SELECT 1 AS ValId, d.Guid, d.Value FROM DefinedValue d WHERE d.Guid IN(SELECT * FROM fnSplit (ageRange. [Value])) ORDER BY d.Value OFFSET 0 ROWS) AS d1
+								WHERE d1.ValId = d2.ValId
+								ORDER BY d1.ValId FOR XML PATH(''), TYPE).value ('text()[1]', 'nvarchar(max)'), 2, 1000) [AgeRangeList]
+				FROM (SELECT 1 AS ValId, d.Guid, d.Value FROM DefinedValue d WHERE d.Guid IN(SELECT * FROM fnSplit (ageRange.Value)) ORDER BY d.Value OFFSET 0 ROWS) AS d2
+			) AS AgeRangeList,
+			COALESCE(groupMix.Value, '') AS GroupMix,
+			COALESCE(groupContent.Value, 'TBD') AS GroupContentType,
+			CASE
+				WHEN groupContent.Value like '%Book%' then 'fas fa-book'
+			 	WHEN groupContent.Value like '%Message%' then 'fas fa-comment'
+			 	ELSE 'hidden' 
+			END as GroupContentIcon,
+			groupRhythm.Value as GroupRhythm,
+			COALESCE(groupLocation.Value,'TBD') as GroupLocation,
+			CASE
+				WHEN groupType.Value like '%Women%' then '#FF6174'
+				WHEN groupType.Value like '%Men%' then '#1B5BFF'
+				ELSE '#7B61FF'
+			END as GroupColor,
+			CASE
+				WHEN groupType.Value like '%Women%' then 'https://connect.passion.team/Content/ExternalSite/Icons/icon-women@2x.png' 
+			 	WHEN groupType.Value like '%Men%' then 'https://connect.passion.team/Content/ExternalSite/Icons/icon-men@2x.png' 
+				ELSE 'https://connect.passion.team/Content/ExternalSite/Icons/icon-married@2x.png'
+			END as GroupIconUrl,
+			groupStatus.Value AS GroupStatus,
+			communityGroup.Value AS cgGuid,
+			cgName.Name AS CommunityGroup
+		FROM
+			[Group] g
+		LEFT OUTER JOIN AttributeValue groupType ON g.Id = groupType.EntityId AND groupType.AttributeId = 24061
+		LEFT OUTER JOIN AttributeValue ageRange ON g.Id = ageRange.EntityId AND ageRange.AttributeId = 28119
+		LEFT OUTER JOIN AttributeValue groupMix ON g.Id = groupMix.EntityId AND groupMix.AttributeId = 24063
+		LEFT OUTER JOIN AttributeValue groupContent ON g.Id = groupContent.EntityId AND groupContent.AttributeId = 24064
+		LEFT OUTER JOIN AttributeValue groupLocation ON g.Id = groupLocation.EntityId AND groupLocation.AttributeId = 24065
+		LEFT OUTER JOIN AttributeValue dow ON g.Id = dow.EntityId AND dow.AttributeId = 24279
+		LEFT OUTER JOIN AttributeValue tod ON g.Id = tod.EntityId AND tod.AttributeId = 24280
+		LEFT OUTER JOIN AttributeValue groupRhythm ON g.Id = groupRhythm.EntityId AND groupRhythm.AttributeId = 24281
+		LEFT OUTER JOIN AttributeValue groupStatus ON g.Id = groupStatus.EntityId AND groupStatus.AttributeId = 13880
+		LEFT OUTER JOIN AttributeValue communityGroup ON g.Id = communityGroup.EntityId AND communityGroup.AttributeId = 29396
+		LEFT OUTER JOIN [Group] cgName ON communityGroup.[Value] = cgName.[Guid]
+	WHERE
+		g.ParentGroupId in(290980)
+		AND g.IsActive = 1
+		AND g.IsArchived = 0
+		AND @AgeRange = ''
+        AND (@GroupType = 'All Groups' OR groupType.Value IN (Select * FROM dbo.fnSplit(@GroupType)))
+        AND (@DayofWeek = '' OR dow.Value IN (Select * FROM dbo.fnSplit(@DayofWeek)))
+        AND (@Location = '' OR groupLocation.Value IN (Select * FROM dbo.fnSplit(@Location)))
+        AND (@Topic = 'All Topics' OR groupContent.Value IN (Select * FROM dbo.fnSplit(@Topic)))
+        AND (@CommunityGroup = '' OR communityGroup.Value IN (Select * FROM dbo.fnSplit(@CommunityGroup)))
+	)
+)
+SELECT
+	*
+FROM
+	grp
+ORDER BY
+	grp.GroupStatus DESC,
+	grp.DayOfWeek ASC,
+	grp.Name;

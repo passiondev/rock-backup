@@ -1,0 +1,83 @@
+WITH StudentGroup (Id,Name,ParentGroupId,GroupTypeId) AS (
+    SELECT [Group].Id,
+        [Group].[Name],
+        [Group].ParentGroupId,
+        [Group].GroupTypeId
+    FROM [Group]
+    LEFT OUTER JOIN Campus ON [Group].CampusId = Campus.Id
+    WHERE [Group].GroupTypeId IN (
+        SELECT GroupTypeId
+        FROM [Group]
+        WHERE [Group].Id=@GroupId
+    )
+), 
+
+Students AS (
+    SELECT 
+        Person.Id AS Id,
+        Person.NickName,
+        Person.LastName,
+        dbo.ufnCrm_GetParentNames(Person.Id) AS ParentNames,
+        dbo.ufnCrm_GetParentPhones(Person.Id,'Mobile') AS ParentPhones,
+        dbo.ufnCrm_GetParentEmails(Person.Id) AS ParentEmails,
+        [Group].Name AS FGName,
+        [Group].Guid AS FGGuid
+    FROM Person
+    INNER JOIN GroupMember on GroupMember.PersonId=Person.Id
+    INNER JOIN [Group] ON [Group].Id=GroupMember.GroupId
+    WHERE [Group].ParentGroupId IN (230990, 185682, 185665, 185675, 562193)
+        AND [Group].Id=@GroupId
+        AND [Group].IsActive=1 
+        AND GroupMember.GroupMemberStatus=1 
+        AND (GroupMember.GroupRoleId=104 OR GroupMember.GroupRoleId=103)
+        AND GroupMember.isArchived = 0
+),
+
+FamilyGroup AS (
+    SELECT G.Id, G.[Name], GM.PersonId, G.Guid
+    FROM [Group] G
+	INNER JOIN GroupMember GM ON G.Id = GM.GroupId
+    WHERE G.ParentGroupId IN (230990, 185682, 185665, 185675, 562193)
+        AND G.IsActive=1 AND GM.GroupMemberStatus=1	
+),
+
+Attendances AS (
+    SELECT DISTINCT
+        coalesce(AO.OccurrenceDate, '') AS OccurrenceDate,
+        Sched.[Guid] AS ScheduleGuid,
+        Sched.Name + ' | ' + L.Name AS LocationName,
+        P.Id,
+        P.NickName,
+        P.LastName,
+        coalesce(A.OccurrenceId, '') AS OccurenceID,
+        coalesce(FamilyGroup.Name, '') AS FamilyGroupName,
+        FamilyGroup.Guid AS GroupGUID
+    FROM Attendance A
+        LEFT OUTER JOIN AttendanceOccurrence AO ON AO.Id = A.OccurrenceId
+        INNER JOIN StudentGroup ON AO.GroupId = StudentGroup.Id
+        INNER JOIN PersonAlias PA ON A.PersonAliasId = PA.Id
+        INNER JOIN GroupMember GM ON PA.PersonId = GM.PersonId
+        INNER JOIN Person P ON GM.PersonId = P.Id
+        INNER JOIN FamilyGroup ON FamilyGroup.PersonId = GM.PersonId
+        LEFT OUTER JOIN [Location] L ON AO.LocationId = L.Id
+        LEFT OUTER JOIN Schedule Sched ON AO.ScheduleId = Sched.Id
+    WHERE (OccurrenceDate >= CONVERT(date, @GatheringDateRangeStart)
+        AND OccurrenceDate <= CONVERT(date, @GatheringDateRangeEnd))  
+    OR (OccurrenceDate >= '{{ "Now" | SundayDate | DateAdd:-28 }}'
+        AND OccurrenceDate <= '{{ "Now" | Date }}')
+)
+
+SELECT DISTINCT 
+    coalesce(Attendances.OccurrenceDate, '') AS OccurrenceDate,
+    Students.ParentNames,
+    Students.ParentPhones,
+    Students.ParentEmails,
+    Students.NickName,
+    Students.LastName,
+    Students.Id,
+    Students.FGName,
+    Students.FGGuid
+FROM Students
+LEFT OUTER JOIN Attendances
+    ON Students.Id=Attendances.Id
+ORDER BY LastName, OccurrenceDate;

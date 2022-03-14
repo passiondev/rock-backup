@@ -1,0 +1,170 @@
+{% stylesheet %}
+    
+    @media print {
+        .row, .col-md-12 {
+            float: none;
+            width: initial;
+        }
+    
+        .page-break {
+            display: block; 
+            page-break-before: always;
+        }
+    
+        .print-hide {
+            display: none;
+        }
+
+        .page-wrapper > .navbar-static-side,
+        .rock-top-header {
+            display: none;
+        }
+
+        form > .page-wrapper {
+            padding-top: 0px;
+        }
+
+        .page-wrapper > #content-wrapper {
+            margin-left: 0px !important;
+        }
+
+        #content-wrapper > .main-content {
+            margin: 0px;
+        }
+        
+    }
+    
+{% endstylesheet %}
+
+{% assign url = 'Global' | Page:'Url'  %}
+{% assign startDate = url | Url:'queryparameter','GatheringDateRangeStart' %}
+{% assign endDate = url | Url:'queryparameter', 'GatheringDateRangeEnd' %}
+{% assign schedule = url | Url:'queryparameter', 'GatheringSchedule' %}
+{% assign groupID = url | Url:'queryparameter', 'GroupId' %}
+
+{% if startDate == '' OR if endDate == '' %}
+    {% assign startDate = 'Now' | SundayDate | DateAdd:-28 %}
+    {% assign endDate = 'Now' | Date %}
+{% endif %}
+
+{% sql return:'dates', start:'{{ startDate }}', end:'{{ endDate }}', schedule:'{{ schedule }}', groupID:'{{ groupID }}' %}
+
+    WITH StudentGroup (Id,Name,ParentGroupId,GroupTypeId) AS (
+        SELECT [Group].Id,
+            [Group].[Name],
+            [Group].ParentGroupId,
+            [Group].GroupTypeId
+        FROM [Group]
+        LEFT OUTER JOIN Campus ON [Group].CampusId = Campus.Id
+        WHERE [Group].GroupTypeId IN (
+            SELECT GroupTypeId
+            FROM [Group]
+            WHERE [Group].Id=@GroupId
+        )
+    )
+    
+    SELECT DISTINCT OccurrenceDate 
+    FROM AttendanceOccurrence
+    INNER JOIN StudentGroup ON AttendanceOccurrence.GroupId=StudentGroup.Id
+    LEFT OUTER JOIN Schedule Sched ON AttendanceOccurrence.ScheduleId = Sched.Id
+    WHERE (OccurrenceDate >= CONVERT(date, @start) 
+        AND OccurrenceDate <= CONVERT(date, @end))
+        AND Sched.Id NOT IN (3, 24, 59, 60, 651) 
+        
+{% endsql %}
+
+{% assign familyGroups = rows | BBM_GroupBy:'FGName' %}
+
+{% for group in familyGroups %}
+
+    {% assign famGroup = group | PropertyToKeyValue %}
+    
+    <div class="btn btn-outline-primary bg-transparent mr-3" style="font-size:16px; float:right;"><a href="https://connect.passion.team/wwknd-call-list" target="_blank">WWKND '22 Call List</a></div> 
+
+    <div class='container-fluid'>
+        
+        <h2> {{ famGroup.Key }} </h2>
+        
+        <div class="overflow-auto">
+        
+            <table class="grid-table table-responsive table table-bordered table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Parent Name(s)</th>
+                        <th>Parent Phone(s)</th>
+                        <th>Parent Email(s)</th>
+                        {% for date in dates %}
+                            <th class="pr-3 text-center">{{ date.OccurrenceDate | Date:'MM/dd/yy' }} </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+            
+                <tbody>
+            
+                    {% assign students = famGroup.Value | BBM_GroupBy: 'Id' %}
+        
+                    {% for people in students %}
+                        {% assign individual = people | PropertyToKeyValue %}
+            
+                        <tr>
+                            {% for person in individual.Value limit:1 %}
+                                <td>{{ person.NickName }}</td>
+                                <td>{{ person.LastName }}</td>
+                                <td>{{ person.ParentNames }}</td>
+                                <td>
+                                    {% assign phoneArray = person.ParentPhones | Split:', ' %}
+                                    {% for phone in phoneArray %}
+                                        {% if forloop.last %}
+                                            <a href="sms:{{ phone }}">{{ phone }}</a>
+                                        {% else %}
+                                            <a href="sms:{{ phone }}">{{ phone }}</a>,
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    {% assign emailArray = person.ParentEmails | Split:', ' %}
+                                    {% for email in emailArray %}
+                                        {% if forloop.last %}
+                                            <a href="mailto:{{ email }}">{{ email }}</a>
+                                        {% else %}
+                                            <a href="mailto:{{ email }}">{{ email }}</a>,
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            {% endfor %}
+                        
+                            {% assign newArray = '' %}
+                            {% for person in individual.Value %}
+                                {% assign occurrenceDate = person.OccurrenceDate | Date:'MM/dd/yyyy' %}
+                                {% assign newArray = newArray | BBM_AddToArray:occurrenceDate %}
+                            {% endfor %}
+
+                            {% for date in dates %}
+                                {% assign dateModified = date.OccurrenceDate | Date:'MM/dd/yyyy' %}
+
+                                {% assign attended = newArray | Contains:dateModified %}
+                                
+                                {% if attended %}
+                                    <td class="text-center"> <b>X</b> </td>
+                                {% else %}
+                                    <td> </td>
+                                {% endif %}
+                            {% endfor %}
+                            
+                        </tr>
+                    {% endfor %}
+                
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+        
+    {% if forloop.last != true %}
+        <p class="page-break"></p>
+    {% endif %}
+        
+{% endfor %}
+    

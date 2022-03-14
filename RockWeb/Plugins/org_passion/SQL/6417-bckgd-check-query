@@ -1,0 +1,16 @@
+{% assign personId = Workflow | Attribute:'Person', 'Id' %}
+
+SELECT TOP 1
+    [Group].Guid as Guid
+FROM [Group]
+	INNER JOIN GroupMember ON [Group].Id = GroupMember.GroupId
+	INNER JOIN Person P ON GroupMember.PersonId = P.Id
+	INNER JOIN AttributeValue AV ON AV.EntityId = [Group].Id
+	INNER JOIN Attribute A ON AV.AttributeId = A.Id
+	INNER JOIN [Group] DHT ON CAST(DHT.Guid AS varchar(64)) = AV.Value
+	INNER JOIN AttendanceOccurrence ON AttendanceOccurrence.GroupId=[Group].Id
+WHERE A.Id=10597
+    AND P.Id='{{ personId }}'
+    AND GroupMember.GroupMemberStatus=1
+GROUP BY [DHT].Name, [Group].Guid, [Group].Id
+ORDER BY COUNT(DHT.Name) DESC

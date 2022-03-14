@@ -1,0 +1,39 @@
+SELECT DISTINCT
+    Person.Id
+    ,Person.LastName
+    ,Person.FirstName
+    ,Person.NickName
+    ,Person.Email
+    ,PhoneNumber.NumberFormatted AS 'Phone Number'
+    ,dbo.ufnCrm_GetAddress(Person.Id,'Home','Street 1') AS 'Street Address'
+    ,Person.BirthDate 
+FROM Person
+    LEFT OUTER JOIN PhoneNumber ON Person.Id = PhoneNumber.PersonId AND PhoneNumber.NumberTypeValueId = 12
+    INNER JOIN PersonAlias ON PersonAlias.PersonId = Person.Id
+    INNER JOIN Attendance ON Attendance.PersonAliasId = PersonAlias.Id
+    INNER JOIN AttendanceOccurrence ON AttendanceOccurrence.Id = Attendance.OccurrenceId
+    INNER JOIN [Group] ON [Group].Id = AttendanceOccurrence.GroupId
+WHERE
+    [Group].GroupTypeId = 115
+    AND Attendance.DidAttend = 1
+    AND 0 < (SELECT Count(*)
+            FROM Person AS b
+                INNER JOIN PersonAlias ON PersonAlias.PersonId = b.Id
+                INNER JOIN Attendance ON Attendance.PersonAliasId = PersonAlias.Id
+                INNER JOIN AttendanceOccurrence ON AttendanceOccurrence.Id = Attendance.OccurrenceId
+                INNER JOIN [Group] ON [Group].Id = AttendanceOccurrence.GroupId
+            WHERE
+                b.Id <> Person.Id
+                AND [Group].GroupTypeId = 115
+                AND Attendance.DidAttend = 1
+                AND (b.FirstName = Person.FirstName
+                    OR coalesce(b.FirstName, '') = coalesce(Person.NickName, '')
+                    OR coalesce(b.NickName, '') = coalesce(Person.FirstName, '')
+                    OR coalesce(b.NickName, '') = coalesce(Person.NickName, '')
+                    OR b.FirstName LIKE '%' + Person.FirstName + '%'
+                    OR Person.FirstName LIKE '%' + b.FirstName + '%'
+                    )
+                AND b.LastName = Person.LastName
+                AND coalesce(b.FirstName,'') <> '' 
+                AND coalesce(b.LastName,'') <> '')
+ORDER BY Person.LastName, Person.FirstName

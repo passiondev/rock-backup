@@ -1,0 +1,41 @@
+SELECT
+	fn.Value AS FirstName
+	,ln.Value AS LastName
+	,em.Value AS Email
+	,coalesce(rsvp.Value,'Accepted') as RSVP
+	,bl.Value AS bloomCount
+	,pk.Value AS PKCount
+    ,CASE 
+        WHEN staff.[Value] = 'staff' THEN 'Staff'
+        WHEN staff.[Value] = 'notstaff' THEN 'Not Staff'
+    END AS 'Staff?'
+     ,spouse.[Value] AS 'Will your spouse serve?'
+    ,serve.[Value] AS 'Will you serve?'
+    ,CASE 
+        WHEN childcare.[Value] = 'childcare' THEN 'My kids will be attending US> Kids + bloom'
+        WHEN childcare.[Value] = 'childcare,precare' THEN 'My kids will be attending US> Kids + bloom; My kids will need Pre-Care before US> Conference'
+        WHEN childcare.[Value] = 'precare' THEN 'My kids will need Pre-Care before US> Conference'
+    END AS 'Childcare Needs'
+    ,spouseFirstName.[Value] AS 'Spouse First Name'
+    ,spouseLastName.[Value] AS 'Spouse Last Name'
+    ,spouseEmail.[Value] AS 'Spouse Email'
+    ,wf.Id AS WorkflowId
+FROM [Workflow] wf 
+    INNER JOIN [AttributeValue] p ON wf.Id = p.EntityId AND p.AttributeId = 30725
+    INNER JOIN [PersonAlias] pa ON p.[Value] = pa.[Guid]
+	INNER JOIN [AttributeValue] fn ON wf.Id = fn.EntityId AND fn.AttributeId = 30720
+	INNER JOIN [AttributeValue] ln ON wf.Id = ln.EntityId AND ln.AttributeId = 30721
+    INNER JOIN [AttributeValue] em ON wf.Id = em.EntityId AND em.AttributeId = 30722
+    LEFT OUTER JOIN [AttributeValue] bl ON wf.Id = bl.EntityId AND bl.AttributeId = 30723
+    LEFT OUTER JOIN [AttributeValue] pk ON wf.Id = pk.EntityId AND pk.AttributeId = 30724
+	LEFT OUTER JOIN [AttributeValue] rsvp ON wf.Id = rsvp.EntityId AND rsvp.AttributeId = 31116
+    LEFT OUTER JOIN AttributeValue spouse ON wf.Id = spouse.EntityId AND spouse.AttributeId = 30823
+    LEFT OUTER JOIN AttributeValue serve ON wf.Id = serve.EntityId AND serve.AttributeId = 30829
+    LEFT OUTER JOIN AttributeValue childcare ON wf.Id = childcare.EntityId AND childcare.AttributeId = 30831
+    LEFT OUTER JOIN AttributeValue spouseFirstName ON wf.Id = spouseFirstName.EntityId AND spouseFirstName.AttributeId = 30824
+    LEFT OUTER JOIN AttributeValue spouseLastName ON wf.Id = spouseLastName.EntityId AND spouseLastName.AttributeId = 30828
+    LEFT OUTER JOIN AttributeValue spouseEmail ON wf.Id = spouseEmail.EntityId AND spouseEmail.AttributeId = 30830
+    INNER JOIN AttributeValue staff ON wf.Id = staff.EntityId AND staff.AttributeId = 30810
+WHERE wf.WorkflowTypeId = 426
+AND wf.[Status] = 'Completed'
+AND coalesce(rsvp.Value,'Accepted') = 'Accepted'

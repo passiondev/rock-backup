@@ -1,0 +1,85 @@
+{% stylesheet %}
+    
+    @media print {
+        .row, .col-md-12 {
+            float: none;
+            width: initial;
+        }
+    
+        .page-break {
+            display: block; 
+            page-break-before: always;
+        }
+    
+        .print-hide {
+            display: none;
+        }
+
+        .page-wrapper > .navbar-static-side,
+        .rock-top-header {
+            display: none;
+        }
+
+        form > .page-wrapper {
+            padding-top: 0px;
+        }
+
+        .page-wrapper > #content-wrapper {
+            margin-left: 0px !important;
+        }
+
+        #content-wrapper > .main-content {
+            margin: 0px;
+        }
+    }
+    
+{% endstylesheet %}
+
+{% assign registrations = rows | BBM_GroupBy:'RegistrationName' %}
+
+{% for group in registrations %}
+    {% assign registration = group | PropertyToKeyValue %}
+    <div class='container-fluid'>
+        <h2> {{ registration.Key }} | {{ registration.Value | Size }} Registrants </h2>
+    
+        <div class='overflow-auto'>
+            <table class="grid-table table-responsive table table-bordered table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Participant First Name</th>
+                        <th>Participant Last Name</th>
+                        <th>Participant Email</th>
+                        <th>Participant Birthdate</th>
+                        <th>Parent Name</th>
+                        <th>Parent Email</th>
+                        <th>Registration Completed Date</th>
+                        <th>Link to Waiver</th>
+                    </tr>
+                </thead>
+            
+                <tbody>
+                    {% for person in registration.Value %}
+                        <tr>
+                            <td>{{ person.ParticipantFirstName }}</td>
+                            <td>{{ person.ParticipantLastName }}</td>
+                            <td>{{ person.ParticipantEmail }}</td>
+                            <td>{{ person.BirthDate | Date:'M/d/yyyy' }}</td>
+                            <td>{{ person.ParentFirstName }} {{ person.ParentLastName }}</td>
+                            <td>{{ person.ParentEmail }}</td>
+                            <td>{{ person.RegistrationTime | Date:'M/d/yyyy' }}</td>
+                            <td>
+                                <a href="https://connect.passion.team/wwknd-waiver?RegistrantId={{ person.RegistrantId }}" target="_self">Download</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+        
+    {% if forloop.last != true %}
+        <p class="page-break"></p>
+    {% endif %}
+        
+{% endfor %}
+    

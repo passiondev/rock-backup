@@ -1,0 +1,14 @@
+SELECT DISTINCT
+    Person.Id
+FROM Workflow
+INNER JOIN AttributeValue PersonAttribute
+    ON PersonAttribute.EntityId=Workflow.Id
+    AND PersonAttribute.AttributeId IN (26160, 7180, 7957, 8187, 8259, 8339, 8412, 8492, 8555, 20805, 21944, 25739) 
+    AND LOWER(PersonAttribute.[Value]) LIKE '%spanish%'
+INNER JOIN AttributeValue WorkflowPerson
+    ON WorkflowPerson.EntityId=Workflow.Id
+    AND WorkflowPerson.AttributeId IN (7113, 8518, 25722, 26131)
+INNER JOIN PersonAlias
+    ON WorkflowPerson.[Value]=PersonAlias.Guid
+INNER JOIN Person   
+    ON PersonAlias.PersonId=Person.Id

@@ -1,0 +1,77 @@
+            SELECT 
+                Participant.FirstName AS 'ParticipantFirstName'
+                ,Participant.LastName AS 'ParticipantLastName'
+                ,Participant.Email AS 'ParticipantEmail'
+                ,PhoneNumber.[Value] AS 'ParticicpantPhoneNumber'
+                ,CASE WHEN Participant.Gender = 0 THEN 'Unknown'
+                    WHEN Participant.Gender = 1 THEN 'Male'
+                    WHEN Participant.Gender = 2 THEN 'Female'
+                END AS 'Gender'
+                ,BirthDate.[Value] AS 'BirthDate'
+                ,ParentPhone.[Value] AS 'ParentPhone'
+                ,Registration.FirstName AS 'ParentFirstName'
+                ,Registration.LastName AS 'ParentLastName'
+                ,Registration.ConfirmationEmail AS 'ParentEmail'
+                ,Registration.CreatedDateTime AS 'RegistrationTime'
+                ,RegistrationInstance.Name AS 'RegistrationName'
+                ,RegistrationRegistrant.Id
+                ,ReleaseInitials.[Value] AS 'ReleaseInitials'
+                ,AssumptionOfRiskInitials.[Value] AS 'AssumptionOfRiskInitials'
+                ,MediaConsentInitials.[Value] AS 'MediaConsentInitials'
+                ,InformationInitials.[Value] AS 'InformationInitials'
+                ,MedicalPermissionInitials.[Value] AS 'MedicalPermissionInitials'
+                ,MedicalHistoryInitials.[Value] AS 'MedicalHistoryInitials'
+                ,MedicalConditions.[Value] AS 'MedicalConditions'
+                ,Allergies.[Value] AS 'Allergies'
+                ,OverEighteen.[Value] AS 'OverEighteen'
+                ,UnderEighteen.[Value] AS 'UnderEighteen'
+                ,MinorParent.[Value] AS 'MinorParent'
+                ,DateSigned.[Value] AS 'DateSigned'
+                ,AlternatePhone.[Value] AS 'AlternatePhone'
+                ,HomeAddress.[Value] AS 'Address'
+                ,[Location].Street1 AS 'Street1'
+                ,[Location].City AS 'City'
+                ,[Location].[State] AS 'State'
+                ,[Location].PostalCode AS 'Zipcode'
+            FROM RegistrationRegistrant
+                INNER JOIN PersonAlias ON PersonAlias.Id=RegistrationRegistrant.PersonAliasId
+                INNER JOIN Person Participant ON Participant.Id=PersonAlias.PersonId
+                INNER JOIN Registration ON RegistrationRegistrant.RegistrationId=Registration.Id
+                INNER JOIN RegistrationInstance ON RegistrationInstance.Id = Registration.RegistrationInstanceId
+                LEFT OUTER JOIN AttributeValue PhoneNumber ON PhoneNumber.EntityId = RegistrationRegistrant.Id
+                    AND PhoneNumber.AttributeId = 30651
+                LEFT OUTER JOIN AttributeValue BirthDate ON BirthDate.EntityId = RegistrationRegistrant.Id
+                    AND BirthDate.AttributeId = 30172
+                LEFT OUTER JOIN AttributeValue HomeAddress ON HomeAddress.EntityId = RegistrationRegistrant.Id
+                    AND HomeAddress.AttributeId = 29793
+                LEFT OUTER JOIN AttributeValue ReleaseInitials ON ReleaseInitials.EntityId = RegistrationRegistrant.Id 
+                    AND ReleaseInitials.AttributeId = 29880
+                LEFT OUTER JOIN AttributeValue AssumptionOfRiskInitials ON AssumptionOfRiskInitials.EntityId = RegistrationRegistrant.Id 
+                    AND AssumptionOfRiskInitials.AttributeId = 29881
+                LEFT OUTER JOIN AttributeValue MediaConsentInitials ON MediaConsentInitials.EntityId = RegistrationRegistrant.Id 
+                    AND MediaConsentInitials.AttributeId = 29882
+                LEFT OUTER JOIN AttributeValue InformationInitials ON InformationInitials.EntityId = RegistrationRegistrant.Id 
+                    AND InformationInitials.AttributeId = 29892
+                LEFT OUTER JOIN AttributeValue MedicalPermissionInitials ON MedicalPermissionInitials.EntityId = RegistrationRegistrant.Id 
+                    AND MedicalPermissionInitials.AttributeId = 29893
+                LEFT OUTER JOIN AttributeValue MedicalHistoryInitials ON MedicalHistoryInitials.EntityId = RegistrationRegistrant.Id 
+                    AND MedicalHistoryInitials.AttributeId = 29894
+                LEFT OUTER JOIN AttributeValue MedicalConditions ON MedicalConditions.EntityId = RegistrationRegistrant.Id 
+                    AND MedicalConditions.AttributeId = 30217
+                LEFT OUTER JOIN AttributeValue Allergies ON Allergies.EntityId = RegistrationRegistrant.Id 
+                    AND Allergies.AttributeId = 30218
+                LEFT OUTER JOIN AttributeValue OverEighteen ON OverEighteen.EntityId = RegistrationRegistrant.Id 
+                    AND OverEighteen.AttributeId = 29887
+                LEFT OUTER JOIN AttributeValue UnderEighteen ON UnderEighteen.EntityId = RegistrationRegistrant.Id 
+                    AND UnderEighteen.AttributeId = 29888
+                LEFT OUTER JOIN AttributeValue MinorParent ON MinorParent.EntityId = RegistrationRegistrant.Id 
+                    AND MinorParent.AttributeId = 29889
+                LEFT OUTER JOIN AttributeValue DateSigned ON DateSigned.EntityId = RegistrationRegistrant.Id 
+                    AND DateSigned.AttributeId = 29891
+                LEFT OUTER JOIN AttributeValue ParentPhone ON ParentPhone.EntityId = RegistrationRegistrant.Id 
+                    AND ParentPhone.AttributeId = 29791
+                LEFT OUTER JOIN AttributeValue AlternatePhone ON AlternatePhone.EntityId = RegistrationRegistrant.Id 
+                    AND AlternatePhone.AttributeId = 30235
+                LEFT OUTER JOIN Location ON Location.Guid = HomeAddress.[Value]
+            WHERE RegistrationInstanceId IN (9, 10, 11, 12, 13, 14, 15)
+                AND RegistrationRegistrant.Id = @id

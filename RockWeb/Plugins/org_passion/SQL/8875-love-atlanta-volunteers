@@ -1,0 +1,12 @@
+SELECT DISTINCT
+    people.first_name AS 'First Name'
+    ,people.last_name AS 'Last Name'
+    ,people.phone
+    ,users.email
+FROM people
+    INNER JOIN attendees ON attendees.person_id = people.id
+    INNER JOIN projects ON projects.id = attendees.project_id
+    INNER JOIN events ON events.id = projects.event_id
+    LEFT OUTER JOIN users ON users.person_id = people.id
+WHERE projects.event_id = 8 OR projects.event_id = 9
+ORDER BY last_name

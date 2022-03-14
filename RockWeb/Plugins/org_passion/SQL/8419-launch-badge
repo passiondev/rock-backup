@@ -1,0 +1,44 @@
+WITH OccurrenceDates AS (
+    SELECT DISTINCT 
+        AttendanceOccurrence.GroupId
+        ,[Group].Name
+        ,COUNT(DISTINCT AttendanceOccurrence.SundayDate) AS number_of_occurrences
+    FROM AttendanceOccurrence
+        INNER JOIN [Group] ON [Group].Id = AttendanceOccurrence.GroupId
+    WHERE [Group].ParentGroupId = 185681
+        AND [Group].IsActive = 1
+        AND [Group].IsArchived = 0
+    GROUP BY 
+        AttendanceOccurrence.GroupId
+        ,[Group].Name
+), 
+Attendances AS (
+    SELECT DISTINCT
+        Person.Id AS PersonId
+        ,Person.FirstName
+        ,Person.LastName
+        ,COUNT(Attendance.DidAttend) AS number_of_attendances
+        ,[Group].Id AS GroupID
+    FROM [Group]
+        INNER JOIN AttendanceOccurrence ON AttendanceOccurrence.GroupId = [Group].Id
+        INNER JOIN Attendance ON AttendanceOccurrence.Id = Attendance.OccurrenceId
+        INNER JOIN PersonAlias ON PersonAlias.Id = Attendance.PersonAliasId
+            AND Attendance.DidAttend = 1
+        INNER JOIN Person ON Person.Id = PersonAlias.PersonId
+    WHERE [Group].ParentGroupId = 185681
+        AND [Group].IsActive = 1
+        AND [Group].IsArchived = 0
+        AND Attendance.DidAttend = 1
+    GROUP BY 
+        Person.Id
+        ,Person.FirstName
+        ,Person.LastName
+        ,[Group].Id
+)
+
+SELECT 
+    Attendances.PersonId
+FROM Attendances
+    INNER JOIN OccurrenceDates ON OccurrenceDates.GroupId = Attendances.GroupID
+WHERE Attendances.number_of_attendances = OccurrenceDates.number_of_occurrences
+ORDER BY Attendances.LastName

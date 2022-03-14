@@ -1,0 +1,57 @@
+SELECT 
+    Workflow.Guid AS Guid,
+    Workflow.Id AS ID,
+    AttributeValue.[Value] AS ParentFirstName,
+    AV2.[Value] AS ParentLastName,
+    AV3.[Value] AS [Address],
+    AV4.[Value] AS PhoneNumber,
+    AV5.[Value] AS Email,
+    AV6.[Value] AS EventDate,
+    AV7.[Value] AS TotalHours,
+    AV8.[Value] AS ChildrenNum,
+    AV9.[Value] AS ReimbursementAmount,
+    coalesce(AV10.[Value], '') AS AdditionalComments,
+    AV11.[Value] AS Initials,
+    coalesce(AV12.[Value], '') AS CommunityGroup,
+    AV13.[Value] AS ApproverGroup,
+    [Group].[Name] AS Gathering,
+    Workflow.[Status]
+FROM Workflow
+INNER JOIN AttributeValue
+    ON Workflow.Id=AttributeValue.EntityId AND AttributeValue.AttributeId=26205
+INNER JOIN AttributeValue AV2
+    ON Workflow.Id=AV2.EntityId AND AV2.AttributeId=26206
+INNER JOIN AttributeValue AV3
+     ON Workflow.Id=AV3.EntityId AND AV3.AttributeId=26208
+INNER JOIN AttributeValue AV4
+     ON Workflow.Id=AV4.EntityId AND AV4.AttributeId=26210
+INNER JOIN AttributeValue AV5
+     ON Workflow.Id=AV5.EntityId AND AV5.AttributeId=26209
+INNER JOIN AttributeValue AV6
+     ON Workflow.Id=AV6.EntityId AND AV6.AttributeId=26211
+INNER JOIN AttributeValue AV7
+     ON Workflow.Id=AV7.EntityId AND AV7.AttributeId=26214
+INNER JOIN AttributeValue AV8
+     ON Workflow.Id=AV8.EntityId AND AV8.AttributeId=26215
+INNER JOIN AttributeValue AV9
+     ON Workflow.Id=AV9.EntityId AND AV9.AttributeId=26216
+FULL OUTER JOIN AttributeValue AV10
+     ON Workflow.Id=AV10.EntityId AND AV10.AttributeId=26217
+INNER JOIN AttributeValue AV11
+     ON Workflow.Id=AV11.EntityId AND AV11.AttributeId=26218
+FULL OUTER JOIN AttributeValue AV12
+     ON Workflow.Id=AV12.EntityId AND AV12.AttributeId=26213
+INNER JOIN AttributeValue AV13
+     ON Workflow.Id=AV13.EntityId AND AV13.AttributeId=26222
+INNER JOIN AttributeValue AV14
+     ON Workflow.Id=AV14.EntityId AND AV14.AttributeId=26212
+INNER JOIN [Group]
+     ON [Group].Guid=AV14.[Value]
+WHERE Workflow.WorkflowTypeId=375
+AND Workflow.[Status]='Request Submitted'
+AND AV13.[Value] IN 
+    (SELECT [Group].Guid
+    FROM [Group]
+    INNER JOIN GroupMember ON [Group].Id=GroupMember.GroupId
+    WHERE GroupMember.PersonId=@CurrentPersonId
+    AND [Group].ParentGroupId=482966)

@@ -1,0 +1,47 @@
+SELECT DISTINCT
+    Person.Id
+    ,Person.FirstName
+    ,Person.LastName
+    ,CASE 
+        WHEN Person.Gender=0 THEN 'Unknown'
+        WHEN Person.Gender=1 THEN 'Male'
+        WHEN Person.Gender=2 THEN 'Female'
+    END AS 'Gender'
+    ,Person.Email
+    ,DefinedValue.[Description] AS 'Grade'
+    ,dbo.ufnCrm_GetParentNames(Person.Id) AS ParentNames
+    ,dbo.ufnCrm_GetParentPhones(Person.Id,'Mobile') AS ParentPhones
+    ,dbo.ufnCrm_GetParentEmails(Person.Id) AS ParentEmails
+FROM RegistrationRegistrant WW
+    LEFT OUTER JOIN Registration WWR ON WW.RegistrationId=WWR.Id
+    LEFT OUTER JOIN RegistrationRegistrant PC ON WW.PersonAliasId=PC.PersonAliasId
+    LEFT OUTER JOIN Registration PCR ON PCR.Id=PC.RegistrationId
+    INNER JOIN PersonAlias ON PersonAlias.Id=WW.PersonAliasId
+    INNER JOIN Person ON Person.Id=PersonAlias.PersonId
+    LEFT OUTER JOIN PhoneNumber ON PhoneNumber.PersonId=Person.Id
+    LEFT OUTER JOIN Registration WW21 ON WW.RegistrationId=WW21.Id
+    INNER JOIN GroupMember ON GroupMember.PersonId=Person.Id
+    LEFT OUTER JOIN DefinedValue
+        ON DefinedValue.[Value] = (Person.GraduationYear - DATEPART(year, GETDATE()))
+        AND DefinedValue.DefinedTypeId=51
+WHERE WWR.RegistrationInstanceId NOT IN (9, 12)
+    AND (PCR.RegistrationInstanceId IN (7, 8)
+    OR WW21.RegistrationInstanceId IN (4)
+    OR 0 < (
+        SELECT 
+            COUNT(*)
+            FROM Attendance
+                INNER JOIN AttendanceOccurrence ON AttendanceOccurrence.Id=Attendance.OccurrenceId
+                INNER JOIN [Group] ON [Group].Id=AttendanceOccurrence.GroupId
+            WHERE [Group].GroupTypeId=21
+                AND Attendance.PersonAliasId=PersonAlias.Id
+            HAVING COUNT(*) > 1
+        )
+    )
+    AND (Person.GraduationYear - DATEPART(year, GETDATE())) >= 0
+    AND GroupMember.GroupRoleId=104
+    AND GroupMember.GroupMemberStatus=1
+    AND GroupMember.IsArchived=0
+    AND (@Gender = '' or Person.Gender in (Select * FROM dbo.fnSplit(@Gender)))
+    AND (@Grade = '' or DefinedValue.[Description] in (Select * FROM dbo.fnSplit(@Grade)))
+ORDER BY LastName

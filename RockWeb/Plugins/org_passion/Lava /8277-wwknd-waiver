@@ -1,0 +1,210 @@
+<html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 18px;
+                margin: 1in;
+            }
+        </style>
+    </head>
+    <body>
+        {% assign url = 'Global' | Page:'Url' %}
+        {% assign registrantID = url | Url:'queryparameter', 'RegistrantId' %}
+        
+        {% sql id:'{{ registrantID }}' %}
+            SELECT 
+                Participant.FirstName AS 'ParticipantFirstName'
+                ,Participant.LastName AS 'ParticipantLastName'
+                ,Participant.Email AS 'ParticipantEmail'
+                ,PhoneNumber.[Value] AS 'ParticicpantPhoneNumber'
+                ,CASE WHEN Participant.Gender = 0 THEN 'Unknown'
+                    WHEN Participant.Gender = 1 THEN 'Male'
+                    WHEN Participant.Gender = 2 THEN 'Female'
+                END AS 'Gender'
+                ,BirthDate.[Value] AS 'BirthDate'
+                ,ParentPhone.[Value] AS 'ParentPhone'
+                ,Registration.FirstName AS 'ParentFirstName'
+                ,Registration.LastName AS 'ParentLastName'
+                ,Registration.ConfirmationEmail AS 'ParentEmail'
+                ,Registration.CreatedDateTime AS 'RegistrationTime'
+                ,RegistrationInstance.Name AS 'RegistrationName'
+                ,RegistrationRegistrant.Id
+                ,ReleaseInitials.[Value] AS 'ReleaseInitials'
+                ,AssumptionOfRiskInitials.[Value] AS 'AssumptionOfRiskInitials'
+                ,MediaConsentInitials.[Value] AS 'MediaConsentInitials'
+                ,InformationInitials.[Value] AS 'InformationInitials'
+                ,MedicalPermissionInitials.[Value] AS 'MedicalPermissionInitials'
+                ,MedicalHistoryInitials.[Value] AS 'MedicalHistoryInitials'
+                ,MedicalConditions.[Value] AS 'MedicalConditions'
+                ,Allergies.[Value] AS 'Allergies'
+                ,OverEighteen.[Value] AS 'OverEighteen'
+                ,UnderEighteen.[Value] AS 'UnderEighteen'
+                ,MinorParent.[Value] AS 'MinorParent'
+                ,DateSigned.[Value] AS 'DateSigned'
+                ,AlternatePhone.[Value] AS 'AlternatePhone'
+                ,HomeAddress.[Value] AS 'Address'
+                ,[Location].Street1 AS 'Street1'
+                ,[Location].City AS 'City'
+                ,[Location].[State] AS 'State'
+                ,[Location].PostalCode AS 'Zipcode'
+            FROM RegistrationRegistrant
+                INNER JOIN PersonAlias ON PersonAlias.Id=RegistrationRegistrant.PersonAliasId
+                INNER JOIN Person Participant ON Participant.Id=PersonAlias.PersonId
+                INNER JOIN Registration ON RegistrationRegistrant.RegistrationId=Registration.Id
+                INNER JOIN RegistrationInstance ON RegistrationInstance.Id = Registration.RegistrationInstanceId
+                LEFT OUTER JOIN AttributeValue PhoneNumber ON PhoneNumber.EntityId = RegistrationRegistrant.Id
+                    AND PhoneNumber.AttributeId = 30651
+                LEFT OUTER JOIN AttributeValue BirthDate ON BirthDate.EntityId = RegistrationRegistrant.Id
+                    AND BirthDate.AttributeId = 30172
+                LEFT OUTER JOIN AttributeValue HomeAddress ON HomeAddress.EntityId = RegistrationRegistrant.Id
+                    AND HomeAddress.AttributeId = 29793
+                LEFT OUTER JOIN AttributeValue ReleaseInitials ON ReleaseInitials.EntityId = RegistrationRegistrant.Id 
+                    AND ReleaseInitials.AttributeId = 29880
+                LEFT OUTER JOIN AttributeValue AssumptionOfRiskInitials ON AssumptionOfRiskInitials.EntityId = RegistrationRegistrant.Id 
+                    AND AssumptionOfRiskInitials.AttributeId = 29881
+                LEFT OUTER JOIN AttributeValue MediaConsentInitials ON MediaConsentInitials.EntityId = RegistrationRegistrant.Id 
+                    AND MediaConsentInitials.AttributeId = 29882
+                LEFT OUTER JOIN AttributeValue InformationInitials ON InformationInitials.EntityId = RegistrationRegistrant.Id 
+                    AND InformationInitials.AttributeId = 29892
+                LEFT OUTER JOIN AttributeValue MedicalPermissionInitials ON MedicalPermissionInitials.EntityId = RegistrationRegistrant.Id 
+                    AND MedicalPermissionInitials.AttributeId = 29893
+                LEFT OUTER JOIN AttributeValue MedicalHistoryInitials ON MedicalHistoryInitials.EntityId = RegistrationRegistrant.Id 
+                    AND MedicalHistoryInitials.AttributeId = 29894
+                LEFT OUTER JOIN AttributeValue MedicalConditions ON MedicalConditions.EntityId = RegistrationRegistrant.Id 
+                    AND MedicalConditions.AttributeId = 30217
+                LEFT OUTER JOIN AttributeValue Allergies ON Allergies.EntityId = RegistrationRegistrant.Id 
+                    AND Allergies.AttributeId = 30218
+                LEFT OUTER JOIN AttributeValue OverEighteen ON OverEighteen.EntityId = RegistrationRegistrant.Id 
+                    AND OverEighteen.AttributeId = 29887
+                LEFT OUTER JOIN AttributeValue UnderEighteen ON UnderEighteen.EntityId = RegistrationRegistrant.Id 
+                    AND UnderEighteen.AttributeId = 29888
+                LEFT OUTER JOIN AttributeValue MinorParent ON MinorParent.EntityId = RegistrationRegistrant.Id 
+                    AND MinorParent.AttributeId = 29889
+                LEFT OUTER JOIN AttributeValue DateSigned ON DateSigned.EntityId = RegistrationRegistrant.Id 
+                    AND DateSigned.AttributeId = 29891
+                LEFT OUTER JOIN AttributeValue ParentPhone ON ParentPhone.EntityId = RegistrationRegistrant.Id 
+                    AND ParentPhone.AttributeId = 29791
+                LEFT OUTER JOIN AttributeValue AlternatePhone ON AlternatePhone.EntityId = RegistrationRegistrant.Id 
+                    AND AlternatePhone.AttributeId = 30235
+                LEFT OUTER JOIN Location ON Location.Guid = HomeAddress.[Value]
+            WHERE RegistrationInstanceId IN (9, 10, 11, 12, 13, 14, 15)
+                AND RegistrationRegistrant.Id = @id
+        {% endsql %}
+        
+        {% for result in results %}
+        <h1>Winter WKND 2022</h1>
+        <h1>Liability Waiver & Release</h1>
+        <p style="font-size: 25px;">Passion City Church - Feb. 4 - 6, 2022</p>
+        
+        <br>
+        
+        <div style="text-align:center;font-size:25px;">
+            <p><i>PARTICIPANT</i></p> 
+        </div>
+        <p><b>Full Name:</b> {{ result.ParticipantFirstName }} {{ result.ParticipantLastName }}</p>
+        <p><b>Birthdate:</b> {{ result.BirthDate | Date:'MM/dd/yyyy' }}</p>
+        <p><b>Gender:</b> {{ result.Gender }}</p>
+        <p><b>Home Address:</b> {{ result.Street1 }}, {{ result.City }}, {{ result.State }} {{ result.Zipcode }} </p>
+        
+        <br>
+        
+        <div style="text-align:center;font-size:25px;">
+            <p><i>PARENT / GUARDIAN</i></p>
+        </div>
+        <p><b>Full Name:</b> {{ result.ParentFirstName }} {{ result.ParentLastName }}</p>
+        <p><b>Phone Number:</b> {{ result.ParentPhone }}</p>
+        <p><b>Alternate Phone: </b> {{ result.AlternatePhone }}</p>
+        <p style="page-break-after: always;"><b>Email:</b> {{ result.ParentEmail }}</p>
+        
+        <h2 style="page-break-before: always;">WAIVER AND RELEASE OF LIABILITY. READ BEFORE SIGNING.</h2>
+        <h2>THIS IS A GENERAL RELEASE AND INDEMNIFCATION OF CLAIMS.</h2>
+        
+        <p>In consideration of being allowed to participate in any way in PASSION CITY CHURCH, and related events and activities, the undersigned agrees to the following:</p>
+        
+        <br>
+        
+        <p><b>Release / Indemnification</b></p>
+        <p>I hereby release and discharge Passion City Church, its parent companies, subsidaries, and related companies, hereinafter ("Passion" or "Church") and all Passion officers, employees, agents, door holders / volunteers, sponsors, contractors, ("Released Parties"), individually and collectively, from and against any and all damage (whether damage to or loss of property, finances, life, body, mind, or emotions), cost, suit, claims, demands, liabilities, or other causes of action of any kind, except that which is the result of the gross negligence or wanton misconduct of a Released Party which arise out of or relate to my participation in, or my traveling to/from WINTER WKND. Also, the party signing this release releases the released party even for acts of negligence on the part of the Released Party.</p>
+        <p><b>Initials: </b>{{ result.ReleaseInitials }}</p>
+        
+        <br>
+        
+        <p><b>Assumption of Risk</b></p>
+        <p>I am aware of the risks and hazards involved with attending Winter WKND, including but not limited to the hazards of public beaches, travel by automobile or shuttle service, public condominiums and hotels, recreation activities, swimming in the ocean, the risk of injury, or even death. I hereby elect to voluntarily participate in these activities and assume full responsibility for any risk of loss, property damage, personal injury, including death, which may result from my participation.</p>
+        <p><b>Initials: </b>{{ result.AssumptionOfRiskInitials }}</p>
+        
+        <br>
+        
+        <p><b>Media Consent</b></p>
+        <p>I hereby further authorize and agree for Passion to record and photograph (on film, tape, digital, electronic, or otherwise) me and to record my voice during my participation in Winter WKND. I hereby further authorize and agree to Passion's unrestricted use, reuse, and distribution of said images and recordings, in whole or in part, whether in the original or modified form in any manner or media, including but without limitation to for purposes of advertising, promoting, and publicizing Winter WKND whether during the event or at any time thereafter, in the sole and absolute discretion of Passion, both in the United States and internationally. I expressly and irrevocably waive any and all rights I might otherwise have now or in the future to any related privacy or intellectual property rights, proceeds, benefits, or similar claims of any kind.</p>
+        <p style="page-break-after: always;"><b>Initials: </b>{{ result.MediaConsentInitials }}</p>
+        
+        <div style="border:2px; border-style:solid; border-color:#D3D3D3; padding: 1em; page-break-before: always;">
+            <p><i>I HEREBY AFFIRM THAT I AM EIGHTEEN (18) YEARS OF AGE OR OLDER,  I HAVE READ THIS DOCUMENT, AND I UNDERSTAND ITS CONTENTS.</i></p>
+            <br>
+            <p><b>Printed Name of Participant:</b> {{ result.OverEighteen }}</p>
+        </div>
+        
+        <p><b>- OR -</b></p>
+        
+        <div style="border:2px; border-style:solid; border-color:#D3D3D3; padding: 1em;">
+            <p><i>I AM UNDER THE AGE OF EIGHTEEN (18) YEARS. MY PARENT/LEGAL GUARDIAN HAS READ AND COMPLETED THE SECTION BELOW.</i></p>
+            <p>The parent and natural guardian or legal guardian of the participant hereby executes the foregoing Waiver and Release for and on behalf of the minor named herein. I hereby bind myself, the minor, and all other assigns to the terms of the Waiver and Release. I represent that I have legal capacity and authority to act for and on behalf of the minor named herein, and I agree to indemnify and hold harmless the persons or entities mentioned above for any claims or liabilities assessed against them as a result of any insufficiency of my legal capacity or authority to act for and on behalf of the minor in any execution of the Waiver and Release.</p>
+            <br>
+            <p><b>Printed Name of Participant:</b> {{ result.UnderEighteen }}</p>
+            <p><b>Printed Name of Parent/Legal Guardian:</b> {{ result.MinorParent }}</p>
+        </div>
+        
+        <br>
+        
+        {% if result.OverEighteen %}
+            <p><b>Signature of Participant or Parent/Legal Guardian:</b> {{ result.OverEighteen }}</p>
+        {% else %}
+            <p><b>Signature of Participant or Parent/Legal Guardian:</b> {{ result.MinorParent }}</p>
+        {% endif %}
+        <p style="page-break-after: always;"><b>Date:</b> {{ result.DateSigned | Date:'MM/dd/yyyy' }}</p>
+        
+        <p style="page-break-before: always;">insert students logo here</p>
+        
+        <h2>Winter WKND 2022 Medical Release</h2>
+        
+        <br>
+        
+        <p><b>Information Relied on by Church</b></p>
+        <p>I am the parent or legal guardian of the Participant for whom this document is signed. THe Participant is in good health and sound mind. If necessary, I have discussed or will discuss with my physician the Participant's participation in Winter WKND and the Participant has received or will receive any vaccination or other recommended prerequisite medical treatment my physician deems necessary. The Participant will participate in Winter WKND only if I have received my physician’s approval, if I deem it necessary, and believe that the Participant is able to participate without harm. I acknowledge that the Church will not assess or approve the Participant’s fitness for participation. I am under no force or duress of any kind to compel the Participant’s participation in Winter WKND or my signing of this document.</p>
+        <p><b>Initials: </b>{{ result.InformationInitials }}</p>
+        
+        <br>
+        
+        <p><b>Medical Permission</b></p>
+        <p>I give my permission for the Student to be treated for illness or injury sustained while participating in Winter WKND, including by the administration of emergency anesthesia or surgery; and authorize the adult leaders of Passion City Church to act on my behalf in ordering such treatment.</p>
+        <p><b>Initials: </b>{{ result.MedicalPermissionInitials }}</p>
+        
+        <br>
+        
+        <p><b>Brief Medical History</b></p>
+        <p>In the event of an emergency, the most accurate and updated information will be extremely helpful for us in providing the best care for your student.</p>
+        <p><b>Initials: </b>{{ result.MedicalHistoryInitials }}</p>
+        
+        <br>
+        
+        <p><b>List all Medical Conditions and any current Medication regimens:</b></p>
+        {% if result.MedicalConditions %}
+            <p>{{ result.MedicalConditions }}</p>
+        {% else %}
+            <p>N/A</p>
+        {% endif %}
+        
+        <br>
+        
+        <p><b>List all known Allergies:</b></p>
+        {% if result.Allergies %}
+            <p>{{ result.Allergies }}</p>
+        {% else %}
+            <p>N/A</p>
+        {% endif %}
+        
+        {% endfor %}
+    </body>
+</html>

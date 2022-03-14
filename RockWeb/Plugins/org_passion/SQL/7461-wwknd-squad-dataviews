@@ -1,0 +1,17 @@
+SELECT  
+    Person.Id
+FROM GroupMember
+INNER JOIN [Group]
+    ON GroupMember.GroupId=[Group].Id
+INNER JOIN AttributeValue
+    ON AttributeValue.EntityId=[Group].Id
+INNER JOIN Person  
+    ON Person.Id=GroupMember.PersonId
+WHERE [Group].ParentGroupId=548791 -- HS family groups for WWK '22
+    AND AttributeValue.AttributeId=20327 -- squad attribute
+    AND AttributeValue.[Value]='Hurricane' -- value changes for squad name
+    AND [Group].IsActive = 1
+    AND [Group].IsArchived = 0
+    AND GroupMember.GroupMemberStatus = 1
+
+
