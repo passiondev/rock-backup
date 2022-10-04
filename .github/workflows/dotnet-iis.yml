@@ -1,0 +1,43 @@
+name: .NET Deploy to IIS
+
+on: 
+  push:
+    branches:
+      - "passion-release"
+
+jobs:
+  build-and-deploy:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.301
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build with dotnet
+      run: dotnet build --configuration Release .\dotnet-webapp
+
+    # - name: dotnet publish 
+    #   run: |
+    #     dotnet publish -c Release -o dotnetwebapp .\dotnet-webapp
+    # - name: Deploy to IIS
+    #   run: |
+    #     iisreset /stop
+    #     Copy-Item ./dotnetwebapp/* C:/inetpub/wwwroot/dotnet-webapp -Recurse -Force
+    #     iisreset /start
+    
+    # - name: Curl the website as a smoke test
+    #   run: curl http://localhost/dotnet-webapp
+
+    # - name: Run Web Test
+    #   run: |
+    #     dotnet build --configuration Release .\dotnet-webapp.webtest
+    #     cd .\dotnet-webapp.webtests
+    #     dotnet test
