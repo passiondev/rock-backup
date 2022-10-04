@@ -13,10 +13,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 4.7.2
+    # - name: Setup .NET Core
+    #   uses: actions/setup-dotnet@v1
+    #   with:
+    #     dotnet-version: 5.0.1
+
+  - name: setup-msbuild
+    uses: microsoft/setup-msbuild@v1
+  
+  # - name: Setup Nuget.exe for use with actions
+  #   uses: Nuget/Setup-nuget@v1.0.2
 
     # - name: Add dependencies for ASP.NET
     #   run: |
