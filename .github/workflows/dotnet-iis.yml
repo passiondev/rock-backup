@@ -5,30 +5,33 @@ on:
     branches:
       - "passion-release"
 
+env:
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+
 jobs:
   build-and-deploy:
 
     runs-on: self-hosted
     
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    # - name: Setup .NET Core
-    #   uses: actions/setup-dotnet@v1
-    #   with:
-    #     dotnet-version: 5.0.1
+      # - name: Setup .NET Core
+      #   uses: actions/setup-dotnet@v1
+      #   with:
+      #     dotnet-version: 5.0.1
 
-    - name: setup-msbuild
-      uses: microsoft/setup-msbuild@v1
+      - name: setup-msbuild
+        uses: microsoft/setup-msbuild@v1
 
-    - name: Setup Nuget.exe for use with actions
-      uses: Nuget/Setup-nuget@v1.0.2
+      - name: Setup Nuget.exe for use with actions
+        uses: Nuget/Setup-nuget@v1.0.2
 
-    - name: Restore Nuget Packages
-      run: nuget restore Rock
+      - name: Restore Nuget Packages
+        run: nuget restore Rock
 
-    - name: Build Solution
-      run: msbuild Rock
+      - name: Build Solution
+        run: msbuild Rock
 
     # - name: Setup Nuget.exe for use with actions
     #   uses: Nuget/Setup-nuget@v1.0.2
