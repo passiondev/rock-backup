@@ -28,7 +28,7 @@ jobs:
     #   run: dotnet restore
 
     - name: Build with dotnet
-      run: dotnet build --configuration Release .\dotnet-webapp
+      run: dotnet build --configuration Release .\Rock
 
     # - name: dotnet publish 
     #   run: |
