@@ -30,7 +30,7 @@ jobs:
     - name: Build with dotnet
       run: |
         ls -la
-        dotnet build --configuration Release .\Rock
+        dotnet build --configuration Release Rock
 
     # - name: dotnet publish 
     #   run: |
