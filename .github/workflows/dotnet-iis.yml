@@ -20,7 +20,16 @@ jobs:
 
     - name: setup-msbuild
       uses: microsoft/setup-msbuild@v1
-    
+
+    - name: Setup Nuget.exe for use with actions
+      uses: Nuget/Setup-nuget@v1.0.2
+
+    - name: Restore Nuget Packages
+      run: nuget restore Rock
+
+    - name: Build Solution
+      run: msbuild Rock
+
     # - name: Setup Nuget.exe for use with actions
     #   uses: Nuget/Setup-nuget@v1.0.2
 
@@ -30,12 +39,12 @@ jobs:
     #     sudo dpkg -i packages-microsoft-prod.deb
     #     sudo apt-get update; sudo apt-get install -y apt-transport-https && sudo apt-get update && sudo apt-get install -y dotnet-sdk-5.0
 
-    - name: Install dependencies
-      run: dotnet restore
+    # - name: Install dependencies
+    #   run: dotnet restore
 
-    - name: Build with dotnet
-      run: |
-        dotnet build --configuration Release Rock
+    # - name: Build with dotnet
+    #   run: |
+    #     dotnet build --configuration Release Rock
 
     # - name: dotnet publish 
     #   run: |
