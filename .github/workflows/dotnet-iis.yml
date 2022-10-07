@@ -36,6 +36,11 @@ jobs:
           $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\'
           msbuild Rock
 
+      - name: Upload archive
+        run: |
+          Compress-Archive -Path $(ProjectDir)..\RockWeb\* -DestinationPath C:\builds\rockweb.zip
+          aws s3 cp C:\builds\rockweb.zip s3://connect-deployments
+
     # - name: Setup Nuget.exe for use with actions
     #   uses: Nuget/Setup-nuget@v1.0.2
 
