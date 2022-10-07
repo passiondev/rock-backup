@@ -38,7 +38,7 @@ jobs:
 
       - name: Upload archive
         run: |
-          set
+          dir env:
           $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\'
           Compress-Archive -Path $(APPVEYOR_BUILD_FOLDER)\RockWeb\* -DestinationPath C:\builds\rockweb.zip
           aws s3 cp C:\builds\rockweb.zip s3://connect-deployments
