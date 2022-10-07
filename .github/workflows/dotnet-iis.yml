@@ -44,6 +44,10 @@ jobs:
           Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath C:\builds\rockweb.zip
           aws s3 cp C:\builds\rockweb.zip s3://connect-deployments
 
+      - name: Deploy website archive
+        run: |
+          aws autoscaling start-instance-refresh --cli-input-json '{"AutoScalingGroupName": "test-connect-asg", "Preferences": { "InstanceWarmup": 60, "MinHealthyPercentage": 90 } }'
+
     # - name: Setup Nuget.exe for use with actions
     #   uses: Nuget/Setup-nuget@v1.0.2
 
