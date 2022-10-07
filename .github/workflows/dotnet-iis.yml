@@ -32,7 +32,9 @@ jobs:
         run: nuget restore Rock.sln
 
       - name: Build Solution
-        run: msbuild Rock
+        run: |
+          $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current'
+          msbuild Rock
 
     # - name: Setup Nuget.exe for use with actions
     #   uses: Nuget/Setup-nuget@v1.0.2
