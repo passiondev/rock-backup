@@ -36,7 +36,7 @@ jobs:
           dir env:
           $env:GITHUB_WORKSPACE
           $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\'
-          msbuild Rock -p:Configuration=Release;OutputPath=($env:GITHUB_WORKSPACE)\RockWeb\ -t:Clean,Build
+          msbuild Rock -p:Configuration=Release;OutputPath=$($env:GITHUB_WORKSPACE)\RockWeb\ -t:Clean,Build
 
       - name: Upload archive
         run: |
