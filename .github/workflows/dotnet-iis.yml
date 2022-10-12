@@ -34,13 +34,12 @@ jobs:
       - name: Build Solution
         run: |
           $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\'
-          msbuild Rock
+          msbuild Rock -p:Configuration=Release;OutputPath=$env:GITHUB_WORKSPACE\RockWeb\ -t:Clean,Build
 
       - name: Upload archive
         run: |
+          # List env vars
           dir env:
-          # $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\'
-          # $env:DevEnvDir = 'C:\actions-runner\_work\rock\rock\Rock\'
           Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath C:\builds\rockweb.zip -Force
           aws s3 cp C:\builds\rockweb.zip s3://connect-deployments
 
