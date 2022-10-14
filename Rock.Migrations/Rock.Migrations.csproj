@@ -1712,12 +1712,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>
-    ls
-    dir
-    CD $(SolutionDir)
-    dir
-    CALL "$(SolutionDir)Dev Tools\EntityFramework\CopyToPackage.bat"
+    <PreBuildEvent>CD $(SolutionDir)Dev Tools\EntityFramework\
+CALL CopyToPackage.bat
 </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
