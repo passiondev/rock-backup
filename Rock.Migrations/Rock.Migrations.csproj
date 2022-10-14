@@ -1714,8 +1714,9 @@
   <PropertyGroup>
     <PreBuildEvent>
     ls
-    Get-Location
-    Get-ChildItem -Path $(SolutionDir)
+    dir
+    CD $(SolutionDir)
+    dir
     CALL "$(SolutionDir)Dev Tools\EntityFramework\CopyToPackage.bat"
 </PreBuildEvent>
   </PropertyGroup>
