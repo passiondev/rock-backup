@@ -26,7 +26,7 @@ jobs:
         uses: microsoft/setup-msbuild@v1
 
       - name: Setup Nuget.exe for use with actions
-        uses: Nuget/Setup-nuget@v1.0.2
+        uses: Nuget/Setup-nuget@v1.0.5
 
       - name: Restore Nuget Packages
         run: nuget restore Rock.sln
@@ -36,7 +36,7 @@ jobs:
           dir env:
           $env:GITHUB_WORKSPACE
           $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\'
-          msbuild Rock /p:Configuration=Release /p:OutputPath=C:\actions-runner\_work\rock\rock\RockWeb\bin /t:Clean,Build
+          msbuild Rock /p:Configuration=Release /p:OutputPath=C:\actions-runner\_work\rock\rock\RockWeb\Bin /t:Build
 
       - name: Upload archive
         run: |
@@ -45,11 +45,11 @@ jobs:
           Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath C:\builds\rockweb.zip -Force
           aws s3 cp C:\builds\rockweb.zip s3://connect-deployments
 
-      - name: Deploy website archive
-        run: |
-          aws autoscaling start-instance-refresh --auto-scaling-group-name "test-connect-asg"
+      # - name: Deploy website archive`
+      #   run: |
+      #     aws autoscaling start-instance-refresh --auto-scaling-group-name "test-connect-asg"
 
-    # - name: Setup Nuget.exe for use with actions
+    # - name: Setup Nuget.exe for us`e with actions
     #   uses: Nuget/Setup-nuget@v1.0.2
 
     # - name: Add dependencies for ASP.NET
