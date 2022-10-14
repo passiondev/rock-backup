@@ -11,16 +11,15 @@ env:
 jobs:
   build-and-deploy:
 
-    runs-on: self-hosted
+    runs-on: windows-latest
     
     steps:
       - uses: actions/checkout@v2
 
       # - name: Setup .NET Core
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '6.0.x'
+      #   uses: actions/setup-dotnet@v1
+      #   with:
+      #     dotnet-version: '6.0.x'
 
       - name: setup-msbuild
         uses: microsoft/setup-msbuild@v1
