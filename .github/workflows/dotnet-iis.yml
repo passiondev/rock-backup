@@ -11,7 +11,7 @@ env:
 jobs:
   build-and-deploy:
 
-    runs-on: windows-latest
+    runs-on: windows-2019
     
     steps:
       - uses: actions/checkout@v2
@@ -41,8 +41,8 @@ jobs:
         run: |
           # List env vars
           dir env:
-          Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath C:\builds\rockweb.zip -Force
-          aws s3 cp C:\builds\rockweb.zip s3://connect-deployments
+          Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\rockweb.zip -Force
+          aws s3 cp $env:GITHUB_WORKSPACE\rockweb.zip s3://connect-deployments
 
       # - name: Deploy website archive`
       #   run: |
