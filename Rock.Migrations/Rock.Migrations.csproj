@@ -1712,9 +1712,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>ls
-    dir env:
+    <PreBuildEvent>
     CD $(SolutionDir)Dev Tools\EntityFramework\
+    ls
 CALL CopyToPackage.bat
 </PreBuildEvent>
   </PropertyGroup>
