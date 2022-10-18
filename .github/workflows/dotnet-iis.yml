@@ -35,7 +35,8 @@ jobs:
           dir env:
           $env:GITHUB_WORKSPACE
           $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\'
-          msbuild Rock.sln /p:Configuration=Release /t:Rebuild
+          # msbuild Rock.sln /p:Configuration=Release /p:OutputPath=$env:GITHUB_WORKSPACE\RockWeb\Bin /t:Rebuild
+          msbuild Rock.Javascript.Obsidian /p:Configuration=Release /t:Rebuild
 
       - name: Upload archive
         run: |
