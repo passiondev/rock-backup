@@ -89,8 +89,8 @@ jobs:
           $replace = "<OutputPath>..\RockWeb\Bin\</OutputPath>"
 
           For ($i = 0; $i -lt $paths.Length; $i++) {
-            $thePath = $env:GITHUB_WORKSPACE$paths[$i]
-            echo $env:GITHUB_WORKSPACE$paths[$i]
+            $thePath = "$env:GITHUB_WORKSPACE\$paths[$i]"
+            echo $thePath
             Get-Content -path $thePath
             ((Get-Content -path $thePath -Raw) -replace $search,$replace) | Set-Content -Path $thePath
             Get-Content -path $thePath
