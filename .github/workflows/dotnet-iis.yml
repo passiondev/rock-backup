@@ -7,6 +7,10 @@ on:
 
 env:
   ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+  SOLUTION_NAME: "Rock.sln"
+  ARTIFACT_NAME: "rockweb.zip" # The artifact name is a zipped archive of all the web files
+  S3_BUCKET_NAME: "connect-deployments" # Make sure this (and the archive loc) matche the AMI User Data script.
+  ASG_NAME: "test-connect-asg"
 
 jobs:
   build-and-deploy:
@@ -16,17 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      # Ensure there are secrets (https://github.com/passiondev/rock/settings/secrets/actions) in the Github Repo 
+      # to provide access to AWS. The IAM user needs to have permissions to upload files to the applicable S3 bucket.
       - name: Set AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-
-      # - name: Setup .NET Core
-      #   uses: actions/setup-dotnet@v1
-      #   with:
-      #     dotnet-version: '6.0.x'
 
       - name: setup-msbuild
         uses: microsoft/setup-msbuild@v1
@@ -35,8 +36,11 @@ jobs:
         uses: Nuget/Setup-nuget@v1.0.5
 
       - name: Restore Nuget Packages
-        run: nuget restore Rock.sln
+        run: nuget restore $SOLUTION_NAME
 
+      # In the build, it is necessary to update the build / output location of all the generated .bin files
+      # This is done automatically when building via Visual Studio, however as we are building manually
+      # we need to make sure the .bins are copied.
       - name: Build Solution
         run: |
           dir env:
@@ -99,16 +103,16 @@ jobs:
             ((Get-Content -path $thePath -Raw) -replace $searchRelease,$replace) | Set-Content -Path $thePath
           }
 
-          msbuild Rock.sln /p:Configuration=Release /t:Rebuild
+          msbuild $SOLUTION_NAME /p:Configuration=Release /t:Rebuild
 
       - name: Upload archive
         run: |
           # List env vars
           # dir env:
-          Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\rockweb.zip -Force
-          aws s3 cp $env:GITHUB_WORKSPACE\rockweb.zip s3://connect-deployments
+          Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\$ARTIFACT_NAME -Force
+          aws s3 cp $env:GITHUB_WORKSPACE\$ARTIFACT_NAME s3://$S3_BUCKET_NAME
 
-      - name: Deploy website archive`
+      - name: Deploy website archive
         run: |
-          aws autoscaling start-instance-refresh --auto-scaling-group-name "test-connect-asg"
+          aws autoscaling start-instance-refresh --auto-scaling-group-name $ASG_NAME
 
