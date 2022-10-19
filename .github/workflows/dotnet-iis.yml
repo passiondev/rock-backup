@@ -35,9 +35,16 @@ jobs:
           dir env:
           $env:GITHUB_WORKSPACE
           $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\'
-          msbuild "Rock.Javascript.EditorJs" /p:Configuration=Release /t:Rebuild
-          msbuild "Rock.Javascript.Obsidian" /p:Configuration=Release /t:Rebuild
-          msbuild Rock.sln /p:Configuration=Release /p:OutputPath=$env:GITHUB_WORKSPACE\RockWeb\Bin /t:Rebuild
+
+
+          $thePath = "$env:GITHUB_WORKSPACE\Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj"
+          Get-Content -path $thePath
+          $search = "<OutputPath>bin\Debug\</OutputPath>"
+          $replace = "<OutputPath>..\RockWeb\Bin\</OutputPath>"
+          ((Get-Content -path $thePath -Raw) -replace $search,$replace) | Set-Content -Path $thePath
+          Get-Content -path $thePath
+          exit
+          msbuild Rock.sln /p:Configuration=Release /t:Rebuild
           # msbuild "Rock.Javascript.Obsidian" /p:Configuration=Release /t:Rebuild
 
       - name: Upload archive
