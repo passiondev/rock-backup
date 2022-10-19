@@ -36,7 +36,7 @@ jobs:
         uses: Nuget/Setup-nuget@v1.0.5
 
       - name: Restore Nuget Packages
-        run: nuget restore $SOLUTION_NAME
+        run: nuget restore $env:SOLUTION_NAME
 
       # In the build, it is necessary to update the build / output location of all the generated .bin files
       # This is done automatically when building via Visual Studio, however as we are building manually
@@ -103,19 +103,16 @@ jobs:
             ((Get-Content -path $thePath -Raw) -replace $searchRelease,$replace) | Set-Content -Path $thePath
           }
 
-          echo msbuild $SOLUTION_NAME /p:Configuration=Release /t:Rebuild
-          msbuild $SOLUTION_NAME /p:Configuration=Release /t:Rebuild
+          msbuild $env:SOLUTION_NAME /p:Configuration=Release /t:Rebuild
 
       - name: Upload archive
         run: |
           # List env vars
           # dir env:
-          echo Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\$env:ARTIFACT_NAME -Force
           Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\$env:ARTIFACT_NAME -Force
-          echo aws s3 cp $env:GITHUB_WORKSPACE\$env:ARTIFACT_NAME $env:S3_BUCKET_NAME
           aws s3 cp $env:GITHUB_WORKSPACE\$env:ARTIFACT_NAME $env:S3_BUCKET_NAME
 
       - name: Deploy website archive
         run: |
-          aws autoscaling start-instance-refresh --auto-scaling-group-name $ASG_NAME
+          aws autoscaling start-instance-refresh --auto-scaling-group-name $env:ASG_NAME
 
