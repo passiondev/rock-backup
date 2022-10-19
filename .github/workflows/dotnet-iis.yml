@@ -88,7 +88,7 @@ jobs:
           $search = "<OutputPath>bin\\Debug\\<\/OutputPath>"
           $replace = "<OutputPath>..\RockWeb\Bin\</OutputPath>"
 
-          For ($path in $paths) {
+          ForEach ($path in $paths) {
             $thePath = "$env:GITHUB_WORKSPACE\$path"
             echo $thePath
             Get-Content -path $thePath
