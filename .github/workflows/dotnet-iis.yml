@@ -37,10 +37,25 @@ jobs:
           $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\'
 
 
+          # [String[]]$paths = "Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj",
+          #   "Applications\Wpf\CheckScannerUtility\CheckScannerUtility\CheckScannerUtility.csproj",
+          #   "Applications\Wpf\Rock.Wpf\Rock.Wpf.csproj",
+          #   "Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj",
+          #   "Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj",
+          #   "Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj",
+          #   "Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj",
+          #   "Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj",
+          #   "Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj",
+          #   "Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj",
+          #   "Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj",
+          #   "Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj"
+
           $thePath = "$env:GITHUB_WORKSPACE\Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj"
           Get-Content -path $thePath
-          $search = "<OutputPath>bin\Debug\</OutputPath>"
+          $search = "<OutputPath>bin\\Debug\\<\/OutputPath>"
           $replace = "<OutputPath>..\RockWeb\Bin\</OutputPath>"
+          $search
+          $replace
           ((Get-Content -path $thePath -Raw) -replace $search,$replace) | Set-Content -Path $thePath
           Get-Content -path $thePath
           exit
