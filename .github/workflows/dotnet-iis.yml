@@ -103,14 +103,17 @@ jobs:
             ((Get-Content -path $thePath -Raw) -replace $searchRelease,$replace) | Set-Content -Path $thePath
           }
 
+          echo msbuild $SOLUTION_NAME /p:Configuration=Release /t:Rebuild
           msbuild $SOLUTION_NAME /p:Configuration=Release /t:Rebuild
 
       - name: Upload archive
         run: |
           # List env vars
           # dir env:
-          Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\$ARTIFACT_NAME -Force
-          aws s3 cp $env:GITHUB_WORKSPACE\$ARTIFACT_NAME $env:S3_BUCKET_NAME
+          echo Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\$env:ARTIFACT_NAME -Force
+          Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\$env:ARTIFACT_NAME -Force
+          echo aws s3 cp $env:GITHUB_WORKSPACE\$env:ARTIFACT_NAME $env:S3_BUCKET_NAME
+          aws s3 cp $env:GITHUB_WORKSPACE\$env:ARTIFACT_NAME $env:S3_BUCKET_NAME
 
       - name: Deploy website archive
         run: |
