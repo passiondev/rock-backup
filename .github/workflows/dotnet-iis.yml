@@ -9,7 +9,7 @@ env:
   ACTIONS_ALLOW_UNSECURE_COMMANDS: true
   SOLUTION_NAME: "Rock.sln"
   ARTIFACT_NAME: "rockweb.zip" # The artifact name is a zipped archive of all the web files
-  S3_BUCKET_NAME: "connect-deployments" # Make sure this (and the archive loc) matche the AMI User Data script.
+  S3_BUCKET_NAME: "s3://connect-deployments" # Make sure this (and the archive loc) matche the AMI User Data script.
   ASG_NAME: "test-connect-asg"
 
 jobs:
@@ -110,7 +110,7 @@ jobs:
           # List env vars
           # dir env:
           Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\$ARTIFACT_NAME -Force
-          aws s3 cp $env:GITHUB_WORKSPACE\$ARTIFACT_NAME s3://$S3_BUCKET_NAME
+          aws s3 cp $env:GITHUB_WORKSPACE\$ARTIFACT_NAME $S3_BUCKET_NAME
 
       - name: Deploy website archive
         run: |
