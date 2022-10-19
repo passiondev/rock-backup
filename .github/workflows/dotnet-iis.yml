@@ -36,9 +36,9 @@ jobs:
           $env:GITHUB_WORKSPACE
           $env:DevEnvDir = 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\'
 
-
-          $paths = @("Applications/Wpf/CheckScannerUtility/AXInteropBuilder/AXInteropBuilder.csproj",
-            "Applications/Wpf/CheckScannerUtility/CheckScannerUtility/CheckScannerUtility.csproj")
+          Get-ChildItem
+          $paths = @("Applications\Wpf\CheckScannerUtility\AXInteropBuilder\AXInteropBuilder.csproj",
+            "Applications\Wpf\CheckScannerUtility\CheckScannerUtility\CheckScannerUtility.csproj")
           #   "Applications/Wpf/Rock.Wpf/Rock.Wpf.csproj",
           #   "Applications/Wpf/StatementGenerator/StatementGenerator.csproj",
           #   "Dev Tools/Applications/CheckVariableNaming/CheckVariableNaming.csproj",
@@ -88,8 +88,8 @@ jobs:
           $search = "<OutputPath>bin\\Debug\\<\/OutputPath>"
           $replace = "<OutputPath>..\RockWeb\Bin\</OutputPath>"
 
-          For ($i = 0; $i -lt $paths.Length; $i++) {
-            $thePath = "$env:GITHUB_WORKSPACE\$paths[$i]"
+          For ($path in $paths) {
+            $thePath = "$env:GITHUB_WORKSPACE\$path"
             echo $thePath
             Get-Content -path $thePath
             ((Get-Content -path $thePath -Raw) -replace $search,$replace) | Set-Content -Path $thePath
