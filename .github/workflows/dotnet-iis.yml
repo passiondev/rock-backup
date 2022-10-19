@@ -108,40 +108,7 @@ jobs:
           Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\rockweb.zip -Force
           aws s3 cp $env:GITHUB_WORKSPACE\rockweb.zip s3://connect-deployments
 
-      # - name: Deploy website archive`
-      #   run: |
-      #     aws autoscaling start-instance-refresh --auto-scaling-group-name "test-connect-asg"
+      - name: Deploy website archive`
+        run: |
+          aws autoscaling start-instance-refresh --auto-scaling-group-name "test-connect-asg"
 
-    # - name: Setup Nuget.exe for us`e with actions
-    #   uses: Nuget/Setup-nuget@v1.0.2
-
-    # - name: Add dependencies for ASP.NET
-    #   run: |
-    #     wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-    #     sudo dpkg -i packages-microsoft-prod.deb
-    #     sudo apt-get update; sudo apt-get install -y apt-transport-https && sudo apt-get update && sudo apt-get install -y dotnet-sdk-5.0
-
-    # - name: Install dependencies
-    #   run: dotnet restore
-
-    # - name: Build with dotnet
-    #   run: |
-    #     dotnet build --configuration Release Rock
-
-    # - name: dotnet publish 
-    #   run: |
-    #     dotnet publish -c Release -o dotnetwebapp .\dotnet-webapp
-    # - name: Deploy to IIS
-    #   run: |
-    #     iisreset /stop
-    #     Copy-Item ./dotnetwebapp/* C:/inetpub/wwwroot/dotnet-webapp -Recurse -Force
-    #     iisreset /start
-    
-    # - name: Curl the website as a smoke test
-    #   run: curl http://localhost/dotnet-webapp
-
-    # - name: Run Web Test
-    #   run: |
-    #     dotnet build --configuration Release .\dotnet-webapp.webtest
-    #     cd .\dotnet-webapp.webtests
-    #     dotnet test
