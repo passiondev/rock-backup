@@ -110,7 +110,7 @@ jobs:
           # List env vars
           # dir env:
           Compress-Archive -Path $env:GITHUB_WORKSPACE\RockWeb\* -DestinationPath $env:GITHUB_WORKSPACE\$ARTIFACT_NAME -Force
-          aws s3 cp $env:GITHUB_WORKSPACE\$ARTIFACT_NAME $S3_BUCKET_NAME
+          aws s3 cp $env:GITHUB_WORKSPACE\$ARTIFACT_NAME $env:S3_BUCKET_NAME
 
       - name: Deploy website archive
         run: |
